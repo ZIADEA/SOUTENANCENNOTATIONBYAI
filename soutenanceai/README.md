@@ -18,16 +18,17 @@ une notation multi-critères justifiée — que le professeur valide, ajuste et 
 
 1. [Fonctionnalités](#fonctionnalités)
 2. [Stack technique](#stack-technique)
-3. [Installation](#installation)
+3. [Installation](#installation) — et [alternatives aux fichiers non versionnés](#fichiers-volontairement-absents-du-dépôt--et-leurs-alternatives)
 4. [Lancement](#lancement)
 5. [Architecture](#architecture)
-6. [Modèle de données](#modèle-de-données)
-7. [Flux complet d'une soutenance](#flux-complet-dune-soutenance)
-8. [Le système IA en détail](#le-système-ia-en-détail)
-9. [Internationalisation](#internationalisation)
-10. [Tests](#tests)
-11. [Sécurité](#sécurité)
-12. [Limitations connues et perspectives](#limitations-connues-et-perspectives)
+6. [Modèle de données — diagramme de classes](#modèle-de-données--diagramme-de-classes)
+7. [Cas d'utilisation](#cas-dutilisation)
+8. [Flux complet d'une soutenance — diagramme de séquence](#flux-complet-dune-soutenance)
+9. [Le système IA en détail](#le-système-ia-en-détail)
+10. [Internationalisation](#internationalisation)
+11. [Tests](#tests)
+12. [Sécurité](#sécurité)
+13. [Limitations connues et perspectives](#limitations-connues-et-perspectives)
 
 ---
 
@@ -138,9 +139,27 @@ python manage.py migrate
 # 5. Compiler les traductions (polib — pas besoin de GNU gettext)
 python compile_messages.py
 
-# 6. Créer le superadmin
+# 6. Créer le superadmin — ou générer des comptes de démonstration
 python manage.py createsuperuser
+# OU
+python manage.py seed     # crée admin/admin123, prof.martin/prof1234 + étudiants démo
 ```
+
+### Fichiers volontairement absents du dépôt — et leurs alternatives
+
+Par sécurité et hygiène, certains fichiers ne sont **pas versionnés**. Chacun a
+une alternative fournie :
+
+| Non versionné | Pourquoi | Alternative incluse dans le dépôt |
+|---|---|---|
+| `soutenanceai/.env` | Contient les **clés API réelles** (Anthropic, Groq, Gmail) | **`.env.example`** : modèle complet de toutes les variables — copier en `.env` et remplir |
+| `db.sqlite3` | Base de données locale (comptes, données personnelles) | **`manage.py migrate`** recrée le schéma exact (9 migrations versionnées) + **`manage.py seed`** génère des comptes et une session de démonstration |
+| `media/` | Fichiers uploadés par les utilisateurs (PPTX, PDF, enregistrements vidéo personnels) | Recréé automatiquement par Django au premier upload — aucune action requise |
+| `.venv/` | Environnement Python local | **`requirements.txt`** : `pip install -r requirements.txt` reconstruit l'environnement à l'identique |
+| `locale/*/django.mo` compilés ✔ inclus | — | Re-compilables à tout moment : `python compile_messages.py` |
+
+> En clair : `git clone` + les 6 étapes ci-dessus = application **100 % fonctionnelle**,
+> sans aucun fichier secret.
 
 Variables d'environnement principales (`.env`) :
 
@@ -222,37 +241,228 @@ S'y ajoute une couche **temps réel** (consumers Channels) et une couche **servi
 
 ---
 
-## Modèle de données
+## Modèle de données — diagramme de classes
 
-```
-User (AbstractUser + role ∈ {superadmin, professeur, etudiant},
-      sexe, photo_profil, cree_par → User)
-  │
-  ├─< Classe (professeur FK, code_acces unique 8 car., inscrits M2M)
-  │     │
-  │     └─< Session = « soutenance » (classe FK, professeur FK, langue,
-  │           durées, rapport/démo vidéo/GitHub requis + coefficients,
-  │           style_questionnement, style_notation, ajustement_auto_stress,
-  │           mode_notation_groupe, code_acces)
-  │           │
-  │           ├─< CritereNotation (nom, coefficient, est_personnalise, ordre)
-  │           │
-  │           └─< PassageEtudiant (etudiants M2M, type_groupe, ordre_passage,
-  │                 heure_prevue, statut, fichiers PPTX/PDF/vidéo, url_github,
-  │                 transcription globale + individuelle, donnees_posture JSON,
-  │                 enregistrement_video, rappel_envoye, date_debut/fin)
-  │                 │
-  │                 ├─< NoteIA (critere FK, etudiant FK?, note_ia, note_finale,
-  │                 │     justificatif IA, commentaire prof)
-  │                 └─< QuestionPosee (auteur ia/prof, question, reponse_etudiant,
-  │                       evaluation_ia, note_reponse)
+```mermaid
+classDiagram
+    direction LR
+
+    class User {
+        +role : superadmin | professeur | etudiant
+        +sexe : H | F
+        +photo_profil : Image
+        +cree_par : FK User
+        +is_professeur / is_etudiant / is_superadmin
+    }
+
+    class Classe {
+        +nom : str
+        +description : text
+        +code_acces : str(8) unique
+        +date_creation : datetime
+        +save() genere le code
+    }
+
+    class Session {
+        «soutenance»
+        +titre, description
+        +langue : fr|en|ar|es|de
+        +duree_presentation, duree_questions : int
+        +nb_questions_max : int
+        +rapport_obligatoire (+coef)
+        +demo_video_requise (+consignes, coef)
+        +depot_github_requis (+criteres, coef)
+        +style_questionnement : 7 choix
+        +style_notation : 7 choix
+        +ajustement_auto_stress : bool
+        +mode_notation_groupe : 3 modes (+coefs)
+        +code_acces : str(8) unique
+    }
+
+    class CritereNotation {
+        +nom : str
+        +coefficient : float
+        +est_personnalise : bool
+        +ordre : int
+    }
+
+    class PassageEtudiant {
+        +type_groupe : monome|binome|groupe
+        +ordre_passage : int
+        +heure_prevue : datetime
+        +statut : en_attente→en_cours→questions→termine→note
+        +fichier_pptx / pdf_slides / rapport / demo_video
+        +url_depot_github : URL
+        +transcription : text (+ par etudiant JSON)
+        +donnees_posture : JSON
+        +enregistrement_video : File
+        +rappel_envoye : bool
+        +date_debut, date_fin : datetime
+    }
+
+    class NoteIA {
+        +note_ia : float sur 20
+        +note_finale : float sur 20
+        +justificatif_ia : text
+        +commentaire_prof : text
+    }
+
+    class QuestionPosee {
+        +auteur : ia | prof
+        +question : text
+        +reponse_etudiant : text
+        +evaluation_ia : text
+        +note_reponse : float
+    }
+
+    User "1" --> "*" Classe : cree
+    User "*" --> "*" Classe : inscrits
+    User "1" --> "*" User : cree_par
+    Classe "0..1" --> "*" Session
+    User "1" --> "*" Session : professeur
+    Session "1" --> "*" CritereNotation
+    Session "1" --> "*" PassageEtudiant
+    User "*" --> "*" PassageEtudiant : etudiants
+    PassageEtudiant "1" --> "*" NoteIA
+    CritereNotation "1" --> "*" NoteIA
+    User "0..1" --> "*" NoteIA : etudiant (mode individuel)
+    PassageEtudiant "1" --> "*" QuestionPosee
 ```
 
-**Cycle de vie d'un passage** : `en_attente → en_cours → questions → termine → note`.
+### Cycle de vie d'un passage
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> en_attente : planification
+    en_attente --> en_cours : Demarrer
+    en_cours --> questions : Fin presentation
+    questions --> termine : Terminer
+    termine --> note : pipeline IA
+    note --> [*]
+```
 
 ---
 
+## Cas d'utilisation
+
+```mermaid
+flowchart LR
+    SA(["Superadmin"])
+    P(["Professeur"])
+    E(["Etudiant"])
+    IA(["Systeme IA<br>Claude + Whisper"])
+
+    subgraph SoutenanceAI
+        UC1([Gerer les comptes professeurs])
+        UC2([Consulter les statistiques])
+        UC3([Creer / gerer une classe])
+        UC4([Partager code, lien, QR])
+        UC5([Configurer une soutenance])
+        UC6([Planifier les passages])
+        UC7([Auto-planifier<br>groupes, pauses])
+        UC8([Suivre un passage en direct])
+        UC9([Valider / ajuster les notes])
+        UC10([Exporter PDF et Excel])
+        UC11([Rejoindre une classe par code])
+        UC12([Deposer ses fichiers])
+        UC13([Passer la soutenance])
+        UC14([Repondre aux questions IA])
+        UC15([Consulter notes et transcription])
+        UC16([Noter les criteres<br>avec justification])
+        UC17([Transcrire l'audio en continu])
+    end
+
+    SA --- UC1
+    SA --- UC2
+    P --- UC3
+    P --- UC4
+    P --- UC5
+    P --- UC6
+    P --- UC8
+    P --- UC9
+    E --- UC11
+    E --- UC12
+    E --- UC13
+    E --- UC15
+    UC6 -. extend .-> UC7
+    UC13 -. include .-> UC14
+    UC13 -. include .-> UC17
+    UC9 -. include .-> UC16
+    UC9 -. extend .-> UC10
+    UC16 --- IA
+    UC17 --- IA
+```
+
 ## Flux complet d'une soutenance
+
+### Diagramme de séquence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor E as Etudiant (salle)
+    participant D as Django (vues HTTP)
+    participant WS as AudioStreamConsumer (WebSocket)
+    participant W as Whisper (Groq)
+    participant C as Claude (Anthropic)
+    actor P as Professeur (suivi live)
+
+    rect rgb(238, 242, 255)
+    note over E,P: Phase 0 — Preparation
+    E->>D: GET /presentation/passage/id/salle/
+    D-->>E: HTML salle + slides PDF (PDF.js)
+    E->>WS: connexion ws/passage/id/audio/
+    WS-->>E: audio_ready
+    WS-->>P: etudiant_connecte (broadcast)
+    end
+
+    rect rgb(240, 253, 244)
+    note over E,P: Phase 1 — Presentation orale
+    E->>E: TTS accueil vocal (langue session)
+    E->>D: POST api/demarrer (statut = en_cours)
+    D-->>P: statut_update (channel layer)
+    loop toutes les 30 s
+        E->>WS: chunk audio binaire (webm/opus)
+        WS->>W: transcription(chunk, langue)
+        W-->>WS: texte
+        WS-->>P: transcription_chunk (live)
+        WS-->>E: ack + sauvegarde BDD
+    end
+    E->>D: POST api/posture (regard, expressions, prosodie)
+    end
+
+    rect rgb(254, 252, 232)
+    note over E,P: Phase 2 — Questions / reponses
+    E->>D: POST api/terminer-presentation
+    D->>C: generer_questions(transcription, slides, rapport, style)
+    C-->>D: N questions (JSON)
+    D-->>E: questions (statut = questions)
+    loop pour chaque question
+        E->>E: TTS lecture de la question
+        E->>E: STT reponse dictee (ou clavier)
+        E->>D: POST api/repondre
+        D->>C: evaluer_reponse(question, reponse, style)
+        C-->>D: note + commentaire (JSON)
+        D-->>E: evaluation (QuestionPosee en BDD)
+    end
+    end
+
+    rect rgb(253, 242, 248)
+    note over E,P: Phase 3 — Pipeline de notation
+    E->>D: POST api/terminer-passage + upload video
+    D->>D: contexte (slides + rapport + posture + Q&R)
+    D->>D: Orchestrateur (detection stress, ajustement styles)
+    D->>C: noter(ContexteNotation)
+    C-->>D: JSON notes/20 + justificatifs + synthese
+    D-->>P: note_update temps reel (statut = note)
+    D->>D: NoteIA en BDD, email prof si session finie
+    end
+
+    note over P: Phase 4 — Validation : ajustement notes, export Excel, rapport PDF
+```
+
+### Description pas à pas
 
 1. **Le professeur** crée une classe → partage le code/QR → les étudiants rejoignent
    (création de compte intégrée).
