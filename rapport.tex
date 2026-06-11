@@ -391,79 +391,80 @@ BF-13 & Système & Transcrire l'audio par tranches de 30 s ; analyser le comport
 
 \begin{figure}[H]
 \centering
-\resizebox{0.99\textwidth}{!}{%
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   usecase/.style={ellipse, draw=indigodark, thick, fill=grisclair,
-                  minimum width=3.4cm, minimum height=0.85cm,
-                  font=\small, align=center},
+                  text width=2.45cm, align=center, font=\small, inner sep=2pt},
+  ucia/.style={ellipse, draw=indigodark, dashed, thick, fill=white,
+               text width=2.45cm, align=center, font=\small, inner sep=2pt},
+  assoc/.style={draw=grisfonce, thick},
+  dep/.style={dashed, -{Stealth}, thick, draw=grisfonce},
+  st/.style={font=\tiny\itshape, fill=white, inner sep=1pt, sloped},
   sysline/.style={draw=grisfonce, thick, rounded corners},
 ]
   % ── Frontière du système ──
-  \draw[sysline] (-0.4,-10.4) rectangle (12.4,1.0);
-  \node[font=\bfseries\large, color=indigodark] at (6,0.55) {SoutenanceAI};
+  \draw[sysline] (-0.7,1.6) rectangle (16.9,-19.4);
+  \node[font=\bfseries\Large, color=indigodark] at (8.1,1.05) {SoutenanceAI};
+
+  % ── Cas d'utilisation (grille 3 colonnes x 7 rangées) ──
+  % Superadmin
+  \node[usecase] (uc1)  at (2.5,0)    {Gérer les comptes professeurs};
+  \node[usecase] (uc2)  at (8.0,0)    {Consulter les statistiques globales};
+  % Professeur
+  \node[usecase] (uc3)  at (2.5,-3)   {Créer / gérer une classe};
+  \node[usecase] (uc4)  at (8.0,-3)   {Partager code, lien et QR};
+  \node[usecase] (uc5)  at (2.5,-6)   {Configurer une soutenance};
+  \node[usecase] (uc6)  at (8.0,-6)   {Planifier les passages};
+  \node[usecase] (uc7)  at (13.5,-6)  {Auto-planifier (groupes, pauses)};
+  \node[usecase] (uc8)  at (2.5,-9)   {Suivre un passage en direct};
+  \node[usecase] (uc9)  at (8.0,-9)   {Valider / ajuster les notes};
+  \node[usecase] (uc10) at (13.5,-9)  {Exporter PDF et Excel};
+  % Étudiant
+  \node[usecase] (uc11) at (2.5,-12)  {Rejoindre une classe par code};
+  \node[usecase] (uc12) at (8.0,-12)  {Déposer ses fichiers (PPTX, PDF, vidéo)};
+  \node[ucia]    (uc16) at (13.5,-12) {Noter les critères (justification)};
+  \node[usecase] (uc13) at (2.5,-15)  {Passer la soutenance};
+  \node[usecase] (uc14) at (8.0,-15)  {Répondre aux questions de l'IA};
+  \node[ucia]    (uc17) at (13.5,-15) {Transcrire l'audio en continu};
+  \node[usecase] (uc15) at (8.0,-18)  {Consulter notes et transcription};
 
   % ── Acteurs ──
-  \actor{(-2.6,-1.2)}{}{Superadmin}
-  \actor{(-2.6,-4.6)}{}{Professeur}
-  \actor{(-2.6,-8.6)}{}{Étudiant}
-  \actor{(15.0,-5.4)}{}{Système IA\\(Claude + Whisper)}
-
-  % ── Cas d'utilisation : superadmin ──
-  \node[usecase] (uc1) at (2.3,-0.6)  {Gérer les comptes\\professeurs};
-  \node[usecase] (uc2) at (6.6,-0.6)  {Consulter les\\statistiques globales};
-
-  % ── Cas d'utilisation : professeur ──
-  \node[usecase] (uc3) at (2.3,-2.2)  {Créer / gérer\\une classe};
-  \node[usecase] (uc4) at (6.6,-2.2)  {Partager code,\\lien et QR};
-  \node[usecase] (uc5) at (2.3,-3.7)  {Configurer une\\soutenance};
-  \node[usecase] (uc6) at (6.6,-3.7)  {Planifier les\\passages};
-  \node[usecase] (uc7) at (10.4,-3.0) {Auto-planifier\\(groupes, pauses)};
-  \node[usecase] (uc8) at (2.3,-5.2)  {Suivre un passage\\en direct};
-  \node[usecase] (uc9) at (6.6,-5.2)  {Valider / ajuster\\les notes};
-  \node[usecase] (uc10) at (10.4,-5.2){Exporter PDF\\et Excel};
-
-  % ── Cas d'utilisation : étudiant ──
-  \node[usecase] (uc11) at (2.3,-7.0) {Rejoindre une classe\\par code};
-  \node[usecase] (uc12) at (6.6,-7.0) {Déposer ses fichiers\\(PPTX, PDF, vidéo)};
-  \node[usecase] (uc13) at (2.3,-8.7) {Passer la\\soutenance};
-  \node[usecase] (uc14) at (6.6,-8.7) {Répondre aux\\questions de l'IA};
-  \node[usecase] (uc15) at (10.4,-8.0){Consulter notes\\et transcription};
-
-  % ── Cas IA internes ──
-  \node[usecase, fill=white, dashed] (uc16) at (10.4,-6.6) {Noter les critères\\(justification)};
-  \node[usecase, fill=white, dashed] (uc17) at (10.4,-9.6) {Transcrire l'audio\\en continu};
+  \actor{(-3.2,0.4)}{}{Superadmin}
+  \actor{(-3.2,-5.8)}{}{Professeur}
+  \actor{(-3.2,-13.2)}{}{Étudiant}
+  \actor{(19.2,-6.8)}{}{Système IA\\(Claude + Whisper)}
 
   % ── Associations superadmin ──
-  \draw (-2.2,-1.45) -- (uc1.west);
-  \draw (-2.2,-1.45) -- (uc2.west);
+  \draw[assoc] (-2.85,0.1) -- (uc1.west);
+  \draw[assoc] (-2.85,-1.0) -- (uc2.south west);
 
   % ── Associations professeur ──
-  \draw (-2.2,-4.85) -- (uc3.west);
-  \draw (-2.2,-4.85) -- (uc4.west);
-  \draw (-2.2,-4.85) -- (uc5.west);
-  \draw (-2.2,-4.85) -- (uc6.west);
-  \draw (-2.2,-4.85) -- (uc8.west);
-  \draw (-2.2,-4.85) -- (uc9.west);
+  \draw[assoc] (-2.85,-6.0) -- (uc3.west);
+  \draw[assoc] (-2.85,-6.2) -- (uc5.west);
+  \draw[assoc] (-2.85,-6.4) -- (uc8.west);
+  \draw[assoc] (-2.85,-5.0) -- (uc6.north west);
+  \draw[assoc] (-2.85,-7.4) -- (uc9.north west);
 
   % ── Associations étudiant ──
-  \draw (-2.2,-8.85) -- (uc11.west);
-  \draw (-2.2,-8.85) -- (uc12.west);
-  \draw (-2.2,-8.85) -- (uc13.west);
+  \draw[assoc] (-2.85,-13.2) -- (uc11.west);
+  \draw[assoc] (-2.85,-13.6) -- (uc13.west);
+  \draw[assoc] (-2.85,-13.4) -- (uc12.south west);
+  \draw[assoc] (-2.85,-13.8) -- (uc15.west);
 
-  % ── Associations IA ──
-  \draw (14.4,-5.6) -- (uc16.east);
-  \draw (14.4,-5.6) -- (uc17.east);
-  \draw (14.4,-5.6) -- (uc7.east);
+  % ── Associations système IA ──
+  \draw[assoc] (18.85,-6.6) -- (uc7.east);
+  \draw[assoc] (18.85,-6.9) -- (uc16.east);
+  \draw[assoc] (18.85,-7.2) -- (uc17.east);
 
-  % ── include / extend ──
-  \draw[dashed, -{Stealth}] (uc6) -- node[above, font=\scriptsize\itshape]{\guillemotleft extend\guillemotright} (uc7);
-  \draw[dashed, -{Stealth}] (uc13) -- node[above, font=\scriptsize\itshape]{\guillemotleft include\guillemotright} (uc14);
-  \draw[dashed, -{Stealth}] (uc13.south east) -- node[below, font=\scriptsize\itshape]{\guillemotleft include\guillemotright} (uc17.west);
-  \draw[dashed, -{Stealth}] (uc9) -- node[above, font=\scriptsize\itshape]{\guillemotleft include\guillemotright} (uc16);
-  \draw[dashed, -{Stealth}] (uc9) -- node[above, font=\scriptsize\itshape]{\guillemotleft extend\guillemotright} (uc10);
-  \draw[dashed, -{Stealth}] (uc3) -- node[right, font=\scriptsize\itshape]{\guillemotleft include\guillemotright} (uc4);
-  \draw[dashed, -{Stealth}] (uc14) -- node[right, font=\scriptsize\itshape, pos=0.35]{\guillemotleft include\guillemotright} (uc16);
-  \draw (uc11.south) -- (uc15.west);
+  % ── Dépendances include / extend (labels posés sur les flèches) ──
+  \draw[dep] (uc3.east)  -- node[st, above]{\guillemotleft include\guillemotright} (uc4.west);
+  \draw[dep] (uc6.east)  -- node[st, above]{\guillemotleft extend\guillemotright}  (uc7.west);
+  \draw[dep] (uc9.east)  -- node[st, above]{\guillemotleft extend\guillemotright}  (uc10.west);
+  \draw[dep] (uc9.south east)  -- node[st, above]{\guillemotleft include\guillemotright} (uc16.north west);
+  \draw[dep] (uc13.east) -- node[st, above]{\guillemotleft include\guillemotright} (uc14.west);
+  \draw[dep] (uc14.north east) -- node[st, above]{\guillemotleft include\guillemotright} (uc16.south west);
+  \draw[dep] (uc13.south) to[bend right=12]
+       node[st, below]{\guillemotleft include\guillemotright} (uc17.south);
 \end{tikzpicture}%
 }
 \caption{Diagramme de cas d'utilisation global de SoutenanceAI}
