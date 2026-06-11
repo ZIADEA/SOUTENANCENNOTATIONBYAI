@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Mes soutenances" %}{% endblock %}
+{% block extra_css %}<style>.hidden{display:none!important;}</style>{% endblock %}
+{% block content %}
+<h1 style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    {% trans "Mes soutenances" %}
+    <button onclick="document.getElementById('rejoindre-panel').classList.toggle('hidden')"
+            class="btn btn-sm"
+            style="display:inline-flex;align-items:center;gap:5px;">
+        <i data-lucide="plus" class="icon-sm"></i>
+        {% trans "Rejoindre une classe" %}
+    </button>
+</h1>
+
+{# ── Panneau rejoindre avec code ── #}
+<div id="rejoindre-panel" class="card hidden"
+     style="margin-bottom:16px;border:2px solid var(--primary,var(--primary));padding:20px 24px;">
+    <h3 style="display:flex;align-items:center;gap:6px;margin-bottom:12px;">
+        <i data-lucide="key" class="icon-sm" style="color:var(--primary);"></i>
+        {% trans "Rejoindre une classe avec un code" %}
+    </h3>
+    <form onsubmit="rejoindreAvecCode(event)" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input id="code-input-dashboard" type="text" maxlength="10"
+               placeholder="Ex : AB12CD34"
+               class="form-input"
+               style="font-family:monospace;letter-spacing:3px;text-transform:uppercase;width:180px;font-size:16px;">
+        <button type="submit" class="btn"
+                style="display:inline-flex;align-items:center;gap:5px;">
+            <i data-lucide="log-in" class="icon-sm"></i>
+            {% trans "Rejoindre" %}
+        </button>
+        <button type="button" onclick="document.getElementById('rejoindre-panel').classList.add('hidden')"
+                class="btn btn-secondary"
+                style="display:inline-flex;align-items:center;gap:5px;">
+            <i data-lucide="x" class="icon-sm"></i>
+            {% trans "Annuler" %}
+        </button>
+    </form>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">
+        {% trans "Entrez le code de classe partagé par votre professeur (8 caractères)." %}
+    </p>
+</div>
+
+{# ── Classes inscrites ── #}
+{% if classes_info %}
+{% for classe, sessions_info in classes_info %}
+<div class="card" style="margin-bottom:16px;border-left:4px solid var(--primary);padding:0;overflow:hidden;">
+
+    {# En-tête classe #}
+    <div style="padding:14px 18px;background:linear-gradient(90deg,rgba(79,70,229,.07),transparent);display:flex;align-items:center;gap:10px;">
+        <i data-lucide="book-open" class="icon" style="color:var(--primary);flex-shrink:0;"></i>
+        <div style="flex:1;">
+            <strong>{{ classe.nom }}</strong>
+            <span style="font-size:12px;color:var(--text-muted);margin-left:8px;">
+                {% trans "Prof" %} : {{ classe.professeur.get_full_name|default:classe.professeur.username }}
+            </span>
+        </div>
+    </div>
+
+    {# Soutenances de la classe #}
+    {% for soutenance, passage in sessions_info %}
+    <div style="padding:10px 18px 10px 42px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <i data-lucide="presentation" class="icon-xs" style="color:var(--text-muted);flex-shrink:0;"></i>
+        <span style="flex:1;font-size:14px;">{{ soutenance.titre }}</span>
+
+        {% if passage %}
+            {# Heure prevue #}
+            {% if passage.heure_prevue %}
+            <span style="font-size:11px;color:var(--text-muted);display:inline-flex;align-items:center;gap:3px;">
+                <i data-lucide="clock" class="icon-xs"></i>
+                {{ passage.heure_prevue|date:"d/m H:i" }}
+            </span>
+            {% endif %}
+
+            {# Badge statut #}
+            <span class="badge badge-{{ passage.statut }}" style="font-size:11px;">
+                {{ passage.get_statut_display }}
+            </span>
+
+            {# Bouton action selon statut #}
+            {% if passage.statut == 'en_attente' %}
+            <a href="{% url 'presentation:upload' passage.id %}"
+               class="btn btn-sm"
+               style="padding:3px 8px;font-size:12px;display:inline-flex;align-items:center;gap:3px;">
+                <i data-lucide="upload" class="icon-xs"></i>{% trans "Préparer" %}
+            </a>
+            {% elif passage.statut == 'en_cours' or passage.statut == 'questions' %}
+            <a href="{% url 'presentation:salle' passage.id %}"
+               class="btn btn-sm"
+               style="padding:3px 8px;font-size:12px;display:inline-flex;align-items:center;gap:3px;">
+                <i data-lucide="radio" class="icon-xs"></i>{% trans "Rejoindre" %}
+            </a>
+            {% else %}
+            <a href="{% url 'presentation:detail_passage' passage.id %}"
+               class="btn btn-sm btn-secondary"
+               style="padding:3px 8px;font-size:12px;display:inline-flex;align-items:center;gap:3px;">
+                <i data-lucide="eye" class="icon-xs"></i>{% trans "Voir" %}
+            </a>
+            {% endif %}
+
+        {% else %}
+            {# Pas encore de passage planifie pour cet etudiant #}
+            <span style="font-size:11px;color:var(--text-muted);font-style:italic;display:inline-flex;align-items:center;gap:3px;">
+                <i data-lucide="clock" class="icon-xs"></i>
+                {% trans "Passage non encore planifié" %}
+            </span>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div style="padding:10px 18px 10px 42px;border-top:1px solid var(--border);color:var(--text-muted);font-size:13px;">
+        {% trans "Aucune soutenance dans cette classe pour le moment." %}
+    </div>
+    {% endfor %}
+
+</div>
+{% endfor %}
+{% endif %}
+
+{# ── Etat vide : aucune classe ── #}
+{% if not has_content %}
+<div class="card" style="text-align:center;padding:40px 24px;">
+    <i data-lucide="inbox" style="width:48px;height:48px;stroke-width:1.5;color:var(--text-muted);display:block;margin:0 auto 16px;"></i>
+    <p style="color:var(--text-muted);margin:0 0 16px;">
+        {% trans "Vous n'êtes inscrit(e) à aucune classe pour le moment." %}
+    </p>
+    <button onclick="document.getElementById('rejoindre-panel').classList.remove('hidden');document.getElementById('code-input-dashboard').focus();"
+            class="btn btn-sm" style="display:inline-flex;align-items:center;gap:5px;">
+        <i data-lucide="plus" class="icon-sm"></i>
+        {% trans "Rejoindre une classe avec un code" %}
+    </button>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    var inp = document.getElementById('code-input-dashboard');
+    if(inp) inp.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
+});
+function rejoindreAvecCode(e){
+    e.preventDefault();
+    var code = document.getElementById('code-input-dashboard').value.trim().toUpperCase();
+    if(!code){ document.getElementById('code-input-dashboard').focus(); return; }
+    window.location = '/classes/rejoindre/' + code + '/';
+}
+</script>
+{% endblock %}

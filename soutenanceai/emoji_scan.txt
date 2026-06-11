@@ -1,0 +1,7 @@
+EMOJI RESTANTS:
+templates\landing.html:204: .role-card ul li::before { content: "✓ "; color: var(--green); font-weight: 700; }
+templates\presentation\salle.html:84: <button class="ctrl-btn active" id="btn-mic" onclick="toggleMic()">🎤 Micro ON</button>
+templates\presentation\salle.html:95: <h2>🤖 Question de l'IA</h2>
+templates\presentation\salle.html:222: btn.textContent = micActive ? '🎤 Micro ON' : '🔇 Micro OFF';
+templates\presentation\salle.html:424: document.getElementById('qa-status').textContent = '🔊 Lecture de la question par l\'IA…';
+templates\presentation\salle.html:427: document.getElementById('qa-status').textContent = '🎙 Tapez ou dictez votre réponse, puis cliquez sur Valider.';

@@ -1,0 +1,1274 @@
+% ============================================================================
+% SoutenanceAI — Rapport de projet
+% Cours : Digital Web Prototyping — Pr. Bakkas B.
+% ENSAM Meknès — Université Moulay Ismaïl
+% Auteur : DJERI-ALASSANI OUBENOUPOU
+% Compilation : pdflatex rapport.tex (x2 pour la table des matières)
+% ============================================================================
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[french]{babel}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,shapes.multipart,shapes.misc,arrows.meta,positioning,fit,backgrounds,calc,babel}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\usepackage{float}
+\usepackage{caption}
+
+% ── Couleurs de la charte SoutenanceAI ──────────────────────────────────────
+\definecolor{indigo}{HTML}{4F46E5}
+\definecolor{indigodark}{HTML}{3730A3}
+\definecolor{violet}{HTML}{7C3AED}
+\definecolor{vert}{HTML}{10B981}
+\definecolor{rouge}{HTML}{EF4444}
+\definecolor{grisclair}{HTML}{F1F5F9}
+\definecolor{grisfonce}{HTML}{334155}
+\definecolor{codegris}{HTML}{F8FAFC}
+
+% ── Style des titres ────────────────────────────────────────────────────────
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{indigodark}}
+  {\chaptertitlename\ \thechapter}{16pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{30pt}
+
+% ── Listings (extraits de code) ─────────────────────────────────────────────
+\lstset{
+  backgroundcolor=\color{codegris},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{indigo}\bfseries,
+  commentstyle=\color{grisfonce}\itshape,
+  stringstyle=\color{vert},
+  numbers=left, numberstyle=\tiny\color{grisfonce},
+  frame=single, framerule=0.3pt, rulecolor=\color{grisfonce},
+  breaklines=true, showstringspaces=false, tabsize=4,
+  literate={é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {ë}{{\"e}}1
+           {à}{{\`a}}1 {â}{{\^a}}1 {î}{{\^i}}1 {ï}{{\"i}}1
+           {ô}{{\^o}}1 {ù}{{\`u}}1 {û}{{\^u}}1 {ç}{{\c c}}1
+           {É}{{\'E}}1 {È}{{\`E}}1 {À}{{\`A}}1 {Ç}{{\c C}}1
+           {œ}{{\oe}}1 {«}{{\og}}1 {»}{{\fg}}1 {–}{{--}}1 {—}{{---}}1
+           {→}{{$\rightarrow$}}1 {≈}{{$\approx$}}1 {×}{{$\times$}}1,
+}
+
+% ── Macros diagrammes ───────────────────────────────────────────────────────
+% Acteur UML (bonhomme bâton)
+\newcommand{\actor}[3]{%
+  \begin{scope}[shift={#1}]
+    \draw[thick] (0,0.32) circle (0.13);                 % tête
+    \draw[thick] (0,0.19) -- (0,-0.12);                  % corps
+    \draw[thick] (-0.18,0.08) -- (0.18,0.08);            % bras
+    \draw[thick] (0,-0.12) -- (-0.15,-0.38);             % jambe g
+    \draw[thick] (0,-0.12) -- (0.15,-0.38);              % jambe d
+    \node[below=0.42cm, font=\small\bfseries, align=center] at (0,0) {#3};
+  \end{scope}
+}
+
+\begin{document}
+
+% ============================================================================
+% PAGE DE GARDE
+% ============================================================================
+\begin{titlepage}
+  \centering
+  % Bandeau logos
+  \begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=0.85\linewidth]{logo-ensam.png}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{logo-app.jpg}
+  \end{minipage}
+
+  \vspace{0.8cm}
+  {\large \textsc{Université Moulay Ismaïl}}\\[2pt]
+  {\large \textsc{École Nationale Supérieure d'Arts et Métiers --- ENSAM Meknès}}\\[2pt]
+  {\small Filière : Intelligence Artificielle et Technologies des Données --- Systèmes Industriels (IATD-SI)}
+
+  \vspace{1.4cm}
+  {\color{indigodark}\rule{\textwidth}{1.2pt}}
+
+  \vspace{0.9cm}
+  {\Huge\bfseries\color{indigodark} SoutenanceAI\\[10pt]}
+  {\LARGE Plateforme web de gestion et de notation\\intelligente des soutenances académiques\\}
+
+  \vspace{0.7cm}
+  {\color{indigodark}\rule{\textwidth}{1.2pt}}
+
+  \vspace{1.1cm}
+  {\large Rapport de projet --- module \textbf{Digital Web Prototyping}}
+
+  \vspace{1.4cm}
+  \begin{minipage}{0.46\textwidth}
+    \raggedright
+    \textbf{Réalisé par :}\\[4pt]
+    DJERI-ALASSANI Oubenoupou\\
+    \textit{2\up{e} année cycle ingénieur}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.46\textwidth}
+    \raggedleft
+    \textbf{Encadré par :}\\[4pt]
+    Pr. BAKKAS B.
+  \end{minipage}
+
+  \vfill
+  {\large Année universitaire 2025 -- 2026}
+\end{titlepage}
+
+% ============================================================================
+% RÉSUMÉ
+% ============================================================================
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+
+L'évaluation des soutenances académiques repose aujourd'hui sur un processus
+entièrement manuel : prise de notes au vol, grilles papier, questions improvisées,
+absence de trace exploitable a posteriori. Ce projet propose
+\textbf{SoutenanceAI}, une application web complète développée avec le framework
+\textbf{Django}, dans laquelle une intelligence artificielle examinatrice assiste
+le professeur sur l'ensemble du cycle de vie d'une soutenance : transcription de
+la présentation orale en temps réel (Whisper), génération et lecture à voix haute
+de questions ancrées dans le contenu réel de l'étudiant (Claude), analyse
+comportementale dans le navigateur (contact visuel, expressions faciales,
+prosodie), puis notation multi-critères justifiée que le professeur valide,
+ajuste et exporte en PDF ou Excel.
+
+L'application met en œuvre les concepts centraux du module \emph{Digital Web
+Prototyping} : architecture \textbf{MVT} de Django, ORM et migrations,
+formulaires et validation, authentification multi-rôles, internationalisation
+(5 langues dont l'arabe en RTL), ainsi que des extensions avancées : WebSockets
+avec Django Channels (ASGI), pipeline d'agents IA configurables sur deux axes de
+personnalité, et une suite de \textbf{258 tests automatisés}.
+
+\medskip
+\noindent\textbf{Mots-clés :} Django, MVT, WebSocket, Channels, IA générative,
+Claude, Whisper, notation automatique, soutenance, i18n.
+
+\tableofcontents
+\listoffigures
+
+% ============================================================================
+% INTRODUCTION
+% ============================================================================
+\chapter*{Introduction générale}
+\addcontentsline{toc}{chapter}{Introduction générale}
+
+La soutenance est l'exercice académique par excellence : l'étudiant y défend un
+travail devant un jury qui doit, en quelques dizaines de minutes, évaluer à la
+fois le fond (rigueur, maîtrise du sujet) et la forme (clarté, posture, gestion
+du stress, qualité des réponses). Or ce processus souffre de limites bien
+connues : la charge cognitive du jury est élevée (écouter, questionner et noter
+simultanément), la traçabilité est faible (aucune transcription, aucune mesure
+objective), et l'équité entre candidats dépend de la fatigue et de la
+subjectivité du moment.
+
+Parallèlement, trois familles de technologies ont atteint une maturité
+suffisante pour répondre à ces limites : les grands modèles de langage capables
+d'évaluer un discours selon une grille de critères en justifiant chaque note ;
+la reconnaissance vocale de haute qualité en quasi temps réel ; et l'analyse
+comportementale embarquée dans le navigateur, sans installation côté client.
+
+\textbf{SoutenanceAI} est née de la rencontre de ces deux constats. Il s'agit
+d'une application web complète --- et non d'un prototype jetable --- développée
+avec Django dans le cadre du module \emph{Digital Web Prototyping}. Elle couvre
+le cycle complet : création de classes et de soutenances par le professeur,
+inscription des étudiants par code d'accès, planification automatique des
+passages, salle de soutenance interactive de type visioconférence, notation IA
+multi-critères, validation par le professeur et production des livrables
+(rapports PDF, exports Excel).
+
+Ce rapport est organisé en cinq chapitres. Le chapitre 1 précise le contexte,
+la problématique et les objectifs. Le chapitre 2 présente l'analyse et la
+conception : acteurs, besoins, \textbf{diagramme de cas d'utilisation},
+\textbf{diagramme de classes} et \textbf{diagramme de séquence} détaillant le
+fonctionnement interne. Le chapitre 3 justifie les choix technologiques et
+l'architecture, en insistant sur le pattern MVT de Django. Le chapitre 4 décrit
+la réalisation fonctionnalité par fonctionnalité, extraits de code à l'appui.
+Le chapitre 5 traite des tests, de la sécurité et de la qualité logicielle.
+
+% ============================================================================
+\chapter{Contexte, problématique et objectifs}
+% ============================================================================
+
+\section{Le processus traditionnel de soutenance}
+
+Dans une école d'ingénieurs, une session de soutenances mobilise un ou
+plusieurs enseignants pendant des journées entières. Pour chaque passage, le
+jury doit : accueillir le candidat, suivre la présentation en prenant des
+notes, préparer des questions pertinentes pendant l'écoute, les poser, évaluer
+les réponses, remplir une grille de notation, puis enchaîner immédiatement avec
+le candidat suivant. Les artefacts produits (notes manuscrites, grilles) sont
+rarement numérisés et jamais reliés à un enregistrement de la prestation.
+
+\section{Problématique}
+
+Le projet répond à la question suivante : \emph{comment concevoir une
+application web qui automatise les tâches mécaniques d'une soutenance
+(transcription, chronométrage, questions de premier niveau, pré-notation
+documentée) tout en laissant au professeur la décision finale, et ce dans un
+cadre multilingue, équitable et traçable ?}
+
+Cette question se décompose en sous-problèmes techniques précis :
+\begin{enumerate}[label=\alph*)]
+  \item capter l'audio et la vidéo du candidat \emph{dans le navigateur}, sans
+        installation, et transcrire la parole en continu ;
+  \item faire dialoguer en temps réel l'étudiant, le serveur et le professeur
+        (transcription live, notes qui apparaissent instantanément) --- ce que
+        le cycle requête/réponse HTTP classique ne permet pas ;
+  \item construire un \emph{contexte d'évaluation} complet pour l'IA :
+        transcription, contenu des slides et du rapport, questions/réponses,
+        mesures comportementales, consignes du professeur ;
+  \item garantir que l'IA note selon la personnalité pédagogique choisie par le
+        professeur, avec un garde-fou pour les étudiants en situation de stress ;
+  \item assurer une isolation stricte des données entre professeurs et un
+        contrôle d'accès par rôle sur chaque vue et chaque WebSocket.
+\end{enumerate}
+
+\section{Objectifs du projet}
+
+\begin{itemize}
+  \item \textbf{O1} --- Offrir au professeur une gestion complète : classes avec
+        code d'accès et QR, soutenances configurables, planification manuelle et
+        automatique des passages, exports.
+  \item \textbf{O2} --- Offrir à l'étudiant une salle de soutenance immersive :
+        slides, webcam, jury IA vocal, questions interactives.
+  \item \textbf{O3} --- Produire une notation IA \emph{justifiée} critère par
+        critère, modifiable par le professeur, avec rapport PDF.
+  \item \textbf{O4} --- Fonctionner en 5 langues (fr, en, ar, es, de) avec
+        support RTL complet pour l'arabe.
+  \item \textbf{O5} --- Atteindre une qualité logicielle vérifiable : suite de
+        tests automatisés, contrôle d'accès systématique, secrets hors du code.
+\end{itemize}
+
+\section{Lien avec le module Digital Web Prototyping}
+
+Le module porte sur la conception et le prototypage d'applications web avec
+Django. Le projet exploite la quasi-totalité des notions du cours et les
+prolonge :
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{p{5.2cm}p{9.6cm}}
+\toprule
+\textbf{Notion du cours} & \textbf{Mise en œuvre dans SoutenanceAI} \\
+\midrule
+Architecture MVC / MVT & 4 applications Django découpées par domaine ; séparation stricte modèles / vues / templates (§\ref{sec:mvt}) \\
+ORM et migrations & 7 modèles métier, relations 1-N et N-N, propriétés calculées, 9 migrations versionnées \\
+URLs et vues & Routage par \texttt{include()} par application, vues fonctionnelles décorées \\
+Templates & Héritage (\texttt{base.html}), tags i18n, filtres personnalisés (\texttt{templatetags/extras.py}) \\
+Formulaires & \texttt{ModelForm}, \texttt{Form}, validation personnalisée (\texttt{clean\_*}), formsets dynamiques côté client \\
+Authentification & \texttt{AbstractUser} étendu, 3 rôles, décorateurs d'accès maison \\
+Fichiers statiques / médias & Upload PPTX/PDF/vidéo, conversion serveur, service des médias \\
+Internationalisation & 5 langues, \texttt{LocaleMiddleware}, RTL, compilation polib \\
+\emph{Extension} : ASGI & Django Channels, deux consumers WebSocket, Daphne \\
+\emph{Extension} : IA & SDK Anthropic et Groq, agents configurables, pipeline de notation \\
+\emph{Extension} : tests & pytest-django, pytest-asyncio --- 258 tests \\
+\bottomrule
+\end{tabular}
+\caption{Correspondance entre le contenu du module et le projet}
+\end{table}
+
+% ============================================================================
+\chapter{Analyse et conception}
+% ============================================================================
+
+\section{Acteurs du système}
+
+\begin{description}[style=nextline]
+  \item[Superadmin] Administre la plateforme : création/suppression des comptes
+        professeurs, statistiques globales, accès en lecture à toutes les
+        soutenances.
+  \item[Professeur] S'inscrit librement. Crée ses classes et soutenances,
+        importe/inscrit ses étudiants, planifie les passages, suit les
+        soutenances en direct, valide les notes, exporte les livrables.
+  \item[Étudiant] Rejoint une classe via un code. Dépose ses fichiers, passe
+        sa soutenance dans la salle interactive, consulte ses résultats.
+  \item[Système IA (acteur secondaire)] Ensemble des services externes
+        sollicités par le serveur : Whisper/Groq (transcription), Claude/Anthropic
+        (questions, évaluation des réponses, notation, analyse vidéo et GitHub).
+\end{description}
+
+\section{Besoins fonctionnels}
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{llp{10.3cm}}
+\toprule
+\textbf{Réf.} & \textbf{Acteur} & \textbf{Besoin} \\
+\midrule
+BF-01 & Professeur & S'inscrire en autonomie et se connecter \\
+BF-02 & Professeur & Créer / éditer / supprimer une classe ; partager code, lien et QR \\
+BF-03 & Professeur & Créer une soutenance : langue, durées, critères pondérés, exigences (rapport, démo vidéo, dépôt GitHub), styles IA \\
+BF-04 & Professeur & Planifier les passages manuellement ou automatiquement (monôme/binôme/groupe, ordre, pauses) ; importer des groupes ; exporter le planning Excel \\
+BF-05 & Professeur & Suivre un passage en direct (transcription, statut, notes) et poser une question relayée vocalement \\
+BF-06 & Professeur & Valider / ajuster chaque note IA, re-déclencher la notation, exporter notes Excel et rapport PDF \\
+BF-07 & Étudiant & Rejoindre une classe par code avec création de compte intégrée (identifiant choisi) \\
+BF-08 & Étudiant & Déposer PPTX (converti et affiché en slides), rapport PDF, démo vidéo, URL GitHub \\
+BF-09 & Étudiant & Passer la soutenance : timer, micro, transcription continue, questions IA vocales, réponses à la voix \\
+BF-10 & Étudiant & Recevoir un rappel email 10 minutes avant son passage \\
+BF-11 & Étudiant & Consulter notes, synthèse, transcription et enregistrement \\
+BF-12 & Superadmin & Gérer les comptes professeurs et visualiser les statistiques \\
+BF-13 & Système & Transcrire l'audio par tranches de 30 s ; analyser le comportement ; noter chaque critère sur 20 avec justification \\
+\bottomrule
+\end{tabular}
+\caption{Besoins fonctionnels principaux}
+\end{table}
+
+\section{Besoins non fonctionnels}
+
+\begin{itemize}
+  \item \textbf{Temps réel} : latence de diffusion de la transcription $<$ 2 s
+        après la fin d'un chunk audio (WebSocket, pas de polling).
+  \item \textbf{Sécurité} : contrôle d'accès par rôle sur 100\,\% des vues ;
+        isolation par propriétaire (un professeur ne voit jamais les données
+        d'un autre) ; secrets exclusivement en variables d'environnement.
+  \item \textbf{Internationalisation} : interface intégralement traduite en
+        5 langues, dont une langue RTL ; langue de soutenance indépendante de la
+        langue d'interface.
+  \item \textbf{Accessibilité / UX} : thème clair/sombre persistant, icônes
+        vectorielles uniformes, identité visuelle unique (variables CSS).
+  \item \textbf{Testabilité} : logique IA isolée dans des services purs,
+        mockables ; suite pytest exécutable en local sans clé API.
+  \item \textbf{Portabilité} : développement sous Windows, SQLite par défaut,
+        bascule PostgreSQL/Redis par simple variable d'environnement.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\section{Diagramme de cas d'utilisation}
+% ----------------------------------------------------------------------------
+
+\begin{figure}[H]
+\centering
+\resizebox{0.99\textwidth}{!}{%
+\begin{tikzpicture}[
+  usecase/.style={ellipse, draw=indigodark, thick, fill=grisclair,
+                  minimum width=3.4cm, minimum height=0.85cm,
+                  font=\small, align=center},
+  sysline/.style={draw=grisfonce, thick, rounded corners},
+]
+  % ── Frontière du système ──
+  \draw[sysline] (-0.4,-10.4) rectangle (12.4,1.0);
+  \node[font=\bfseries\large, color=indigodark] at (6,0.55) {SoutenanceAI};
+
+  % ── Acteurs ──
+  \actor{(-2.6,-1.2)}{}{Superadmin}
+  \actor{(-2.6,-4.6)}{}{Professeur}
+  \actor{(-2.6,-8.6)}{}{Étudiant}
+  \actor{(15.0,-5.4)}{}{Système IA\\(Claude + Whisper)}
+
+  % ── Cas d'utilisation : superadmin ──
+  \node[usecase] (uc1) at (2.3,-0.6)  {Gérer les comptes\\professeurs};
+  \node[usecase] (uc2) at (6.6,-0.6)  {Consulter les\\statistiques globales};
+
+  % ── Cas d'utilisation : professeur ──
+  \node[usecase] (uc3) at (2.3,-2.2)  {Créer / gérer\\une classe};
+  \node[usecase] (uc4) at (6.6,-2.2)  {Partager code,\\lien et QR};
+  \node[usecase] (uc5) at (2.3,-3.7)  {Configurer une\\soutenance};
+  \node[usecase] (uc6) at (6.6,-3.7)  {Planifier les\\passages};
+  \node[usecase] (uc7) at (10.4,-3.0) {Auto-planifier\\(groupes, pauses)};
+  \node[usecase] (uc8) at (2.3,-5.2)  {Suivre un passage\\en direct};
+  \node[usecase] (uc9) at (6.6,-5.2)  {Valider / ajuster\\les notes};
+  \node[usecase] (uc10) at (10.4,-5.2){Exporter PDF\\et Excel};
+
+  % ── Cas d'utilisation : étudiant ──
+  \node[usecase] (uc11) at (2.3,-7.0) {Rejoindre une classe\\par code};
+  \node[usecase] (uc12) at (6.6,-7.0) {Déposer ses fichiers\\(PPTX, PDF, vidéo)};
+  \node[usecase] (uc13) at (2.3,-8.7) {Passer la\\soutenance};
+  \node[usecase] (uc14) at (6.6,-8.7) {Répondre aux\\questions de l'IA};
+  \node[usecase] (uc15) at (10.4,-8.0){Consulter notes\\et transcription};
+
+  % ── Cas IA internes ──
+  \node[usecase, fill=white, dashed] (uc16) at (10.4,-6.6) {Noter les critères\\(justification)};
+  \node[usecase, fill=white, dashed] (uc17) at (10.4,-9.6) {Transcrire l'audio\\en continu};
+
+  % ── Associations superadmin ──
+  \draw (-2.2,-1.45) -- (uc1.west);
+  \draw (-2.2,-1.45) -- (uc2.west);
+
+  % ── Associations professeur ──
+  \draw (-2.2,-4.85) -- (uc3.west);
+  \draw (-2.2,-4.85) -- (uc4.west);
+  \draw (-2.2,-4.85) -- (uc5.west);
+  \draw (-2.2,-4.85) -- (uc6.west);
+  \draw (-2.2,-4.85) -- (uc8.west);
+  \draw (-2.2,-4.85) -- (uc9.west);
+
+  % ── Associations étudiant ──
+  \draw (-2.2,-8.85) -- (uc11.west);
+  \draw (-2.2,-8.85) -- (uc12.west);
+  \draw (-2.2,-8.85) -- (uc13.west);
+
+  % ── Associations IA ──
+  \draw (14.4,-5.6) -- (uc16.east);
+  \draw (14.4,-5.6) -- (uc17.east);
+  \draw (14.4,-5.6) -- (uc7.east);
+
+  % ── include / extend ──
+  \draw[dashed, -{Stealth}] (uc6) -- node[above, font=\scriptsize\itshape]{\guillemotleft extend\guillemotright} (uc7);
+  \draw[dashed, -{Stealth}] (uc13) -- node[above, font=\scriptsize\itshape]{\guillemotleft include\guillemotright} (uc14);
+  \draw[dashed, -{Stealth}] (uc13.south east) -- node[below, font=\scriptsize\itshape]{\guillemotleft include\guillemotright} (uc17.west);
+  \draw[dashed, -{Stealth}] (uc9) -- node[above, font=\scriptsize\itshape]{\guillemotleft include\guillemotright} (uc16);
+  \draw[dashed, -{Stealth}] (uc9) -- node[above, font=\scriptsize\itshape]{\guillemotleft extend\guillemotright} (uc10);
+  \draw[dashed, -{Stealth}] (uc3) -- node[right, font=\scriptsize\itshape]{\guillemotleft include\guillemotright} (uc4);
+  \draw[dashed, -{Stealth}] (uc14) -- node[right, font=\scriptsize\itshape, pos=0.35]{\guillemotleft include\guillemotright} (uc16);
+  \draw (uc11.south) -- (uc15.west);
+\end{tikzpicture}%
+}
+\caption{Diagramme de cas d'utilisation global de SoutenanceAI}
+\label{fig:usecase}
+\end{figure}
+
+Le cas central est \emph{Passer la soutenance} : il inclut la transcription
+continue et la session de questions/réponses avec l'IA. Côté professeur,
+\emph{Valider les notes} inclut la notation IA préalable (le professeur ne part
+jamais d'une page blanche) et peut s'étendre vers les exports.
+
+% ----------------------------------------------------------------------------
+\section{Diagramme de classes}
+% ----------------------------------------------------------------------------
+
+Le modèle de données compte sept classes métier réparties dans trois
+applications (\texttt{accounts}, \texttt{sessions\_app}, \texttt{notation}).
+La figure~\ref{fig:classes} présente les attributs significatifs et les
+multiplicités.
+
+\begin{figure}[H]
+\centering
+\resizebox{0.99\textwidth}{!}{%
+\begin{tikzpicture}[
+  classe/.style={rectangle split, rectangle split parts=2, draw=indigodark,
+                 thick, fill=white, font=\scriptsize, align=left,
+                 text width=4.1cm, inner sep=4pt},
+  classetitre/.style={font=\scriptsize\bfseries},
+  rel/.style={draw=grisfonce, thick},
+  mult/.style={font=\tiny, color=grisfonce},
+]
+  % ── User ──
+  \node[classe] (user) at (0,0) {%
+    \textbf{User} \textit{(AbstractUser)}
+    \nodepart{second}
+    role : superadmin / professeur / etudiant\\
+    sexe : H / F\\
+    photo\_profil : Image\\
+    cree\_par : FK User\\[2pt]
+    + is\_professeur, is\_etudiant,\\
+    \quad is\_superadmin (properties)
+  };
+
+  % ── Classe ──
+  \node[classe] (cl) at (6.4,0) {%
+    \textbf{Classe}
+    \nodepart{second}
+    nom : str\\
+    description : text\\
+    code\_acces : str(8) unique\\
+    date\_creation : datetime\\[2pt]
+    + save() : génère le code
+  };
+
+  % ── Session ──
+  \node[classe, text width=5.2cm] (sess) at (12.9,0) {%
+    \textbf{Session} \textit{(= soutenance)}
+    \nodepart{second}
+    titre, description, langue (5 choix)\\
+    duree\_presentation, duree\_questions,\\
+    nb\_questions\_max : int\\
+    rapport\_obligatoire (+ coef)\\
+    demo\_video\_requise (+ consignes, coef)\\
+    depot\_github\_requis (+ critères, coef)\\
+    style\_questionnement (7 choix)\\
+    style\_notation (7 choix)\\
+    ajustement\_auto\_stress : bool\\
+    mode\_notation\_groupe (3 modes + coefs)\\
+    code\_acces : str(8) unique
+  };
+
+  % ── CritereNotation ──
+  \node[classe] (crit) at (12.9,-5.6) {%
+    \textbf{CritereNotation}
+    \nodepart{second}
+    nom : str\\
+    coefficient : float\\
+    est\_personnalise : bool\\
+    ordre : int
+  };
+
+  % ── PassageEtudiant ──
+  \node[classe, text width=5.4cm] (pass) at (6.4,-6.2) {%
+    \textbf{PassageEtudiant}
+    \nodepart{second}
+    type\_groupe : monome/binome/groupe\\
+    ordre\_passage : int, heure\_prevue : datetime\\
+    statut : en\_attente / en\_cours / questions / termine / note\\
+    fichier\_pptx, fichier\_pdf\_slides,\\
+    fichier\_rapport, fichier\_demo\_video\\
+    url\_depot\_github : URL\\
+    transcription : text (+ par étudiant : JSON)\\
+    donnees\_posture : JSON\\
+    enregistrement\_video : File\\
+    rappel\_envoye : bool\\
+    date\_debut, date\_fin : datetime
+  };
+
+  % ── NoteIA ──
+  \node[classe] (note) at (0,-6.6) {%
+    \textbf{NoteIA}
+    \nodepart{second}
+    note\_ia : float (/20)\\
+    note\_finale : float (/20)\\
+    justificatif\_ia : text\\
+    commentaire\_prof : text\\
+    etudiant : FK User (mode individuel)
+  };
+
+  % ── QuestionPosee ──
+  \node[classe] (qp) at (0,-10.6) {%
+    \textbf{QuestionPosee}
+    \nodepart{second}
+    auteur : ia / prof\\
+    question : text\\
+    reponse\_etudiant : text\\
+    evaluation\_ia : text\\
+    note\_reponse : float
+  };
+
+  % ── Relations ──
+  % User -- Classe (professeur)
+  \draw[rel] (user.east) -- node[mult, above]{1} node[mult, above, pos=0.92]{*} node[above, font=\tiny\itshape]{crée} (cl.west);
+  % User -- Classe (inscrits)
+  \draw[rel] (user.south east) .. controls (3.4,-2.6) .. node[mult, above, pos=0.08]{*} node[mult, above, pos=0.9]{*} node[below, font=\tiny\itshape]{inscrits} (cl.south west);
+  % Classe -- Session
+  \draw[rel] (cl.east) -- node[mult, above]{0..1} node[mult, above, pos=0.9]{*} (sess.west);
+  % Session -- Critere
+  \draw[rel] (sess.south) -- node[mult, right]{1} node[mult, right, pos=0.85]{*} (crit.north);
+  % Session -- Passage
+  \draw[rel] (sess.south west) .. controls (9.6,-3.4) .. node[mult, above, pos=0.1]{1} node[mult, above, pos=0.9]{*} (pass.north east);
+  % Passage -- User (etudiants)
+  \draw[rel] (user.south) .. controls (0.4,-3.4) and (3.0,-4.4) .. node[mult, left, pos=0.15]{*} node[mult, above, pos=0.9]{*} node[left, font=\tiny\itshape, pos=0.5]{etudiants} (pass.west);
+  % Passage -- NoteIA
+  \draw[rel] (pass.south west) -- node[mult, above, pos=0.1]{1} node[mult, above, pos=0.9]{*} (note.east);
+  % NoteIA -- Critere
+  \draw[rel] (note.south east) .. controls (6.4,-9.4) and (10.8,-8.2) .. node[mult, below, pos=0.07]{*} node[mult, right, pos=0.95]{1} (crit.south);
+  % Passage -- QuestionPosee
+  \draw[rel] (pass.south) .. controls (6.0,-10.2) .. node[mult, right, pos=0.08]{1} node[mult, above, pos=0.93]{*} (qp.east);
+\end{tikzpicture}%
+}
+\caption{Diagramme de classes du domaine métier}
+\label{fig:classes}
+\end{figure}
+
+\paragraph{Points de conception notables.}
+\begin{itemize}
+  \item \texttt{User} étend \texttt{AbstractUser} avec un champ \texttt{role}
+        discriminant --- un seul modèle d'utilisateur, trois visages
+        (\texttt{AUTH\_USER\_MODEL = 'accounts.User'}). Le champ
+        \texttt{cree\_par} relie chaque étudiant au professeur qui a créé son
+        compte, fondement de l'isolation des données.
+  \item \texttt{Classe} matérialise le concept « Google Classroom » : les
+        étudiants la rejoignent \emph{une fois} ; toutes les soutenances de la
+        classe leur sont ensuite accessibles.
+  \item \texttt{PassageEtudiant} porte une relation N-N vers \texttt{User} :
+        un passage peut être un monôme, un binôme ou un groupe ; la
+        transcription individuelle par étudiant (JSON, alimentée par
+        l'identification faciale) permet la notation individuelle au sein d'un
+        groupe.
+  \item \texttt{NoteIA} sépare \texttt{note\_ia} (proposition de l'IA,
+        immuable) et \texttt{note\_finale} (décision du professeur) : la
+        traçabilité de l'ajustement humain est conservée.
+\end{itemize}
+
+\paragraph{Cycle de vie d'un passage.} Le champ \texttt{statut} suit un
+automate strict, piloté par les vues et diffusé en temps réel au professeur :
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  etat/.style={rectangle, rounded corners=8pt, draw=indigodark, thick,
+               fill=grisclair, font=\small\bfseries, minimum height=0.8cm,
+               inner xsep=10pt},
+  fleche/.style={-{Stealth}, thick, draw=grisfonce},
+  evt/.style={font=\scriptsize\itshape, color=grisfonce},
+]
+  \node[etat] (a) at (0,0)    {en\_attente};
+  \node[etat] (b) at (3.6,0)  {en\_cours};
+  \node[etat] (c) at (7.1,0)  {questions};
+  \node[etat] (d) at (10.5,0) {termine};
+  \node[etat, fill=vert!15] (e) at (13.7,0) {note};
+  \draw[fleche] (a) -- node[evt, above]{Démarrer} (b);
+  \draw[fleche] (b) -- node[evt, above]{Fin présent.} (c);
+  \draw[fleche] (c) -- node[evt, above]{Terminer} (d);
+  \draw[fleche] (d) -- node[evt, above]{pipeline IA} (e);
+\end{tikzpicture}
+\caption{Automate d'états du champ \texttt{statut} de \texttt{PassageEtudiant}}
+\label{fig:etats}
+\end{figure}
+
+% ----------------------------------------------------------------------------
+\section{Diagramme de séquence : déroulement complet d'une soutenance}
+\label{sec:sequence}
+% ----------------------------------------------------------------------------
+
+Ce diagramme est le cœur de la conception : il décrit, de bout en bout, ce qui
+se produit entre le navigateur de l'étudiant, le serveur Django (vues HTTP
+\emph{et} consumers WebSocket), les services IA externes et le navigateur du
+professeur, depuis l'ouverture de la salle jusqu'à la publication des notes.
+
+\begin{figure}[p]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  part/.style={rectangle, draw=indigodark, thick, fill=indigo!12,
+               font=\footnotesize\bfseries, align=center,
+               minimum height=0.9cm, inner xsep=6pt},
+  msg/.style={-{Stealth}, thick, draw=grisfonce},
+  retour/.style={-{Stealth}, thick, dashed, draw=grisfonce},
+  auto/.style={-{Stealth}, thick, draw=indigo},
+  lbl/.style={font=\scriptsize, fill=white, inner sep=1pt},
+  phase/.style={font=\footnotesize\bfseries\itshape, color=indigodark},
+  life/.style={dashed, draw=grisfonce!70},
+]
+  % ── Participants (x positions) ──
+  \def\xa{0}     % Étudiant (navigateur / salle)
+  \def\xb{4.6}   % Django HTTP (vues)
+  \def\xc{9.0}   % Consumer WS audio
+  \def\xd{12.6}  % Whisper (Groq)
+  \def\xe{15.8}  % Claude (Anthropic)
+  \def\xf{19.2}  % Professeur (suivi live WS)
+
+  \node[part] (pa) at (\xa,0)  {Étudiant\\(salle, navigateur)};
+  \node[part] (pb) at (\xb,0)  {Serveur Django\\(vues HTTP)};
+  \node[part] (pc) at (\xc,0)  {AudioStream\\Consumer (WS)};
+  \node[part] (pd) at (\xd,0)  {Whisper\\(API Groq)};
+  \node[part] (pe) at (\xe,0)  {Claude\\(API Anthropic)};
+  \node[part] (pf) at (\xf,0)  {Professeur\\(suivi live, WS)};
+
+  % ── Lignes de vie ──
+  \foreach \x in {\xa,\xb,\xc,\xd,\xe,\xf}
+    \draw[life] (\x,-0.5) -- (\x,-29.3);
+
+  % ════════ PHASE 0 : préparation ════════
+  \node[phase, anchor=west] at (-1.6,-1.0) {Phase 0 --- Préparation};
+  \draw[grisfonce!40] (-1.6,-1.3) -- (20.4,-1.3);
+
+  \draw[msg] (\xa,-1.8) -- node[lbl]{1. GET /presentation/passage/id/salle/} (\xb,-1.8);
+  \draw[retour] (\xb,-2.4) -- node[lbl]{2. HTML salle + slides PDF (PDF.js)} (\xa,-2.4);
+  \draw[msg] (\xa,-3.0) -- node[lbl, pos=0.45]{3. Connexion WS /ws/passage/id/audio/} (\xc,-3.0);
+  \draw[retour] (\xc,-3.6) -- node[lbl]{4. audio\_ready} (\xa,-3.6);
+  \draw[msg] (\xc,-4.2) -- node[lbl, pos=0.55]{5. etudiant\_connecte (broadcast groupe)} (\xf,-4.2);
+
+  % ════════ PHASE 1 : présentation ════════
+  \node[phase, anchor=west] at (-1.6,-5.0) {Phase 1 --- Présentation orale};
+  \draw[grisfonce!40] (-1.6,-5.3) -- (20.4,-5.3);
+
+  \draw[auto] (\xa,-5.9) .. controls (\xa-1.3,-6.15) .. node[lbl, pos=0.5, xshift=-34pt]{6. TTS : accueil vocal} (\xa,-6.4);
+  \draw[msg] (\xa,-6.9) -- node[lbl]{7. POST api/demarrer (statut = en\_cours)} (\xb,-6.9);
+  \draw[msg] (\xb,-7.5) -- node[lbl, pos=0.62]{8. statut\_update (via channel layer)} (\xf,-7.5);
+
+  % Boucle transcription
+  \draw[draw=indigo, thick, rounded corners]
+        (-1.0,-8.1) rectangle (20.0,-11.6);
+  \node[font=\scriptsize\bfseries, fill=indigo!12, draw=indigo, inner sep=2pt]
+        at (0.6,-8.1) {loop : toutes les 30 s};
+  \draw[msg] (\xa,-8.8) -- node[lbl]{9. chunk audio binaire (webm/opus)} (\xc,-8.8);
+  \draw[msg] (\xc,-9.4) -- node[lbl]{10. transcription(chunk, langue)} (\xd,-9.4);
+  \draw[retour] (\xd,-10.0) -- node[lbl]{11. texte} (\xc,-10.0);
+  \draw[msg] (\xc,-10.6) -- node[lbl, pos=0.55]{12. transcription\_chunk (live)} (\xf,-10.6);
+  \draw[retour] (\xc,-11.2) -- node[lbl]{13. ack + sauvegarde BDD} (\xa,-11.2);
+
+  \draw[msg] (\xa,-12.2) -- node[lbl]{14. POST api/posture (regard, expressions, prosodie)} (\xb,-12.2);
+
+  % ════════ PHASE 2 : questions ════════
+  \node[phase, anchor=west] at (-1.6,-13.0) {Phase 2 --- Questions / réponses};
+  \draw[grisfonce!40] (-1.6,-13.3) -- (20.4,-13.3);
+
+  \draw[msg] (\xa,-13.9) -- node[lbl]{15. POST api/terminer-presentation} (\xb,-13.9);
+  \draw[msg] (\xb,-14.5) -- node[lbl, pos=0.5]{16. generer\_questions(transcription, slides, rapport, style)} (\xe,-14.5);
+  \draw[retour] (\xe,-15.1) -- node[lbl]{17. N questions (JSON)} (\xb,-15.1);
+  \draw[retour] (\xb,-15.7) -- node[lbl]{18. questions ; statut = questions} (\xa,-15.7);
+
+  % Boucle Q&R
+  \draw[draw=indigo, thick, rounded corners]
+        (-1.0,-16.3) rectangle (20.0,-21.4);
+  \node[font=\scriptsize\bfseries, fill=indigo!12, draw=indigo, inner sep=2pt]
+        at (0.85,-16.3) {loop : pour chaque question};
+  \draw[auto] (\xa,-16.9) .. controls (\xa-1.3,-17.15) .. node[lbl, pos=0.5, xshift=-40pt]{19. TTS : lecture question} (\xa,-17.4);
+  \draw[auto] (\xa,-17.9) .. controls (\xa-1.3,-18.15) .. node[lbl, pos=0.5, xshift=-42pt]{20. STT : réponse dictée} (\xa,-18.4);
+  \draw[msg] (\xa,-18.9) -- node[lbl]{21. POST api/repondre (question, réponse)} (\xb,-18.9);
+  \draw[msg] (\xb,-19.5) -- node[lbl, pos=0.5]{22. evaluer\_reponse(question, réponse, style)} (\xe,-19.5);
+  \draw[retour] (\xe,-20.1) -- node[lbl]{23. note + commentaire (JSON)} (\xb,-20.1);
+  \draw[retour] (\xb,-20.7) -- node[lbl]{24. évaluation ; QuestionPosee en BDD} (\xa,-20.7);
+
+  % ════════ PHASE 3 : notation ════════
+  \node[phase, anchor=west] at (-1.6,-22.2) {Phase 3 --- Pipeline de notation};
+  \draw[grisfonce!40] (-1.6,-22.5) -- (20.4,-22.5);
+
+  \draw[msg] (\xa,-23.1) -- node[lbl]{25. POST api/terminer-passage + upload vidéo} (\xb,-23.1);
+  \draw[auto] (\xb,-23.7) .. controls (\xb+1.4,-23.95) .. node[lbl, pos=0.5, xshift=66pt]{26. contexte : slides + rapport + posture + Q\&R} (\xb,-24.2);
+  \draw[auto] (\xb,-24.7) .. controls (\xb+1.4,-24.95) .. node[lbl, pos=0.5, xshift=64pt]{27. Orchestrateur : détection stress, ajustement} (\xb,-25.2);
+  \draw[msg] (\xb,-25.8) -- node[lbl, pos=0.5]{28. noter(ContexteNotation) --- styles ajustés} (\xe,-25.8);
+  \draw[retour] (\xe,-26.4) -- node[lbl]{29. JSON : note/20 + justificatif par critère + synthèse} (\xb,-26.4);
+  \draw[msg] (\xb,-27.0) -- node[lbl, pos=0.6]{30. note\_update (temps réel) ; statut = note} (\xf,-27.0);
+  \draw[auto] (\xb,-27.5) .. controls (\xb+1.4,-27.75) .. node[lbl, pos=0.5, xshift=62pt]{31. NoteIA en BDD ; email prof si session finie} (\xb,-28.0);
+
+  % ════════ PHASE 4 ════════
+  \node[phase, anchor=west] at (-1.6,-28.6) {Phase 4 --- Validation par le professeur};
+  \draw[grisfonce!40] (-1.6,-28.9) -- (20.4,-28.9);
+  \node[font=\scriptsize, anchor=west] at (10.2,-29.15)
+       {32. Consultation, ajustement des notes, export Excel, rapport PDF.};
+\end{tikzpicture}%
+}
+\caption{Diagramme de séquence complet d'une soutenance, de l'ouverture de la
+salle à la publication des notes}
+\label{fig:sequence}
+\end{figure}
+
+\paragraph{Lecture du diagramme.} Trois canaux coexistent :
+\begin{enumerate}
+  \item le canal \textbf{HTTP classique} (étudiant $\rightarrow$ vues Django)
+        pour les transitions d'état et les uploads ;
+  \item le canal \textbf{WebSocket audio} (messages 9--13) : chaque chunk de
+        30~s est transcrit par Whisper puis diffusé \emph{simultanément} au
+        professeur (live) et persisté en base ;
+  \item le canal \textbf{WebSocket live} du professeur, qui ne reçoit que des
+        diffusions de groupe (\texttt{channel layer}) : connexion étudiant,
+        statuts, transcription, notes --- et peut injecter une question qui
+        sera lue à voix haute par la synthèse vocale de la salle.
+\end{enumerate}
+Les interactions 6, 19 et 20 sont locales au navigateur (Web Speech API) :
+aucune donnée vocale de synthèse ne transite par le serveur, ce qui réduit la
+latence et la charge.
+
+% ============================================================================
+\chapter{Choix technologiques et architecture}
+% ============================================================================
+
+\section{Django et le pattern MVT}
+\label{sec:mvt}
+
+Django implémente une variante du patron MVC appelée \textbf{MVT}
+(\emph{Model-View-Template}). La correspondance est la suivante :
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lll}
+\toprule
+\textbf{MVC classique} & \textbf{Django (MVT)} & \textbf{Dans SoutenanceAI} \\
+\midrule
+Model & Model (ORM) & \texttt{accounts/models.py}, \texttt{sessions\_app/models.py}, \texttt{notation/models.py} \\
+View (présentation) & Template & \texttt{templates/} (héritage de \texttt{base.html}) \\
+Controller & View + URLconf & \texttt{views.py} de chaque app + \texttt{urls.py} \\
+\bottomrule
+\end{tabular}
+\caption{Correspondance MVC / MVT}
+\end{table}
+
+Le « contrôleur » au sens strict est assuré par le framework lui-même : le
+routeur d'URL résout la requête vers une \emph{vue}, qui orchestre modèles et
+templates. Cette inversion est au cœur de la productivité de Django : le
+développeur n'écrit que la logique métier.
+
+Le projet est découpé en \textbf{quatre applications} à responsabilité unique :
+
+\begin{description}[style=nextline]
+  \item[\texttt{accounts}] Utilisateur personnalisé, authentification,
+        inscription professeur, import CSV d'étudiants, réinitialisation de mot
+        de passe, décorateurs d'autorisation.
+  \item[\texttt{sessions\_app}] Classes, soutenances, critères, passages,
+        planification (manuelle, automatique, import), partage par code/QR,
+        exports Excel, emails de rappel.
+  \item[\texttt{notation}] Modèles de notes et questions, agents IA, pipeline
+        de notation, services de traitement de fichiers, consumers WebSocket,
+        rapports PDF.
+  \item[\texttt{presentation}] Expérience étudiant : dashboard, dépôt de
+        fichiers, salle de soutenance et ses APIs.
+\end{description}
+
+\section{ORM, migrations et intégrité}
+
+Toutes les tables sont décrites en Python ; les 9 migrations versionnées
+garantissent la reproductibilité du schéma. Exemple représentatif --- le
+modèle utilisateur à rôles :
+
+\begin{lstlisting}[language=Python, caption={Extrait de \texttt{accounts/models.py}}]
+class User(AbstractUser):
+    ROLE_SUPERADMIN = 'superadmin'
+    ROLE_PROFESSEUR = 'professeur'
+    ROLE_ETUDIANT   = 'etudiant'
+
+    role = models.CharField(max_length=15, choices=ROLE_CHOICES,
+                            default=ROLE_ETUDIANT)
+    sexe = models.CharField(max_length=1, choices=[('H','Homme'),('F','Femme')],
+                            blank=True, default='')
+    photo_profil = models.ImageField(upload_to='profils/', blank=True)
+    cree_par = models.ForeignKey('self', null=True, blank=True,
+                                 on_delete=models.SET_NULL,
+                                 related_name='comptes_crees')
+
+    @property
+    def is_professeur(self):
+        return self.role == self.ROLE_PROFESSEUR
+\end{lstlisting}
+
+L'isolation entre professeurs est obtenue par une discipline systématique dans
+les vues : chaque objet est récupéré avec son propriétaire dans le filtre,
+ce qui transforme tout accès illégitime en 404 :
+
+\begin{lstlisting}[language=Python, caption={Contrôle d'accès type (extrait de \texttt{sessions\_app/views.py})}]
+@professeur_required
+def detail_session(request, session_id):
+    session = get_object_or_404(Session, pk=session_id,
+                                professeur=request.user)
+    ...
+\end{lstlisting}
+
+\section{Temps réel : ASGI, Channels et WebSockets}
+
+Le cycle requête/réponse HTTP ne convient ni à la transcription en direct ni au
+suivi live. Le projet bascule donc sur \textbf{ASGI} : Daphne sert
+l'application, et \texttt{ProtocolTypeRouter} aiguille HTTP vers Django
+classique et \texttt{ws://} vers deux consumers :
+
+\begin{itemize}
+  \item \texttt{LivePassageConsumer} --- canal d'événements d'un passage
+        (statuts, notes, transcription, questions du professeur). Connexion
+        refusée avec le code \texttt{4001} si non authentifié, \texttt{4003}
+        si l'utilisateur n'est ni le professeur de la session, ni un étudiant
+        du passage, ni superadmin.
+  \item \texttt{AudioStreamConsumer} --- canal \emph{binaire} : reçoit les
+        chunks audio de 30 s, les transcrit via Whisper, persiste le texte
+        (global + par étudiant identifié) et le diffuse au groupe.
+\end{itemize}
+
+La diffusion s'appuie sur le \emph{channel layer} (en mémoire en développement,
+Redis en production via \texttt{REDIS\_URL}) : un événement émis par le
+pipeline de notation côté HTTP est instantanément reçu par tous les WebSockets
+du groupe \texttt{passage\_<id>}.
+
+\section{La couche IA}
+
+\subsection{Transcription --- Whisper sur Groq}
+Le modèle \texttt{whisper-large-v3} est interrogé via l'API Groq, choisie pour
+sa latence très faible (inférence LPU), critère décisif pour une transcription
+« quasi live » par tranches de 30 s, dans la langue de la soutenance.
+
+\subsection{Évaluation --- Claude et le double axe de personnalité}
+L'originalité du système réside dans la séparation de la personnalité du jury
+en \textbf{deux axes indépendants}, chacun étant un \emph{system prompt}
+distinct :
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{p{6.8cm}p{6.8cm}}
+\toprule
+\textbf{Style de questionnement (7)} & \textbf{Style de notation (7)} \\
+\midrule
+Le Mentor --- questions ouvertes, guidantes &
+Le Généreux --- $\approx$ 15--18/20, valorise l'effort \\
+Le Pédagogue --- explique et enseigne &
+L'Indulgent --- $\approx$ 13--16/20, bénéfice du doute \\
+Le Perfectionniste --- traque les imprécisions &
+Le Juste --- $\approx$ 12--15/20, grille stricte \\
+Le Contradicteur --- contre-argumente &
+L'Avare de points --- $\approx$ 10--13/20 \\
+Le Stratège --- questions ciblées &
+Le Sévère --- $\approx$ 8--12/20 \\
+Le Provocateur --- pousse dans les retranchements &
+Le Terroriste --- $\leq$ 10/20, note sanction \\
+L'Impassible --- neutre, aucune réaction &
+Le Comptable --- calcule à la décimale \\
+\bottomrule
+\end{tabular}
+\caption{Les 7 $\times$ 7 = 49 combinaisons de personnalité du jury IA}
+\end{table}
+
+Un \textbf{orchestrateur} applique un garde-fou pédagogique : une heuristique
+mesure la densité de marqueurs d'hésitation dans la transcription ; si
+l'étudiant est jugé stressé et que le professeur a laissé l'option active, les
+styles agressifs basculent automatiquement vers des styles bienveillants :
+
+\begin{lstlisting}[language=Python, caption={Orchestrateur anti-stress (\texttt{notation/agents.py})}]
+class Orchestrateur:
+    STYLES_AGRESSIFS_Q = {'contradicteur', 'provocateur', 'impassible'}
+    STYLES_SEVERES_N   = {'severe', 'terroriste', 'avare'}
+
+    def choisir_styles(self, transcription):
+        if not self.ajustement_auto:
+            return self.sq, self.sn
+        ton = self.detecter_ton(transcription)   # 'stressé' | 'hésitant' | 'assuré'
+        sq, sn = self.sq, self.sn
+        if ton == 'stressé':
+            if sq in self.STYLES_AGRESSIFS_Q: sq = 'mentor'
+            if sn in self.STYLES_SEVERES_N:   sn = 'indulgent'
+        return sq, sn
+\end{lstlisting}
+
+L'IA reçoit un \emph{contexte de notation} exhaustif (transcription, texte des
+slides extrait par \texttt{python-pptx}, texte du rapport extrait par PyMuPDF,
+session questions/réponses, mesures comportementales agrégées, durée réelle
+contre durée prévue, consignes du professeur, grille pondérée) et doit
+répondre en \textbf{JSON strict} : pour chaque critère, une note sur 20 et un
+justificatif citant le texte. Ce format contraint rend la réponse directement
+exploitable par le pipeline et vérifiable par le professeur.
+
+\subsection{Analyse comportementale --- dans le navigateur}
+Par choix de confidentialité et de performance, l'analyse visuelle reste
+côté client : \textbf{face-api.js} mesure le contact visuel, les 7 expressions
+faciales et identifie le locuteur par comparaison avec les photos de profil
+(essentiel pour les passages en groupe) ; la \textbf{Web Audio API} mesure
+volume, variation d'intonation et ratio de silence. Seuls des agrégats
+numériques sont envoyés au serveur, jamais le flux vidéo d'analyse.
+
+\section{Internationalisation et expérience utilisateur}
+
+L'interface est traduite en \textbf{cinq langues} (français source, anglais,
+arabe, espagnol, allemand) via le système i18n de Django (\texttt{\{\% trans
+\%\}}, \texttt{LocaleMiddleware}, sélecteur \texttt{set\_language} présent sur
+toutes les pages, y compris la salle et la landing page). L'arabe bénéficie
+d'un support \textbf{RTL} complet (\texttt{dir="rtl"}, feuilles de style
+dédiées). La compilation des catalogues s'effectue par un script
+\texttt{polib} maison (\texttt{compile\_messages.py}), GNU gettext n'étant pas
+disponible sous Windows. La langue de la \emph{soutenance} (questions IA,
+synthèse vocale, transcription) est indépendante de la langue d'interface.
+
+Côté UX : thème clair/sombre persistant avec script anti-flash, icônes
+vectorielles Lucide uniformes, identité visuelle indigo/violet centralisée en
+variables CSS, landing page marketing dédiée.
+
+\section{Architecture générale}
+
+\begin{figure}[H]
+\centering
+\resizebox{0.99\textwidth}{!}{%
+\begin{tikzpicture}[
+  bloc/.style={rectangle, rounded corners, draw=indigodark, thick,
+               fill=grisclair, font=\small\bfseries, align=center,
+               minimum height=1.0cm, inner xsep=8pt},
+  ext/.style={rectangle, rounded corners, draw=violet, thick, fill=violet!8,
+              font=\small\bfseries, align=center, minimum height=1.0cm,
+              inner xsep=8pt},
+  lien/.style={{Stealth}-{Stealth}, thick, draw=grisfonce},
+  lienu/.style={-{Stealth}, thick, draw=grisfonce},
+  note/.style={font=\scriptsize, color=grisfonce},
+]
+  % Clients
+  \node[bloc] (etu) at (0,4.2) {Navigateur étudiant\\PDF.js, face-api.js,\\Web Speech, MediaRecorder};
+  \node[bloc] (prof) at (0,1.2) {Navigateur professeur\\suivi live};
+
+  % Serveur
+  \node[bloc, fill=indigo!14, minimum width=4.6cm] (daphne) at (5.8,2.7) {Daphne (ASGI)\\ProtocolTypeRouter};
+  \node[bloc] (views) at (10.6,4.4) {Vues Django (HTTP)\\accounts / sessions\_app /\\notation / presentation};
+  \node[bloc] (cons) at (10.6,1.0) {Consumers Channels\\LivePassage / AudioStream};
+  \node[bloc] (pipe) at (15.2,4.4) {Pipeline notation\\agents + orchestrateur};
+  \node[bloc] (bdd) at (15.2,1.0) {Base de données\\SQLite / PostgreSQL};
+
+  % Externes
+  \node[ext] (groq) at (20.0,2.4) {Groq\\Whisper large-v3};
+  \node[ext] (claude) at (20.0,4.6) {Anthropic\\Claude};
+  \node[ext] (smtp) at (20.0,0.4) {SMTP Gmail\\rappels, notifications};
+
+  \draw[lien] (etu.east) -- node[note, above]{HTTP + WS} (daphne.west|-etu.east);
+  \draw[lien] (prof.east) -- node[note, below]{WS live} (daphne.west|-prof.east);
+  \draw[lien] (daphne) -- (views.west);
+  \draw[lien] (daphne) -- (cons.west);
+  \draw[lienu] (views) -- (pipe);
+  \draw[lien] (views.south) -- (bdd.north west);
+  \draw[lien] (cons) -- (bdd);
+  \draw[lien, draw=grisfonce!60, dashed] (cons.north) -- node[note, right]{channel layer} (views.south);
+  \draw[lienu] (cons.east) -- node[note, above, pos=0.7]{chunks 30 s} (groq.west);
+  \draw[lienu] (pipe.east) -- (claude.west);
+  \draw[lienu] (views.east) -- ($(smtp.west)+(0,0.15)$);
+\end{tikzpicture}%
+}
+\caption{Architecture générale : clients, serveur ASGI, services externes}
+\label{fig:archi}
+\end{figure}
+
+% ============================================================================
+\chapter{Réalisation}
+% ============================================================================
+
+\section{Organisation du code}
+
+\begin{lstlisting}[caption={Arborescence du projet (simplifiée)}]
+soutenanceai/
+|-- manage.py
+|-- compile_messages.py          # compilation .po -> .mo (polib)
+|-- requirements.txt
+|-- soutenanceai/                # settings, urls racines, asgi, wsgi
+|-- accounts/                    # User, auth, roles, import CSV, decorateurs
+|-- sessions_app/                # Classe, Session, Passage, planification,
+|   |                            # exports XLSX, emails (thread + command)
+|-- notation/                    # NoteIA, agents, pipeline, services,
+|   |                            # consumers WS, rapports PDF
+|-- presentation/                # dashboard etudiant, upload, salle, APIs
+|-- templates/                   # base.html, landing, pages par app
+|-- static/css|js|img            # main.css (variables, themes), avatars
+|-- locale/{en,ar,es,de}/        # traductions (fr = source)
+`-- tests/                       # 258 tests pytest
+\end{lstlisting}
+
+\section{Authentification et parcours d'inscription}
+
+Trois parcours coexistent :
+\begin{enumerate}
+  \item le \textbf{professeur} s'inscrit librement (formulaire dédié avec
+        choix du sexe --- utilisé pour l'avatar du jury dans la salle) et est
+        connecté immédiatement ;
+  \item l'\textbf{étudiant} est créé \emph{en rejoignant une classe} : le
+        formulaire public du code d'accès crée le compte (identifiant choisi
+        par l'étudiant, validé par \texttt{UnicodeUsernameValidator} et testé
+        en unicité), l'inscrit à la classe et le connecte --- une seule étape ;
+  \item le professeur peut aussi \textbf{importer un CSV} d'étudiants : les
+        comptes sont générés en masse (identifiant \texttt{prenom.nom}
+        normalisé ASCII, mots de passe aléatoires) et restitués dans un CSV
+        téléchargeable.
+\end{enumerate}
+
+L'autorisation est centralisée dans des décorateurs réutilisables
+(\texttt{accounts/decorators.py}) appliqués à chaque vue :
+\texttt{@professeur\_required}, \texttt{@etudiant\_required},
+\texttt{@superadmin\_required}, \texttt{@role\_required(...)}.
+
+\section{Classes, soutenances et partage par code}
+
+Chaque \texttt{Classe} et chaque \texttt{Session} reçoit à la création un
+\textbf{code unique de 8 caractères} généré par tirage cryptographique
+(\texttt{secrets.choice}) avec re-tirage en cas de collision. La page de
+partage affiche le code, le lien direct et un QR code. Le formulaire de
+création de soutenance combine un \texttt{ModelForm} (16 champs typés) et une
+grille de critères dynamique : critères prédéfinis cochables avec coefficient,
+plus des critères personnalisés ajoutés côté client et reconstruits côté
+serveur dans une transaction atomique.
+
+\section{Planification des passages}
+
+La page de planification réunit trois mécanismes :
+\begin{itemize}
+  \item \textbf{manuel} : sélection d'étudiants non encore planifiés
+        (le type monôme/binôme/groupe est déduit du nombre sélectionné),
+        numéro d'ordre et heure ;
+  \item \textbf{automatique} : à partir d'une date, d'une heure de début,
+        d'une durée par passage et d'une pause, le serveur génère tous les
+        passages pour les inscrits restants, en ordre alphabétique ou
+        aléatoire, par monômes, binômes ou groupes ;
+  \item \textbf{import de groupes} : un fichier (CSV/XLSX) de compositions de
+        groupes est analysé, rapproché des inscrits (matching tolérant), puis
+        confirmé par le professeur.
+\end{itemize}
+Un recalcul en cascade des horaires et un \textbf{export Excel} mis en forme
+(openpyxl) complètent l'outillage.
+
+\section{La salle de soutenance}
+
+La salle est une page autonome qui orchestre, côté navigateur :
+
+\begin{itemize}
+  \item \textbf{PDF.js} pour le rendu slide par slide du PPTX converti
+        (LibreOffice headless, repli PowerPoint COM sous Windows) ;
+  \item la \textbf{webcam} de l'étudiant (coin bas gauche) et l'\textbf{avatar
+        du jury IA} (coin bas droit, choisi selon le sexe du professeur) ;
+  \item \textbf{MediaRecorder} : enregistrement vidéo complet du passage,
+        téléversé en fin de soutenance, et chunks audio de 30 s envoyés en
+        binaire sur le WebSocket ;
+  \item \textbf{Web Speech API} : synthèse vocale (accueil, lecture des
+        questions, remerciements --- dans la langue de la soutenance) et
+        reconnaissance vocale pour dicter les réponses ;
+  \item \textbf{face-api.js} : 4 réseaux de neurones chargés dans le
+        navigateur (détection, repères faciaux, reconnaissance, expressions)
+        pour le contact visuel, les émotions et l'identification du locuteur
+        par photo de profil ;
+  \item un timer strict, la protection contre la fermeture d'onglet, et la
+        bannière d'accueil personnalisée.
+\end{itemize}
+
+L'interface de la salle est entièrement internationalisée : libellés
+\texttt{\{\% trans \%\}} côté template et dictionnaire \texttt{I18N} injecté
+pour les chaînes manipulées en JavaScript.
+
+\section{Le pipeline de notation}
+
+Au passage à l'état \texttt{termine}, le pipeline (\texttt{notation/pipeline.py})
+déroule les étapes suivantes :
+
+\begin{enumerate}
+  \item extraction du texte des slides (\texttt{python-pptx}) et du rapport
+        (PyMuPDF) ;
+  \item agrégation des mesures comportementales
+        (\texttt{resumer\_posture}) : \% de contact visuel, émotion dominante,
+        débit de parole interprété, ratio de silence, variation d'intonation ;
+  \item construction du \texttt{ContexteNotation} (dataclass) incluant la
+        session questions/réponses intégrale et la durée réelle ;
+  \item passage par l'\texttt{Orchestrateur} (ajustement anti-stress
+        éventuel), appel Claude, parsing JSON robuste (nettoyage des blocs
+        markdown résiduels, gestion des erreurs) ;
+  \item persistance des \texttt{NoteIA} (une par critère --- et par étudiant
+        en mode individuel), calcul de la moyenne pondérée ;
+  \item le cas échéant : évaluation de la \textbf{démo vidéo} (frames
+        extraites et envoyées à un modèle de vision) et du \textbf{dépôt
+        GitHub} (README, structure, qualité) selon les critères du professeur ;
+  \item diffusion temps réel \texttt{note\_update} vers le professeur et
+        \textbf{email automatique} lorsque tous les passages de la session
+        sont notés.
+\end{enumerate}
+
+\section{Suivi live et validation par le professeur}
+
+La page de suivi live affiche en colonnes la transcription qui défile, le
+statut, les événements (connexion de l'étudiant, questions posées) et les
+notes dès leur production. Le professeur peut envoyer une question : elle
+transite par le WebSocket, est lue à voix haute dans la salle et enregistrée
+comme \texttt{QuestionPosee} d'auteur « prof ».
+
+La page de notes présente, par critère : note IA, justificatif, champ de note
+finale et commentaire du professeur. La moyenne pondérée est recalculée à la
+volée. Deux exports : \textbf{Excel} (toutes les notes de la session) et
+\textbf{rapport PDF individuel} (ReportLab) reprenant l'identité du candidat,
+la grille, les justificatifs, la synthèse comportementale et la transcription.
+
+\section{Emails automatiques}
+
+Deux emails transactionnels (SMTP Gmail, mot de passe d'application en
+variable d'environnement) :
+\begin{itemize}
+  \item \textbf{rappel à J-10 minutes} pour chaque étudiant d'un passage
+        (champ \texttt{rappel\_envoye} anti-doublon). L'envoi est porté par un
+        \emph{thread démon} démarré avec le serveur (vérification chaque
+        minute d'une fenêtre de 9 à 11 minutes avant l'heure prévue), avec une
+        management command de secours \texttt{envoyer\_rappels} pour un
+        déclenchement par planificateur externe ;
+  \item \textbf{notification de fin de session} au professeur quand le dernier
+        passage est noté.
+\end{itemize}
+
+% ============================================================================
+\chapter{Tests, sécurité et qualité}
+% ============================================================================
+
+\section{Stratégie de tests}
+
+La suite compte \textbf{258 tests} (pytest, pytest-django, pytest-asyncio),
+exécutables sans aucune clé API grâce au mocking systématique des services
+externes :
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lp{9.8cm}}
+\toprule
+\textbf{Module} & \textbf{Ce qui est vérifié} \\
+\midrule
+\texttt{test\_models} & Génération et unicité des codes, valeurs par défaut, statuts, relations \\
+\texttt{test\_views\_*} & Codes HTTP, contrôle d'accès par rôle, \textbf{isolation entre professeurs} (accès croisé $\Rightarrow$ 404/403), formulaires valides et invalides \\
+\texttt{test\_agents} & 7+7 styles définis, prompts combinés, parsing JSON, gestion d'erreurs API, bascules de l'orchestrateur (stress / calme / option désactivée) \\
+\texttt{test\_pipeline} & Notes persistées par critère, moyenne pondérée, durée réelle \\
+\texttt{test\_consumers} & Connexions WS acceptées/refusées (4001, 4003), diffusion de la transcription au groupe, robustesse aux trames invalides \\
+\texttt{test\_services} & Transcription mockée, extraction PPTX/PDF réelles sur fichiers générés, agrégats de posture \\
+\bottomrule
+\end{tabular}
+\caption{Cartographie de la suite de tests}
+\end{table}
+
+\begin{lstlisting}[language=Python, caption={Exemple : isolation entre professeurs}]
+def test_prof_cannot_see_other_profs_session(self, client_prof, prof_user2, db):
+    s2 = Session.objects.create(professeur=prof_user2, titre='Pas la mienne',
+                                langue='fr', duree_presentation=10)
+    resp = client_prof.get(reverse('sessions_app:detail_session', args=[s2.pk]))
+    assert resp.status_code == 404
+\end{lstlisting}
+
+\section{Sécurité}
+
+\begin{itemize}
+  \item \textbf{Secrets} : toutes les clés (Anthropic, Groq, SMTP, SECRET\_KEY)
+        vivent dans un fichier \texttt{.env} exclu du dépôt Git ; un
+        \texttt{.env.example} documenté est fourni.
+  \item \textbf{Contrôle d'accès} : décorateur de rôle sur chaque vue +
+        filtrage par propriétaire dans chaque requête ORM ; vérification
+        d'appartenance au passage pour chaque endpoint de la salle.
+  \item \textbf{WebSockets} : authentification et autorisation à la connexion
+        (codes 4001/4003), vérifiées par les tests.
+  \item \textbf{CSRF} actif globalement ; \textbf{validation} des identifiants
+        choisis par les étudiants (caractères autorisés, unicité).
+  \item \textbf{Confidentialité} : l'analyse faciale s'exécute dans le
+        navigateur ; seuls des agrégats chiffrés (pourcentages, moyennes)
+        atteignent le serveur.
+\end{itemize}
+
+\section{Qualité et maintenabilité}
+
+\begin{itemize}
+  \item Identité visuelle centralisée en \textbf{variables CSS} (palette
+        indigo/violet unique, thèmes clair/sombre) ;
+  \item logique IA isolée dans des \textbf{services purs} sans dépendance aux
+        vues, donc testable unitairement ;
+  \item conventions strictes : aucun emoji dans le code (icônes Lucide),
+        terminologie unifiée (« soutenance » côté interface, \texttt{Session}
+        côté modèle), messages utilisateur traduits.
+\end{itemize}
+
+% ============================================================================
+\chapter*{Conclusion et perspectives}
+\addcontentsline{toc}{chapter}{Conclusion et perspectives}
+% ============================================================================
+
+SoutenanceAI démontre qu'un framework de prototypage web comme Django permet,
+en un module universitaire, de construire bien plus qu'un CRUD : une
+application temps réel complète où cohabitent HTTP classique, WebSockets,
+services d'IA générative et traitement multimédia, le tout sous contrôle
+d'une suite de tests substantielle.
+
+Les objectifs fixés au chapitre 1 sont atteints : gestion complète côté
+professeur (O1), salle immersive côté étudiant (O2), notation justifiée et
+ajustable (O3), cinq langues avec RTL (O4), qualité vérifiable --- 258 tests,
+contrôle d'accès systématique, secrets externalisés (O5).
+
+Le projet ouvre des perspectives claires :
+\begin{itemize}
+  \item passage du pipeline de notation derrière \textbf{Celery + Redis} pour
+        la montée en charge ;
+  \item streaming audio continu vers Whisper (WebSocket bout en bout) plutôt
+        que chunks de 30 s ;
+  \item benchmark quantitatif de la fiabilité de la notation IA contre des
+        jurys humains (corrélation inter-juges), prolongement naturel vers une
+        publication scientifique ;
+  \item déploiement de production (Daphne + Nginx + PostgreSQL + Redis) sur un
+        hébergeur à processus persistants.
+\end{itemize}
+
+Au-delà de la technique, le projet assume un positionnement pédagogique :
+l'IA propose, justifie et trace ; \emph{le professeur décide}. C'est cette
+articulation --- automatiser la mécanique pour rendre du temps au jugement
+humain --- qui constitue, à notre sens, la véritable contribution de
+SoutenanceAI.
+
+% ============================================================================
+\chapter*{Webographie}
+\addcontentsline{toc}{chapter}{Webographie}
+% ============================================================================
+
+\begin{itemize}
+  \item Documentation Django 4.2 --- \url{https://docs.djangoproject.com/fr/4.2/}
+  \item Django Channels --- \url{https://channels.readthedocs.io/}
+  \item API Anthropic (Claude) --- \url{https://docs.anthropic.com/}
+  \item API Groq (Whisper) --- \url{https://console.groq.com/docs/}
+  \item face-api.js --- \url{https://github.com/vladmandic/face-api}
+  \item PDF.js (Mozilla) --- \url{https://mozilla.github.io/pdf.js/}
+  \item ReportLab --- \url{https://www.reportlab.com/documentation/}
+  \item PyMuPDF --- \url{https://pymupdf.readthedocs.io/}
+  \item python-pptx --- \url{https://python-pptx.readthedocs.io/}
+  \item Lucide Icons --- \url{https://lucide.dev/}
+  \item Web Speech API (MDN) --- \url{https://developer.mozilla.org/fr/docs/Web/API/Web_Speech_API}
+\end{itemize}
+
+\end{document}

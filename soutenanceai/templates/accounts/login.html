@@ -1,0 +1,94 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_BIDI %}dir="rtl"{% else %}dir="ltr"{% endif %}>
+<head>
+    <script>(function(){var t=localStorage.getItem('soutenanceai-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+    <meta charset="UTF-8">
+    <title>{% trans "Connexion" %} — SoutenanceAI</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% if LANGUAGE_BIDI %}
+    <style>body{direction:rtl;text-align:right;} .login-card{text-align:right;}</style>
+    {% endif %}
+</head>
+<body class="login-wrapper">
+    <div class="login-card">
+        <h1>SoutenanceAI</h1>
+        <p style="color: var(--text-muted); margin-top: -8px;">{% trans "Notation IA des soutenances" %}</p>
+
+        {# ── Theme toggle ── #}
+        <div style="text-align:right;margin-bottom:8px;">
+            <button onclick="toggleTheme()" class="theme-toggle" title="{% trans 'Changer le thème' %}">
+                <i data-lucide="sun"  id="theme-icon-sun"  style="width:13px;height:13px;stroke-width:2.5;display:inline-block;vertical-align:-1px;"></i>
+                <i data-lucide="moon" id="theme-icon-moon" style="width:13px;height:13px;stroke-width:2.5;display:none;vertical-align:-1px;"></i>
+            </button>
+        </div>
+
+        {# ── Language switcher (login page) ── #}
+        <div style="text-align:center;margin-bottom:16px;">
+            {% get_available_languages as AVAILABLE_LANGS %}
+            {% get_current_language as CURRENT_LANG %}
+            {% for lang_code, lang_name in AVAILABLE_LANGS %}
+            <form method="post" action="{% url 'set_language' %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="language" value="{{ lang_code }}">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;{% if lang_code == CURRENT_LANG %}font-weight:700;text-decoration:underline;{% endif %}color:var(--primary);">
+                    {{ lang_name }}
+                </button>
+            </form>
+            {% endfor %}
+        </div>
+
+        {% if messages %}
+            {% for m in messages %}<div class="msg msg-{{ m.tags }}">{{ m }}</div>{% endfor %}
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_username">{% trans "Identifiant" %}</label>
+                {{ form.username }}
+            </div>
+            <div class="form-group">
+                <label for="id_password">{% trans "Mot de passe" %}</label>
+                {{ form.password }}
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">{% trans "Se connecter" %}</button>
+        </form>
+
+        <div style="margin-top:20px;text-align:center;border-top:1px solid var(--border);padding-top:16px;">
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">
+                {% trans "Étudiant ? Contactez votre professeur pour obtenir vos identifiants." %}
+            </p>
+            <a href="{% url 'accounts:inscription_professeur' %}"
+               style="display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;
+                      background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;text-decoration:none;">
+                <i data-lucide="graduation-cap" style="width:15px;height:15px;stroke-width:2;flex-shrink:0;"></i> Créer un compte professeur
+            </a>
+            <p style="font-size:12px;color:var(--text-muted);margin-top:12px;">
+                <a href="/">← {% trans "Retour à l'accueil" %}</a>
+            </p>
+        </div>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+<script>
+function toggleTheme(){
+    var h=document.documentElement,isDark=h.getAttribute('data-theme')==='dark';
+    var next=isDark?'light':'dark';
+    h.setAttribute('data-theme',next);
+    localStorage.setItem('soutenanceai-theme',next);
+    _syncThemeIcon(next);
+}
+function _syncThemeIcon(theme){
+    var s=document.getElementById('theme-icon-sun'),m=document.getElementById('theme-icon-moon');
+    if(!s||!m)return;
+    s.style.display=theme==='dark'?'inline-block':'none';
+    m.style.display=theme==='dark'?'none':'inline-block';
+}
+document.addEventListener('DOMContentLoaded',function(){
+    _syncThemeIcon(document.documentElement.getAttribute('data-theme')||'light');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_BIDI %}dir="rtl"{% else %}dir="ltr"{% endif %}>
+<head>
+    <script>(function(){var t=localStorage.getItem('soutenanceai-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Rejoindre" %} {{ session.titre }} — SoutenanceAI</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <style>
+        [data-lucide]{display:inline-block;vertical-align:-3px;flex-shrink:0;}
+        .icon-xs{width:13px;height:13px;stroke-width:2.5;}
+        .icon-sm{width:15px;height:15px;stroke-width:2.25;}
+        .icon{width:17px;height:17px;stroke-width:2;}
+        .icon-xl{width:36px;height:36px;stroke-width:1.5;}
+    </style>
+    {% if LANGUAGE_BIDI %}
+    <style>body{direction:rtl;text-align:right;}.login-card{text-align:right;}</style>
+    {% endif %}
+</head>
+<body class="login-wrapper">
+<div class="login-card" style="max-width:440px;">
+
+    {# ── Header ── #}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <h1 style="font-size:20px;margin:0;">SoutenanceAI</h1>
+        <button onclick="toggleTheme()" class="theme-toggle" title="{% trans 'Changer le thème' %}">
+            <i data-lucide="sun"  id="theme-icon-sun"  style="width:13px;height:13px;stroke-width:2.5;display:inline-block;vertical-align:-1px;"></i>
+            <i data-lucide="moon" id="theme-icon-moon" style="width:13px;height:13px;stroke-width:2.5;display:none;vertical-align:-1px;"></i>
+        </button>
+    </div>
+
+    {# ── Session info banner ── #}
+    <div style="background:var(--primary,var(--primary));color:#fff;border-radius:10px;padding:14px 18px;margin-bottom:20px;text-align:center;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;">
+            <i data-lucide="graduation-cap" style="width:20px;height:20px;stroke-width:2;"></i>
+            <strong style="font-size:16px;">{{ session.titre }}</strong>
+        </div>
+        <div style="font-size:13px;opacity:.85;">
+            {% trans "Organisée par" %} {{ session.professeur.get_full_name|default:session.professeur.username }}
+        </div>
+        <div style="margin-top:8px;display:inline-block;background:rgba(255,255,255,.2);
+                    border-radius:6px;padding:4px 12px;letter-spacing:3px;font-size:18px;font-weight:700;">
+            {{ code }}
+        </div>
+    </div>
+
+    {# ── Flash messages ── #}
+    {% if messages %}
+        {% for m in messages %}<div class="msg msg-{{ m.tags }}">{{ m }}</div>{% endfor %}
+    {% endif %}
+
+    {# ── Form errors (non-field) ── #}
+    {% if form.non_field_errors %}
+        <div class="msg msg-error">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">
+        {% trans "Créez votre compte pour rejoindre cette soutenance. Si vous avez déjà un compte," %}
+        <a href="{% url 'accounts:login' %}?next={{ request.path }}">{% trans "connectez-vous ici" %}</a>.
+    </p>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {# prénom #}
+        <div class="form-group">
+            <label for="id_prenom">{% trans "Prénom" %} *</label>
+            {{ form.prenom }}
+            {% if form.prenom.errors %}<div style="color:var(--danger);font-size:12px;margin-top:3px;">{{ form.prenom.errors.0 }}</div>{% endif %}
+        </div>
+
+        {# nom #}
+        <div class="form-group">
+            <label for="id_nom">{% trans "Nom" %} *</label>
+            {{ form.nom }}
+            {% if form.nom.errors %}<div style="color:var(--danger);font-size:12px;margin-top:3px;">{{ form.nom.errors.0 }}</div>{% endif %}
+        </div>
+
+        {# email (optionnel) #}
+        <div class="form-group">
+            <label for="id_email">{% trans "Email" %} <span style="color:var(--text-muted);font-size:12px;">({% trans "optionnel" %})</span></label>
+            {{ form.email }}
+            {% if form.email.errors %}<div style="color:var(--danger);font-size:12px;margin-top:3px;">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+
+        {# mot de passe #}
+        <div class="form-group">
+            <label for="id_password">{% trans "Mot de passe" %} *</label>
+            {{ form.password }}
+            {% if form.password.errors %}<div style="color:var(--danger);font-size:12px;margin-top:3px;">{{ form.password.errors.0 }}</div>{% endif %}
+        </div>
+
+        {# confirmation #}
+        <div class="form-group">
+            <label for="id_password2">{% trans "Confirmer le mot de passe" %} *</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}<div style="color:var(--danger);font-size:12px;margin-top:3px;">{{ form.password2.errors.0 }}</div>{% endif %}
+        </div>
+
+        <button type="submit" class="btn" style="width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <i data-lucide="log-in" class="icon-sm"></i>
+            {% trans "Rejoindre la soutenance" %}
+        </button>
+    </form>
+
+    <p style="text-align:center;margin-top:16px;font-size:12px;color:var(--text-muted);">
+        <a href="{% url 'landing' %}" style="color:var(--text-muted);">SoutenanceAI</a>
+    </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>lucide.createIcons());</script>
+<script>
+function toggleTheme(){
+    var h=document.documentElement,isDark=h.getAttribute('data-theme')==='dark';
+    var next=isDark?'light':'dark';
+    h.setAttribute('data-theme',next);
+    localStorage.setItem('soutenanceai-theme',next);
+    _syncThemeIcon(next);
+}
+function _syncThemeIcon(theme){
+    var s=document.getElementById('theme-icon-sun'),m=document.getElementById('theme-icon-moon');
+    if(!s||!m)return;
+    s.style.display=theme==='dark'?'inline-block':'none';
+    m.style.display=theme==='dark'?'none':'inline-block';
+}
+document.addEventListener('DOMContentLoaded',function(){
+    _syncThemeIcon(document.documentElement.getAttribute('data-theme')||'light');
+});
+</script>
+</body>
+</html>

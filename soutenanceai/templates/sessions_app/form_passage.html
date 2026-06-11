@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% if passage %}{% trans "Éditer" %}{% else %}{% trans "Nouveau" %}{% endif %} {% trans "passage" %}{% endblock %}
+{% block content %}
+<h1>{% if passage %}{% blocktrans with n=passage.ordre_passage %}Éditer le passage #{{ n }}{% endblocktrans %}{% else %}{% trans "Nouveau passage" %}{% endif %}</h1>
+<p style="color:var(--text-muted)">{% trans "Soutenance" %} : <strong>{{ session.titre }}</strong></p>
+
+<div class="card" style="max-width: 700px;">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-help">{{ field.help_text }}</div>{% endif %}
+                {% for e in field.errors %}<div class="msg msg-error">{{ e }}</div>{% endfor %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn">{% trans "Enregistrer" %}</button>
+        <a href="{% url 'sessions_app:detail_session' session.id %}" class="btn btn-secondary">{% trans "Annuler" %}</a>
+        {% if passage %}
+            <form method="post" action="{% url 'sessions_app:supprimer_passage' passage.id %}"
+                  style="display:inline;"
+                  onsubmit="return confirm('{% trans "Supprimer ce passage ?" %}')">
+                {% csrf_token %}<button class="btn btn-danger">{% trans "Supprimer ce passage" %}</button>
+            </form>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

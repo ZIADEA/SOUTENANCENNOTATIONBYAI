@@ -1,0 +1,91 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_BIDI %}dir="rtl"{% else %}dir="ltr"{% endif %}>
+<head>
+    <script>(function(){var t=localStorage.getItem('soutenanceai-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Rejoindre" %} {{ classe.nom }} — SoutenanceAI</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <style>
+        [data-lucide]{display:inline-block;vertical-align:-3px;flex-shrink:0;}
+        .icon-xs{width:13px;height:13px;stroke-width:2.5;}
+        .icon-sm{width:15px;height:15px;stroke-width:2.25;}
+    </style>
+</head>
+<body class="login-wrapper">
+<div class="login-card" style="max-width:440px;">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <h1 style="font-size:20px;margin:0;">SoutenanceAI</h1>
+        <button onclick="toggleTheme()" class="theme-toggle" title="{% trans 'Changer le thème' %}">
+            <i data-lucide="sun"  id="theme-icon-sun"  style="width:13px;height:13px;stroke-width:2.5;display:inline-block;vertical-align:-1px;"></i>
+            <i data-lucide="moon" id="theme-icon-moon" style="width:13px;height:13px;stroke-width:2.5;display:none;vertical-align:-1px;"></i>
+        </button>
+    </div>
+
+    {# ── Bannière classe ── #}
+    <div style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border-radius:10px;padding:14px 18px;margin-bottom:20px;text-align:center;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;">
+            <i data-lucide="book-open" style="width:20px;height:20px;stroke-width:2;"></i>
+            <strong style="font-size:16px;">{{ classe.nom }}</strong>
+        </div>
+        <div style="font-size:13px;opacity:.85;">
+            {% trans "Organisée par" %} {{ classe.professeur.get_full_name|default:classe.professeur.username }}
+        </div>
+        <div style="margin-top:8px;display:inline-block;background:rgba(255,255,255,.2);
+                    border-radius:6px;padding:4px 12px;letter-spacing:3px;font-size:18px;font-weight:700;">
+            {{ code }}
+        </div>
+    </div>
+
+    {% if messages %}{% for m in messages %}<div class="msg msg-{{ m.tags }}">{{ m }}</div>{% endfor %}{% endif %}
+    {% if form.non_field_errors %}<div class="msg msg-error">{{ form.non_field_errors }}</div>{% endif %}
+
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">
+        {% trans "Créez votre compte étudiant pour rejoindre cette classe. Déjà inscrit ?" %}
+        <a href="{% url 'accounts:login' %}?next={{ request.path }}">{% trans "Connectez-vous ici" %}</a>.
+    </p>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+            {{ field }}
+            {% if field.errors %}<div style="color:var(--danger);font-size:12px;margin-top:3px;">{{ field.errors.0 }}</div>{% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn" style="width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <i data-lucide="log-in" class="icon-sm"></i>
+            {% trans "Rejoindre la classe" %}
+        </button>
+    </form>
+
+    <p style="text-align:center;margin-top:16px;font-size:12px;color:var(--text-muted);">
+        <a href="{% url 'landing' %}" style="color:var(--text-muted);">SoutenanceAI</a>
+    </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>lucide.createIcons());</script>
+<script>
+function toggleTheme(){
+    var h=document.documentElement,isDark=h.getAttribute('data-theme')==='dark';
+    var next=isDark?'light':'dark';
+    h.setAttribute('data-theme',next);
+    localStorage.setItem('soutenanceai-theme',next);
+    _syncThemeIcon(next);
+}
+function _syncThemeIcon(theme){
+    var s=document.getElementById('theme-icon-sun'),m=document.getElementById('theme-icon-moon');
+    if(!s||!m)return;
+    s.style.display=theme==='dark'?'inline-block':'none';
+    m.style.display=theme==='dark'?'none':'inline-block';
+}
+document.addEventListener('DOMContentLoaded',function(){
+    _syncThemeIcon(document.documentElement.getAttribute('data-theme')||'light');
+});
+</script>
+</body>
+</html>

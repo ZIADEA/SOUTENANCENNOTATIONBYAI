@@ -1,0 +1,48 @@
+# ── Secrets & environnement (CRITIQUE : ne jamais commiter) ──────────────────
+.env
+*.env
+soutenanceai/.env
+!.env.example
+!soutenanceai/.env.example
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ── Django : base de données et fichiers uploadés ────────────────────────────
+soutenanceai/db.sqlite3
+soutenanceai/db.sqlite3-journal
+soutenanceai/media/
+staticfiles/
+*.log
+
+# ── Tests / caches ────────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── LaTeX (artefacts de compilation) ─────────────────────────────────────────
+*.aux
+*.lof
+*.lot
+*.out
+*.toc
+*.synctex.gz
+rapport.log
+rapport.pdf
+
+# ── Outils / notes privées ────────────────────────────────────────────────────
+/.claude/
+/.sixth/
+/CLAUDE.md
+/IDEE.md
+/vuln_benchmark/
+
+# ── OS / IDE ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

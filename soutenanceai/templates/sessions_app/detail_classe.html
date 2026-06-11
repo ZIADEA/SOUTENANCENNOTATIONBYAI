@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{{ classe.nom }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.session-card {
+    border:1px solid var(--border);border-radius:12px;padding:18px 20px;
+    margin-bottom:12px;background:var(--bg-card,#f8fafc);
+    display:flex;align-items:center;gap:16px;
+    transition:box-shadow .15s;
+}
+.session-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);}
+[data-theme="dark"] .session-card{background:#1e293b;}
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <span style="display:flex;align-items:center;gap:8px;">
+        <i data-lucide="book-open" class="icon-md"></i>
+        {{ classe.nom }}
+    </span>
+    <span style="display:flex;gap:6px;flex-wrap:wrap;">
+        <a href="{% url 'sessions_app:code_classe' classe.id %}" class="btn btn-sm"
+           style="display:inline-flex;align-items:center;gap:4px;">
+            <i data-lucide="share-2" class="icon-sm"></i>{% trans "Code & QR" %}
+        </a>
+        <a href="{% url 'sessions_app:creer_session' classe.id %}" class="btn btn-sm"
+           style="display:inline-flex;align-items:center;gap:4px;">
+            <i data-lucide="plus" class="icon-sm"></i>{% trans "Nouvelle soutenance" %}
+        </a>
+        <a href="{% url 'sessions_app:editer_classe' classe.id %}" class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:4px;">
+            <i data-lucide="edit-2" class="icon-sm"></i>{% trans "Éditer" %}
+        </a>
+        <form method="post" action="{% url 'sessions_app:supprimer_classe' classe.id %}" style="display:inline;"
+              onsubmit="return confirm('{% trans "Supprimer cette classe et toutes ses soutenances ?" %}')">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-danger" style="display:inline-flex;align-items:center;gap:4px;">
+                <i data-lucide="trash-2" class="icon-sm"></i>{% trans "Supprimer" %}
+            </button>
+        </form>
+        <a href="{% url 'sessions_app:dashboard_professeur' %}" class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:4px;">
+            <i data-lucide="arrow-left" class="icon-sm"></i>
+        </a>
+    </span>
+</h1>
+
+{% if classe.description %}
+<p style="color:var(--text-muted);margin-top:-4px;margin-bottom:16px;">{{ classe.description }}</p>
+{% endif %}
+
+{# ── Infos rapides ── #}
+<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;">
+    <div class="card" style="padding:12px 20px;display:inline-flex;align-items:center;gap:8px;">
+        <i data-lucide="users" class="icon" style="color:var(--primary);"></i>
+        <div>
+            <div style="font-size:22px;font-weight:800;">{{ classe.inscrits.count }}</div>
+            <div style="font-size:12px;color:var(--text-muted);">{% trans "étudiant(s) inscrit(s)" %}</div>
+        </div>
+    </div>
+    <div class="card" style="padding:12px 20px;display:inline-flex;align-items:center;gap:8px;">
+        <i data-lucide="presentation" class="icon" style="color:var(--accent);"></i>
+        <div>
+            <div style="font-size:22px;font-weight:800;">{{ sessions.count }}</div>
+            <div style="font-size:12px;color:var(--text-muted);">{% trans "soutenance(s)" %}</div>
+        </div>
+    </div>
+    <div class="card" style="padding:12px 20px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;"
+         onclick="navigator.clipboard.writeText('{{ classe.code_acces }}')">
+        <i data-lucide="key" class="icon-sm" style="color:var(--primary);"></i>
+        <div>
+            <div style="font-size:18px;font-weight:800;font-family:monospace;letter-spacing:3px;">{{ classe.code_acces }}</div>
+            <div style="font-size:12px;color:var(--text-muted);">{% trans "Code d'accès" %}</div>
+        </div>
+    </div>
+</div>
+
+{# ── Soutenances ── #}
+<h2 style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">
+    <i data-lucide="presentation" class="icon"></i>
+    {% trans "Soutenances" %}
+</h2>
+
+{% if sessions %}
+{% for s in sessions %}
+<div class="session-card">
+    <div style="flex:1;">
+        <a href="{% url 'sessions_app:detail_session' s.id %}" style="font-weight:700;font-size:15px;text-decoration:none;color:var(--text);">
+            {{ s.titre }}
+        </a>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">
+            {{ s.get_langue_display }} — {{ s.get_personnalite_ia_display }}
+            &nbsp;·&nbsp; {{ s.passages.count }} {% trans "passage(s)" %}
+        </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0;">
+        <a href="{% url 'sessions_app:planifier_passages' s.id %}" class="btn btn-sm"
+           style="display:inline-flex;align-items:center;gap:3px;padding:4px 10px;">
+            <i data-lucide="calendar" class="icon-xs"></i>{% trans "Planifier" %}
+        </a>
+        <a href="{% url 'sessions_app:detail_session' s.id %}" class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:3px;padding:4px 10px;">
+            <i data-lucide="eye" class="icon-xs"></i>
+        </a>
+        <a href="{% url 'sessions_app:editer_session' s.id %}" class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:3px;padding:4px 10px;">
+            <i data-lucide="edit-2" class="icon-xs"></i>
+        </a>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card" style="text-align:center;padding:32px;">
+    <i data-lucide="presentation" style="width:40px;height:40px;stroke-width:1.5;color:var(--text-muted);display:block;margin:0 auto 12px;"></i>
+    <p style="color:var(--text-muted);margin:0 0 14px;">{% trans "Aucune soutenance dans cette classe." %}</p>
+    <a href="{% url 'sessions_app:creer_session' classe.id %}" class="btn btn-sm"
+       style="display:inline-flex;align-items:center;gap:5px;">
+        <i data-lucide="plus" class="icon-sm"></i>{% trans "Créer la première soutenance" %}
+    </a>
+</div>
+{% endif %}
+
+{# ── Inscrits ── #}
+<h2 style="display:flex;align-items:center;gap:7px;margin-top:28px;margin-bottom:12px;">
+    <i data-lucide="users" class="icon"></i>
+    {% trans "Étudiants inscrits" %}
+    <span class="badge badge-en_cours">{{ classe.inscrits.count }}</span>
+</h2>
+
+{% if classe.inscrits.all %}
+<div class="card" style="padding:0;overflow:hidden;">
+    <table>
+        <thead><tr>
+            <th>{% trans "Nom" %}</th>
+            <th>{% trans "Email" %}</th>
+            <th style="width:100px;"></th>
+        </tr></thead>
+        <tbody>
+        {% for u in classe.inscrits.all %}
+        <tr>
+            <td>
+                <span style="display:inline-flex;align-items:center;gap:6px;">
+                    <i data-lucide="user" class="icon-xs" style="color:var(--text-muted);"></i>
+                    {{ u.get_full_name|default:u.username }}
+                </span>
+            </td>
+            <td style="color:var(--text-muted);font-size:13px;">{{ u.email|default:"—" }}</td>
+            <td>
+                <form method="post" action="{% url 'sessions_app:retirer_inscrit_classe' classe.id u.id %}"
+                      style="display:inline;" class="form-retirer-classe">
+                    {% csrf_token %}
+                    <span class="retirer-confirmer" style="display:none;align-items:center;gap:4px;">
+                        <span style="font-size:11px;color:var(--text-muted);">{% trans "Retirer ?" %}</span>
+                        <button type="submit" class="btn btn-sm btn-danger"
+                                style="padding:2px 8px;font-size:11px;">{% trans "Oui" %}</button>
+                        <button type="button" class="btn btn-sm btn-secondary btn-annuler-retirer"
+                                style="padding:2px 8px;font-size:11px;">{% trans "Non" %}</button>
+                    </span>
+                    <button type="button" class="btn btn-sm btn-danger btn-demander-retirer"
+                            style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;"
+                            title="{% trans "Retirer de la classe" %}">
+                        <i data-lucide="user-minus" class="icon-xs"></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <p style="color:var(--text-muted);font-size:13px;">
+        {% trans "Aucun étudiant inscrit." %}
+        <a href="{% url 'sessions_app:code_classe' classe.id %}">{% trans "Partagez le code d'accès." %}</a>
+    </p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Confirmation inline pour retirer un étudiant (pas de confirm() navigateur)
+    document.querySelectorAll('.btn-demander-retirer').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var form = this.closest('form');
+            this.style.display = 'none';
+            form.querySelector('.retirer-confirmer').style.display = 'inline-flex';
+        });
+    });
+    document.querySelectorAll('.btn-annuler-retirer').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var form = this.closest('form');
+            form.querySelector('.retirer-confirmer').style.display = 'none';
+            form.querySelector('.btn-demander-retirer').style.display = 'inline-flex';
+        });
+    });
+});
+</script>
+{% endblock %}

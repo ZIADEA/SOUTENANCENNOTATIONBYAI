@@ -1,0 +1,397 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Import liste — {{ session.titre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.statut-exact     { color:var(--success); font-weight:700; }
+.statut-fuzzy     { color:var(--warning); font-weight:700; }
+.statut-non_trouve{ color:var(--danger); font-weight:700; }
+
+.groupe-card {
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:10px;
+    background:var(--bg-card);
+}
+.groupe-card.invalide {
+    border-color:#fca5a5;
+    background:#fff5f5;
+    opacity:.85;
+}
+[data-theme="dark"] .groupe-card.invalide {
+    border-color:#7f1d1d;
+    background:#1f0a0a;
+}
+.groupe-card.valide {
+    border-color:#86efac;
+}
+[data-theme="dark"] .groupe-card.valide {
+    border-color:#166534;
+}
+
+.membre-row {
+    display:flex;align-items:center;gap:8px;
+    padding:4px 0;font-size:13px;
+}
+.badge-match {
+    font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;
+    border:1px solid currentColor;
+}
+.upload-zone {
+    border:2px dashed var(--border);
+    border-radius:12px;
+    padding:32px 24px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .2s,background .2s;
+}
+.upload-zone:hover, .upload-zone.drag-over {
+    border-color:var(--primary);
+    background:rgba(var(--primary-rgb, 79,70,229), .04);
+}
+.upload-zone input[type=file] { display:none; }
+
+.stats-bar {
+    display:flex;gap:16px;flex-wrap:wrap;
+    padding:12px 16px;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    margin-bottom:20px;
+    font-size:13px;
+}
+.stats-bar .stat { display:flex;align-items:center;gap:6px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:860px;margin:0 auto;">
+
+{# ── Header ── #}
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;flex-wrap:wrap;">
+    <a href="{% url 'sessions_app:planifier_passages' session.id %}"
+       class="btn btn-sm btn-secondary"
+       style="display:inline-flex;align-items:center;gap:4px;">
+        <i data-lucide="arrow-left" class="icon-sm"></i>
+        {% trans "Retour" %}
+    </a>
+    <div>
+        <h1 style="margin:0;font-size:22px;display:flex;align-items:center;gap:8px;">
+            <i data-lucide="file-up" class="icon"></i>
+            {% trans "Importer une liste d'étudiants" %}
+        </h1>
+        <p style="margin:4px 0 0;font-size:13px;color:var(--text-muted);">
+            {{ session.titre }}
+            {% if classe %} — {{ classe.nom }}{% endif %}
+        </p>
+    </div>
+</div>
+
+{# ── Messages ── #}
+{% if messages %}
+{% for msg in messages %}
+<div class="alert alert-{{ msg.tags }}" style="margin-bottom:16px;">{{ msg }}</div>
+{% endfor %}
+{% endif %}
+
+{% if not preview %}
+<!-- Étape 1 : Upload du fichier -->
+
+<!-- Aide format -->
+<div class="card" style="margin-bottom:20px;">
+    <h3 style="margin-top:0;display:flex;align-items:center;gap:6px;font-size:15px;">
+        <i data-lucide="info" class="icon-sm" style="color:var(--primary);"></i>
+        {% trans "Format du fichier" %}
+    </h3>
+    <p style="font-size:13px;color:var(--text-muted);margin:0 0 10px;">
+        {% trans "Le fichier doit contenir une colonne" %} <strong>nom</strong>
+        {% trans "et une colonne" %} <strong>prenom</strong>.
+        {% trans "La colonne" %} <strong>groupe</strong>
+        {% trans "est optionnelle — si absente, chaque étudiant est traité en monôme." %}
+    </p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+            <p style="font-size:12px;font-weight:600;margin:0 0 4px;color:var(--text-muted);">
+                {% trans "Exemple sans groupe (monômes)" %} :
+            </p>
+            <pre style="background:var(--bg);border:1px solid var(--border);
+                        border-radius:6px;padding:8px;font-size:11px;margin:0;overflow-x:auto;">nom,prenom
+Dupont,Alice
+Martin,Bob
+Durand,Charlie</pre>
+        </div>
+        <div>
+            <p style="font-size:12px;font-weight:600;margin:0 0 4px;color:var(--text-muted);">
+                {% trans "Exemple avec groupes (binômes/groupes)" %} :
+            </p>
+            <pre style="background:var(--bg);border:1px solid var(--border);
+                        border-radius:6px;padding:8px;font-size:11px;margin:0;overflow-x:auto;">nom,prenom,groupe
+Dupont,Alice,G1
+Martin,Bob,G1
+Durand,Charlie,G2
+Leroy,Diana,G2
+Petit,Eve,G2</pre>
+        </div>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin:10px 0 0;">
+        <strong>{% trans "Formats acceptés" %} :</strong>
+        CSV, XLSX (Excel), PDF, TXT, PNG, JPG, JPEG, WEBP, GIF
+        — {% trans "les noms de colonnes sont détectés automatiquement" %}.
+    </p>
+</div>
+
+{# Formulaire upload #}
+<div class="card">
+    <form method="post" enctype="multipart/form-data" id="form-import">
+        {% csrf_token %}
+
+        {# Zone drag & drop #}
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('id_fichier').click()">
+            <input type="file" name="fichier" id="id_fichier"
+                   accept=".csv,.xlsx,.pdf,.txt,.png,.jpg,.jpeg,.webp,.gif"
+                   onchange="afficherFichier(this)">
+            <i data-lucide="upload-cloud" style="width:40px;height:40px;color:var(--primary);margin-bottom:8px;"></i>
+            <p style="margin:0;font-size:15px;font-weight:600;" id="upload-label">
+                {% trans "Cliquez ou glissez votre fichier ici" %}
+            </p>
+            <p style="margin:4px 0 0;font-size:12px;color:var(--text-muted);">
+                CSV, XLSX, PDF, TXT, PNG, JPG…
+            </p>
+        </div>
+
+        {% if erreur %}
+        <div class="alert alert-error" style="margin-top:16px;">
+            <i data-lucide="alert-triangle" class="icon-sm"></i>
+            {{ erreur }}
+        </div>
+        {% endif %}
+
+        {# Paramètres de planification #}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
+            <div class="form-group" style="margin:0;">
+                <label style="display:flex;align-items:center;gap:5px;font-size:13px;">
+                    <i data-lucide="clock" class="icon-xs"></i>
+                    {{ form.heure_debut.label }}
+                </label>
+                {{ form.heure_debut }}
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label style="display:flex;align-items:center;gap:5px;font-size:13px;">
+                    <i data-lucide="coffee" class="icon-xs"></i>
+                    {{ form.pause_minutes.label }}
+                </label>
+                {{ form.pause_minutes }}
+                <p style="font-size:11px;color:var(--text-muted);margin:3px 0 0;">
+                    {% trans "Durée créneau" %} : <strong>{{ duree_suggeree }} min</strong>
+                    ({{ session.duree_presentation }} + {{ session.duree_questions }} min)
+                </p>
+            </div>
+        </div>
+
+        <div style="margin-top:20px;display:flex;gap:10px;">
+            <button type="submit" class="btn" id="btn-analyser" disabled
+                    style="display:inline-flex;align-items:center;gap:6px;">
+                <i data-lucide="search" class="icon-sm"></i>
+                {% trans "Analyser le fichier" %}
+            </button>
+            <a href="{% url 'sessions_app:planifier_passages' session.id %}"
+               class="btn btn-secondary">{% trans "Annuler" %}</a>
+        </div>
+    </form>
+</div>
+
+{% else %}
+<!-- Étape 2 : Prévisualisation et confirmation -->
+
+{# Statistiques #}
+<div class="stats-bar" id="stats-bar">
+    <div class="stat">
+        <i data-lucide="file-check" class="icon-sm" style="color:var(--primary);"></i>
+        <strong id="stat-total">{{ preview|length }}</strong>
+        <span style="color:var(--text-muted);">{% trans "groupe(s) détecté(s)" %}</span>
+    </div>
+    <div class="stat">
+        <i data-lucide="check-circle" class="icon-sm" style="color:var(--success);"></i>
+        <strong id="stat-valides" style="color:var(--success);">—</strong>
+        <span style="color:var(--text-muted);">{% trans "planifiables" %}</span>
+    </div>
+    <div class="stat">
+        <i data-lucide="x-circle" class="icon-sm" style="color:var(--danger);"></i>
+        <strong id="stat-invalides" style="color:var(--danger);">—</strong>
+        <span style="color:var(--text-muted);">{% trans "ignorés (membre(s) absent(s))" %}</span>
+    </div>
+</div>
+
+{# Liste des groupes #}
+<div id="liste-groupes">
+{% for g in preview %}
+<div class="groupe-card {% if g.valide %}valide{% else %}invalide{% endif %}">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        {% if g.valide %}
+        <i data-lucide="check-circle" class="icon-sm" style="color:var(--success);flex-shrink:0;"></i>
+        {% else %}
+        <i data-lucide="x-circle" class="icon-sm" style="color:var(--danger);flex-shrink:0;"></i>
+        {% endif %}
+        <strong style="font-size:14px;">
+            {% if g.label == "Individuel" %}
+                {% trans "Passage individuel" %}
+            {% else %}
+                {% trans "Groupe" %} {{ g.label }}
+            {% endif %}
+        </strong>
+        <span class="badge badge-{{ g.type_groupe }}" style="margin-left:4px;font-size:10px;">
+            {{ g.type_groupe }}
+        </span>
+        {% if not g.valide %}
+        <span style="margin-left:auto;font-size:11px;color:var(--danger);">
+            <i data-lucide="alert-triangle" class="icon-xs"></i>
+            {% trans "Ignoré" %}
+        </span>
+        {% endif %}
+    </div>
+
+    {# Membres #}
+    {% for m in g.membres %}
+    <div class="membre-row">
+        <i data-lucide="user" class="icon-xs" style="color:var(--text-muted);flex-shrink:0;"></i>
+        <span style="flex:1;">
+            {% if m.user_id %}
+                {{ m.display }}
+            {% else %}
+                <span style="text-decoration:line-through;color:var(--text-muted);">
+                    {{ m.prenom }} {{ m.nom }}
+                </span>
+            {% endif %}
+        </span>
+        {% if m.statut == 'exact' %}
+        <span class="badge-match statut-exact">
+            <i data-lucide="check" style="width:10px;height:10px;display:inline-block;vertical-align:-1px;"></i>
+            {% trans "Exact" %}
+        </span>
+        {% elif m.statut == 'fuzzy' %}
+        <span class="badge-match statut-fuzzy" title="{{ m.score|floatformat:0 }}% de similarité">
+            <i data-lucide="alert-circle" style="width:10px;height:10px;display:inline-block;vertical-align:-1px;"></i>
+            {% trans "Approx." %} ({{ m.score|floatformat:0 }}%)
+        </span>
+        {% else %}
+        <span class="badge-match statut-non_trouve">
+            <i data-lucide="x" style="width:10px;height:10px;display:inline-block;vertical-align:-1px;"></i>
+            {% trans "Non trouvé" %}
+        </span>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if not g.valide and g.raison_invalide %}
+    <p style="margin:8px 0 0;font-size:11px;color:var(--danger);padding-top:6px;
+              border-top:1px solid #fca5a5;">
+        <i data-lucide="info" class="icon-xs"></i>
+        {{ g.raison_invalide }}
+    </p>
+    {% endif %}
+</div>
+{% endfor %}
+</div>
+
+{# Boutons de confirmation #}
+<div style="display:flex;gap:10px;margin-top:20px;padding:16px;
+            background:var(--bg-card);border:1px solid var(--border);
+            border-radius:10px;align-items:center;flex-wrap:wrap;">
+    <div style="flex:1;min-width:200px;">
+        <p style="margin:0;font-size:13px;font-weight:600;" id="msg-confirmation">
+            Chargement…
+        </p>
+        <p style="margin:4px 0 0;font-size:12px;color:var(--text-muted);">
+            {% trans "Les groupes avec un membre non trouvé seront ignorés." %}
+        </p>
+    </div>
+    <form method="post"
+          action="{% url 'sessions_app:importer_groupes_confirmer' session.id %}"
+          id="form-confirmer">
+        {% csrf_token %}
+        <button type="submit" class="btn" id="btn-confirmer"
+                style="display:inline-flex;align-items:center;gap:6px;">
+            <i data-lucide="check" class="icon-sm"></i>
+            {% trans "Confirmer et créer les passages" %}
+        </button>
+    </form>
+    <a href="{% url 'sessions_app:importer_groupes' session.id %}"
+       class="btn btn-secondary"
+       style="display:inline-flex;align-items:center;gap:6px;">
+        <i data-lucide="refresh-cw" class="icon-sm"></i>
+        {% trans "Recommencer" %}
+    </a>
+</div>
+
+{% endif %}
+
+</div>{# fin max-width #}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Zone upload drag & drop ──────────────────────────────────────────────────
+(function() {
+    var zone = document.getElementById('upload-zone');
+    var input = document.getElementById('id_fichier');
+    var btn   = document.getElementById('btn-analyser');
+    if (!zone || !input) return;
+
+    zone.addEventListener('dragover',  function(e) { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', function()  { zone.classList.remove('drag-over'); });
+    zone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) {
+            input.files = e.dataTransfer.files;
+            afficherFichier(input);
+        }
+    });
+})();
+
+function afficherFichier(input) {
+    var label = document.getElementById('upload-label');
+    var btn   = document.getElementById('btn-analyser');
+    if (input.files && input.files[0]) {
+        if (label) label.textContent = input.files[0].name;
+        if (btn) btn.disabled = false;
+        lucide.createIcons({ nodes: [document.getElementById('upload-zone')] });
+    }
+}
+
+// ── Statistiques de la prévisualisation ─────────────────────────────────────
+(function() {
+    var cards = document.querySelectorAll('.groupe-card');
+    if (!cards.length) return;
+
+    var nbValides   = 0;
+    var nbInvalides = 0;
+    cards.forEach(function(c) {
+        if (c.classList.contains('valide'))   nbValides++;
+        else                                  nbInvalides++;
+    });
+
+    var elV = document.getElementById('stat-valides');
+    var elI = document.getElementById('stat-invalides');
+    var elM = document.getElementById('msg-confirmation');
+    var btnC = document.getElementById('btn-confirmer');
+
+    if (elV) elV.textContent = nbValides;
+    if (elI) elI.textContent = nbInvalides;
+
+    if (elM) {
+        if (nbValides === 0) {
+            elM.textContent = "Aucun groupe planifiable — vérifiez que les étudiants sont bien inscrits.";
+            elM.style.color = 'var(--danger)';
+            if (btnC) btnC.disabled = true;
+        } else {
+            elM.textContent = nbValides + " passage(s) seront créés.";
+            elM.style.color = 'var(--success)';
+        }
+    }
+})();
+</script>
+{% endblock %}

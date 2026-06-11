@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+{% block title %}Live — {{ passage.noms_etudiants }}{% endblock %}
+{% block content %}
+<h1>{% trans "Suivi en direct" %} — {% trans "Passage" %} #{{ passage.ordre_passage }}</h1>
+<p style="color:var(--text-muted)">
+    <strong>{{ passage.noms_etudiants }}</strong> · {{ passage.session.titre }} ·
+    <span id="statut-badge" class="badge badge-{{ passage.statut }}">{{ passage.get_statut_display }}</span>
+</p>
+
+<div class="live-grid">
+    <div>
+        <div class="card">
+            <h2 style="margin-top:0">{% trans "Transcription en direct" %}</h2>
+            <div id="live-transcription" style="min-height: 200px; max-height: 400px; overflow-y: auto; padding: 12px; background: #f8fafc; border-radius: 8px; font-size: 14px;">
+                {{ passage.transcription|default:"(en attente du démarrage...)"|linebreaksbr }}
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-top:0">{% trans "Poser une question à l'étudiant" %}</h2>
+            <textarea id="prof-question" class="form-input" rows="2"
+                      placeholder="{% trans "Tapez votre question..." %}"></textarea>
+            <button class="btn btn-sm" onclick="envoyerQuestionProf()">{% trans "Envoyer à l'étudiant" %}</button>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-top:0;display:flex;justify-content:space-between;">
+                {% trans "Notes IA" %}
+                <span>
+                    <a href="{% url 'notation:declencher' passage.id %}"
+                       onclick="return confirm('{% trans "Déclencher la notation IA maintenant ?" %}')"
+                       class="btn btn-sm"><i data-lucide="zap" class="icon-xs"></i> {% trans "Déclencher notation" %}</a>
+                    <a href="{% url 'notation:notes_passage' passage.id %}" class="btn btn-sm btn-secondary">{% trans "Voir / éditer" %}</a>
+                </span>
+            </h2>
+            <div id="notes-live" style="font-size: 13px; color: var(--text-muted);">
+                {% trans "Les notes apparaîtront ici en temps réel dès que l'IA aura terminé son évaluation." %}
+            </div>
+        </div>
+    </div>
+
+    <div class="live-sidebar">
+        <h3 style="margin-top:0">{% trans "Événements en direct" %}</h3>
+        <ul id="live-events" class="live-events">
+            <li><span class="ts">{{ passage.heure_prevue|date:"H:i" }}</span> {% trans "Passage planifié" %}</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+const PASSAGE_ID = {{ passage.id }};
+const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+const ws = new WebSocket(`${wsScheme}://${window.location.host}/ws/passage/${PASSAGE_ID}/`);
+
+// Translated labels
+const LABELS = {
+    en_attente: "{% trans "En attente" %}",
+    en_cours:   "{% trans "En cours" %}",
+    questions:  "{% trans "Questions" %}",
+    termine:    "{% trans "Terminé" %}",
+    note:       "{% trans "Noté" %}",
+};
+const LBL_CONNEXION = "{% trans "Connexion live établie" %}";
+const LBL_FERME     = "{% trans "Connexion fermée" %}";
+const LBL_STATUT    = "{% trans "Statut" %}";
+const LBL_NOTE      = "{% trans "Note" %}";
+const LBL_QUESTION_IA   = "{% trans "Question IA" %}";
+const LBL_QUESTION_PROF = "{% trans "Question prof envoyée" %}";
+
+function ajouterEvent(txt) {
+    const li = document.createElement('li');
+    const ts = new Date().toLocaleTimeString();
+    li.innerHTML = `<span class="ts">${ts}</span> ${txt}`;
+    document.getElementById('live-events').prepend(li);
+}
+
+ws.onopen  = () => ajouterEvent('<span style="color:var(--success);font-size:10px;line-height:1;">●</span> ' + LBL_CONNEXION);
+ws.onclose = () => ajouterEvent('<span style="color:var(--danger);font-size:10px;line-height:1;">●</span> ' + LBL_FERME);
+
+ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'transcription_chunk') {
+        const div = document.getElementById('live-transcription');
+        div.textContent += ' ' + msg.payload.texte;
+        div.scrollTop = div.scrollHeight;
+    }
+    else if (msg.type === 'statut_update') {
+        const badge = document.getElementById('statut-badge');
+        const s = msg.payload.statut;
+        badge.textContent = LABELS[s] || s;
+        badge.className = 'badge badge-' + s;
+        ajouterEvent(`<span style="color:var(--accent);font-size:10px;line-height:1;">◆</span> ${LBL_STATUT} → ${LABELS[s] || s}`);
+    }
+    else if (msg.type === 'note_update' || msg.type === 'nouvelle_note') {
+        const p = msg.payload;
+        ajouterEvent(`<span style="color:var(--primary);font-size:10px;line-height:1;">▸</span> ${LBL_NOTE} : ${p.critere} → ${p.note_finale}/20 ${p.modifiee_par_prof ? '(prof)' : '(IA)'}`);
+    }
+    else if (msg.type === 'question_ia') {
+        ajouterEvent(`<span style="color:var(--primary);font-size:10px;line-height:1;">◈</span> ${LBL_QUESTION_IA} : ${msg.payload.question}`);
+    }
+};
+
+function envoyerQuestionProf() {
+    const q = document.getElementById('prof-question').value.trim();
+    if (!q) return;
+    ws.send(JSON.stringify({type: 'question_prof', question: q}));
+    document.getElementById('prof-question').value = '';
+    ajouterEvent(`<span style="color:#64748b;font-size:10px;line-height:1;">◉</span> ${LBL_QUESTION_PROF} : ${q.slice(0, 60)}`);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load extras %}
+{% block title %}{% trans "Notes" %} — {{ session.titre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.notes-tbl { width:100%; border-collapse:collapse; font-size:12px; }
+.notes-tbl th {
+    background:var(--primary); color:#fff;
+    padding:8px 10px; text-align:center;
+    white-space:nowrap; font-size:11px;
+    position:sticky; top:0; z-index:2;
+}
+.notes-tbl th.col-nom { text-align:left; }
+.notes-tbl td { padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.notes-tbl tr:hover td { background:rgba(99,102,241,.04); }
+.note-val {
+    display:inline-block; font-weight:700; font-size:13px;
+    min-width:36px; text-align:center;
+    padding:2px 6px; border-radius:6px;
+}
+.note-val.vert  { background:#dcfce7; color:var(--success); }
+.note-val.jaune { background:#fef9c3; color:#854d0e; }
+.note-val.rouge { background:#fee2e2; color:var(--danger); }
+.note-val.vide  { background:var(--bg-card,#f4f6fb); color:var(--text-muted); font-size:11px; font-weight:400; }
+.moy-badge {
+    font-size:15px; font-weight:800;
+    padding:3px 12px; border-radius:8px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <span style="display:flex;align-items:center;gap:8px;">
+        <i data-lucide="bar-chart-2" class="icon" style="color:var(--success);"></i>
+        {% trans "Notes" %} — {{ session.titre }}
+    </span>
+    <span style="display:flex;gap:6px;flex-wrap:wrap;">
+        <a href="{% url 'sessions_app:exporter_notes_xlsx' session.id %}" class="btn btn-sm"
+           style="display:inline-flex;align-items:center;gap:4px;background:var(--success);border-color:var(--success);">
+            <i data-lucide="file-spreadsheet" class="icon-sm"></i>
+            {% trans "Exporter XLSX" %}
+        </a>
+        <a href="{% url 'sessions_app:detail_session' session.id %}" class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:4px;">
+            <i data-lucide="arrow-left" class="icon-sm"></i>
+            {% trans "Retour à la soutenance" %}
+        </a>
+    </span>
+</h1>
+
+{% if not lignes %}
+<div class="card" style="text-align:center;padding:40px;color:var(--text-muted);">
+    <i data-lucide="inbox" style="width:40px;height:40px;display:block;margin:0 auto 12px;stroke-width:1.5;"></i>
+    {% trans "Aucun passage noté pour le moment." %}
+</div>
+{% else %}
+<div class="card" style="padding:0;overflow-x:auto;">
+    <table class="notes-tbl">
+        <thead>
+            <tr>
+                <th style="width:28px;">#</th>
+                <th class="col-nom" style="min-width:160px;">{% trans "Étudiant" %}</th>
+                {% for c in criteres %}
+                <th title="{{ c.description }}">{{ c.nom }}<br><span style="font-weight:400;font-size:10px;opacity:.8;">×{{ c.coefficient }}</span></th>
+                {% endfor %}
+                <th style="background:#065f46;">{% trans "Moyenne" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for ligne in lignes %}
+        <tr>
+            <td style="text-align:center;color:var(--text-muted);font-size:11px;">{{ ligne.passage.ordre_passage }}</td>
+            <td>
+                <strong>{{ ligne.etudiant.get_full_name|default:ligne.etudiant.username }}</strong>
+                <div style="font-size:10px;color:var(--text-muted);">
+                    <span class="badge badge-{{ ligne.passage.statut }}" style="font-size:9px;">{{ ligne.passage.get_statut_display }}</span>
+                </div>
+            </td>
+            {% for c in criteres %}
+            {% with n=ligne.notes_par_critere|get_item:c.id %}
+            <td style="text-align:center;">
+                {% if n %}
+                <span class="note-val {% if n.note_finale >= 14 %}vert{% elif n.note_finale >= 10 %}jaune{% else %}rouge{% endif %}">
+                    {{ n.note_finale|floatformat:1 }}
+                </span>
+                {% else %}
+                <span class="note-val vide">—</span>
+                {% endif %}
+            </td>
+            {% endwith %}
+            {% endfor %}
+            <td style="text-align:center;">
+                {% if ligne.globale is not None %}
+                <span class="moy-badge {% if ligne.globale >= 14 %}vert{% elif ligne.globale >= 10 %}jaune{% else %}rouge{% endif %}" style="{% if ligne.globale >= 14 %}background:#dcfce7;color:var(--success);{% elif ligne.globale >= 10 %}background:#fef9c3;color:#854d0e;{% else %}background:#fee2e2;color:var(--danger);{% endif %}">
+                    {{ ligne.globale|floatformat:2 }}<span style="font-size:11px;font-weight:400;">/20</span>
+                </span>
+                {% else %}
+                <span class="note-val vide">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{# Résumé statistique de la session #}
+{% with nb_notes=lignes|length %}
+<div class="card" style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:14px 18px;margin-top:12px;">
+    <div style="display:flex;align-items:center;gap:6px;font-size:13px;">
+        <i data-lucide="users" class="icon-sm" style="color:var(--primary);"></i>
+        <strong>{{ nb_notes }}</strong>&nbsp;{% trans "étudiant(s) évalué(s)" %}
+    </div>
+    <a href="{% url 'sessions_app:exporter_notes_xlsx' session.id %}"
+       class="btn btn-sm" style="display:inline-flex;align-items:center;gap:4px;background:var(--success);border-color:var(--success);margin-left:auto;">
+        <i data-lucide="file-spreadsheet" class="icon-sm"></i>
+        {% trans "Télécharger la feuille Excel complète" %}
+    </a>
+</div>
+{% endwith %}
+{% endif %}
+{% endblock %}

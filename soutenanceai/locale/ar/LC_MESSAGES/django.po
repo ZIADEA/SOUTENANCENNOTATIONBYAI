@@ -1,0 +1,1255 @@
+# Arabic / Darija translations for SoutenanceAI
+# Copyright (C) 2024
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ar\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+
+# ── Navigation (base.html) ────────────────────────────────────────────────────
+msgid "Admin"
+msgstr "الإدارة"
+
+msgid "Professeurs"
+msgstr "الأساتذة"
+
+msgid "Étudiants"
+msgstr "الطلاب"
+
+msgid "Mes classes"
+msgstr "فصولي"
+
+msgid "Mes étudiants"
+msgstr "طلابي"
+
+msgid "Nouvelle classe"
+msgstr "فصل جديد"
+
+msgid "Mes sessions"
+msgstr "جلساتي"
+
+msgid "Nouvelle session"
+msgstr "جلسة جديدة"
+
+msgid "Mes soutenances"
+msgstr "مناقشاتي"
+
+msgid "Déconnexion"
+msgstr "تسجيل الخروج"
+
+msgid "Connexion"
+msgstr "تسجيل الدخول"
+
+msgid "Changer le thème"
+msgstr "تغيير المظهر"
+
+msgid "Changer mon mot de passe"
+msgstr "تغيير كلمة المرور"
+
+# ── Page de connexion ─────────────────────────────────────────────────────────
+msgid "Notation IA des soutenances"
+msgstr "تقييم مناقشات التخرج بالذكاء الاصطناعي"
+
+msgid "Identifiant"
+msgstr "اسم المستخدم"
+
+msgid "Mot de passe"
+msgstr "كلمة المرور"
+
+msgid "Se connecter"
+msgstr "دخول"
+
+msgid "Pas de compte ? Contactez votre professeur ou l'administrateur."
+msgstr "ليس لديك حساب؟ تواصل مع أستاذك أو المدير."
+
+msgid "Étudiant ? Contactez votre professeur pour obtenir vos identifiants."
+msgstr "طالب؟ تواصل مع أستاذك للحصول على بيانات الدخول."
+
+msgid "Retour à l'accueil"
+msgstr "العودة إلى الرئيسية"
+
+# ── Dashboard superadmin ──────────────────────────────────────────────────────
+msgid "Dashboard Superadmin"
+msgstr "لوحة المدير العام"
+
+msgid "Dashboard administrateur"
+msgstr "لوحة الإدارة"
+
+msgid "Passages planifiés"
+msgstr "العروض المجدولة"
+
+msgid "Passages terminés"
+msgstr "العروض المنجزة"
+
+msgid "Moyenne générale"
+msgstr "المعدل العام"
+
+msgid "Professeurs récents"
+msgstr "أحدث الأساتذة"
+
+msgid "Nouveau professeur"
+msgstr "أستاذ جديد"
+
+msgid "Nom"
+msgstr "الاسم"
+
+msgid "Email"
+msgstr "البريد الإلكتروني"
+
+msgid "Créé le"
+msgstr "تاريخ الإنشاء"
+
+msgid "Aucun professeur."
+msgstr "لا يوجد أساتذة."
+
+# ── Profil ────────────────────────────────────────────────────────────────────
+msgid "Mon profil"
+msgstr "ملفي الشخصي"
+
+msgid "Photo de profil"
+msgstr "صورة الملف الشخصي"
+
+msgid "Cette photo est utilisée pour vous identifier automatiquement pendant votre soutenance (reconnaissance faciale côté navigateur). Utilisez une photo nette de face, fond neutre de préférence."
+msgstr "تُستخدم هذه الصورة للتعرف عليك تلقائيا خلال مناقشتك (تعرف على الوجه في المتصفح). استخدم صورة واضحة من الأمام وخلفية محايدة يفضل."
+
+msgid "Photo enregistrée"
+msgstr "تم حفظ الصورة"
+
+msgid "Vous pouvez en charger une nouvelle ci-dessous."
+msgstr "يمكنك تحميل صورة جديدة أدناه."
+
+msgid "Aucune photo enregistrée — la reconnaissance faciale ne sera pas disponible pour vos soutenances."
+msgstr "لا توجد صورة محفوظة — لن يتوفر التعرف على الوجه لمناقشاتك."
+
+msgid "Choisir une nouvelle photo"
+msgstr "اختر صورة جديدة"
+
+msgid "Enregistrer la photo"
+msgstr "حفظ الصورة"
+
+# ── Liste utilisateurs ────────────────────────────────────────────────────────
+msgid "Nom complet"
+msgstr "الاسم الكامل"
+
+msgid "Nouvel étudiant"
+msgstr "طالب جديد"
+
+msgid "Import CSV"
+msgstr "استيراد CSV"
+
+msgid "Réinitialiser mdp"
+msgstr "إعادة ضبط كلمة المرور"
+
+msgid "Réinitialiser le mot de passe de"
+msgstr "إعادة ضبط كلمة مرور"
+
+msgid "Supprimer ce compte ?"
+msgstr "هل تريد حذف هذا الحساب؟"
+
+msgid "Supprimer"
+msgstr "حذف"
+
+msgid "Aucun compte."
+msgstr "لا توجد حسابات."
+
+msgid "Créer le compte"
+msgstr "إنشاء الحساب"
+
+msgid "Annuler"
+msgstr "إلغاء"
+
+# ── Dashboard professeur (classes) ────────────────────────────────────────────
+msgid "Mes sessions de soutenance"
+msgstr "جلسات مناقشتي"
+
+msgid "inscrit(s)"
+msgstr "مسجل(ون)"
+
+msgid "soutenance(s)"
+msgstr "مناقشة/مناقشات"
+
+msgid "Partager"
+msgstr "مشاركة"
+
+msgid "Soutenance"
+msgstr "المناقشة"
+
+msgid "Voir"
+msgstr "عرض"
+
+msgid "Aucune classe encore"
+msgstr "لا توجد فصول بعد"
+
+msgid "Créez votre première classe, partagez le code à vos étudiants, puis créez des soutenances."
+msgstr "أنشئ فصلك الأول، شارك الرمز مع طلابك، ثم أنشئ مناقشات."
+
+msgid "Créer ma première classe"
+msgstr "إنشاء فصلي الأول"
+
+# ── Code d'accès classe ───────────────────────────────────────────────────────
+msgid "Code d'accès"
+msgstr "رمز الوصول"
+
+msgid "Partager la classe"
+msgstr "مشاركة الفصل"
+
+msgid "Classe"
+msgstr "الفصل"
+
+msgid "Code d'accès classe"
+msgstr "رمز الوصول للفصل"
+
+msgid "Partagez ce code à vos étudiants"
+msgstr "شارك هذا الرمز مع طلابك"
+
+msgid "QR Code"
+msgstr "رمز QR"
+
+msgid "Scanner pour rejoindre directement."
+msgstr "امسح للانضمام مباشرة."
+
+msgid "Lien direct"
+msgstr "رابط مباشر"
+
+msgid "Copier"
+msgstr "نسخ"
+
+msgid "Copié !"
+msgstr "تم النسخ !"
+
+msgid "Voir la classe"
+msgstr "عرض الفصل"
+
+# ── Code d'accès session ──────────────────────────────────────────────────────
+msgid "Partager la soutenance"
+msgstr "مشاركة المناقشة"
+
+msgid "Les étudiants peuvent scanner ce QR pour rejoindre directement."
+msgstr "يمكن للطلاب مسح هذا الرمز للانضمام مباشرة."
+
+msgid "étudiant(s) inscrit(s)"
+msgstr "طالب/طلاب مسجل(ون)"
+
+msgid "Planifier les passages"
+msgstr "جدولة العروض"
+
+# ── Détail classe ─────────────────────────────────────────────────────────────
+msgid "Code & QR"
+msgstr "الرمز ورمز QR"
+
+msgid "Nouvelle soutenance"
+msgstr "مناقشة جديدة"
+
+msgid "Supprimer cette classe et toutes ses soutenances ?"
+msgstr "هل تريد حذف هذا الفصل وجميع مناقشاته؟"
+
+msgid "Étudiants inscrits"
+msgstr "الطلاب المسجلون"
+
+msgid "Soutenances"
+msgstr "المناقشات"
+
+msgid "passage(s)"
+msgstr "عرض/عروض"
+
+msgid "Aucune soutenance dans cette classe."
+msgstr "لا توجد مناقشات في هذا الفصل."
+
+msgid "Créer la première soutenance"
+msgstr "إنشاء أول مناقشة"
+
+msgid "étudiant(s) inscrit(s)"
+msgstr "طالب/طلاب مسجل(ون)"
+
+msgid "Retirer cet étudiant de la classe ?"
+msgstr "هل تريد إزالة هذا الطالب من الفصل؟"
+
+msgid "Aucun étudiant inscrit."
+msgstr "لا يوجد طلاب مسجلون."
+
+msgid "Partagez le code d'accès."
+msgstr "شارك رمز الوصول."
+
+# ── Form session ──────────────────────────────────────────────────────────────
+msgid "Titre"
+msgstr "العنوان"
+
+msgid "Langue"
+msgstr "اللغة"
+
+msgid "Personnalité IA"
+msgstr "شخصية الذكاء الاصطناعي"
+
+msgid "Éditer"
+msgstr "تعديل"
+
+msgid "Nouvelle"
+msgstr "جديدة"
+
+msgid "session"
+msgstr "جلسة"
+
+msgid "Nouvelle soutenance — {{ classe.nom }}"
+msgstr "مناقشة جديدة — {{ classe.nom }}"
+
+msgid "Retour à la classe"
+msgstr "العودة إلى الفصل"
+
+msgid "Retour"
+msgstr "رجوع"
+
+msgid "Informations générales"
+msgstr "معلومات عامة"
+
+msgid "Description"
+msgstr "الوصف"
+
+msgid "Durée présentation (min)"
+msgstr "مدة العرض (دقيقة)"
+
+msgid "Durée questions (min)"
+msgstr "مدة الأسئلة (دقيقة)"
+
+msgid "Nombre maximum de questions IA"
+msgstr "الحد الأقصى لأسئلة الذكاء الاصطناعي"
+
+msgid "Rapport écrit"
+msgstr "التقرير المكتوب"
+
+msgid "Rapport obligatoire"
+msgstr "تقرير إلزامي"
+
+msgid "Coefficient du rapport"
+msgstr "معامل التقرير"
+
+msgid "Personnalité & consignes pour l'IA"
+msgstr "الشخصية والتعليمات للذكاء الاصطناعي"
+
+msgid "Personnalité de l'IA évaluatrice"
+msgstr "شخصية الذكاء الاصطناعي المقيِّم"
+
+msgid "Configurez indépendamment comment l'IA pose ses questions (pendant la soutenance) et comment elle note (biais sur les scores)."
+msgstr "اضبط مستقلا أسلوب أسئلة الذكاء الاصطناعي (خلال المناقشة) وأسلوب تقييمه (تحيز الدرجات)."
+
+msgid "Style de questionnement"
+msgstr "أسلوب الأسئلة"
+
+msgid "Ton et approche des questions posées pendant la soutenance."
+msgstr "النبرة وأسلوب الأسئلة خلال المناقشة."
+
+msgid "Style de notation"
+msgstr "أسلوب التقييم"
+
+msgid "Biais de sévérité / générosité appliqué aux scores (orientation douce, non bloquante)."
+msgstr "تحيز الصرامة/الكرم للدرجات (توجيه لطيف غير مقيد)."
+
+msgid "Ajustement automatique si stress détecté"
+msgstr "ضبط تلقائي عند اكتشاف التوتر"
+
+msgid "Si activé et que la transcription révèle un étudiant stressé, l'IA bascule automatiquement vers Mentor (questionnement) et Indulgent (notation), pour ne pas pénaliser l'humain."
+msgstr "عند التفعيل وكشف النص عن طالب متوتر، يتحول الذكاء الاصطناعي تلقائيا إلى المرشد (أسئلة) والمتساهل (تقييم) حتى لا يعاقب الطالب."
+
+msgid "Consignes libres"
+msgstr "تعليمات حرة"
+
+msgid "Donnez à l'IA des indications spécifiques sur ce qu'il faut évaluer, le public cible, etc."
+msgstr "أعطِ للذكاء الاصطناعي تعليمات محددة حول ما يجب تقييمه والجمهور المستهدف إلخ."
+
+msgid "Critères de notation"
+msgstr "معايير التقييم"
+
+msgid "Cochez les critères à utiliser et ajustez leur coefficient."
+msgstr "حدد المعايير التي تريد استخدامها واضبط معاملاتها."
+
+msgid "Coef."
+msgstr "المعامل"
+
+msgid "Critères personnalisés"
+msgstr "معايير مخصصة"
+
+msgid "Ajouter un critère perso"
+msgstr "إضافة معيار مخصص"
+
+msgid "Mode de notation pour les groupes"
+msgstr "نمط التقييم للمجموعات"
+
+msgid "En mode <strong>mixte</strong>, la note finale = coef_groupe × note_collective + coef_individuel × note_individuelle."
+msgstr "في النمط <strong>المختلط</strong>: النقطة النهائية = معامل_المجموعة × النقطة_الجماعية + معامل_الفردي × النقطة_الفردية."
+
+msgid "Coefficient groupe (mixte)"
+msgstr "معامل المجموعة (مختلط)"
+
+msgid "Coefficient individuel (mixte)"
+msgstr "المعامل الفردي (مختلط)"
+
+msgid "Mettre à jour"
+msgstr "تحديث"
+
+msgid "Créer la soutenance"
+msgstr "إنشاء المناقشة"
+
+msgid "Nom du critère"
+msgstr "اسم المعيار"
+
+msgid "Activez « Rapport obligatoire » pour pouvoir noter ce critère."
+msgstr "فعّل «التقرير الإلزامي» لتتمكن من تقييم هذا المعيار."
+
+# ── Blocktrans ────────────────────────────────────────────────────────────────
+msgid "Éditer la soutenance « %(titre)s »"
+msgstr "تعديل المناقشة «%(titre)s»"
+
+msgid "Éditer le passage #%(n)s"
+msgstr "تعديل العرض رقم %(n)s"
+
+# ── Passages ──────────────────────────────────────────────────────────────────
+msgid "Passages"
+msgstr "العروض"
+
+msgid "Nouveau"
+msgstr "جديد"
+
+msgid "passage"
+msgstr "عرض"
+
+msgid "Nouveau passage"
+msgstr "عرض جديد"
+
+msgid "Session"
+msgstr "الجلسة"
+
+msgid "Enregistrer"
+msgstr "حفظ"
+
+msgid "Supprimer ce passage ?"
+msgstr "هل تريد حذف هذا العرض؟"
+
+msgid "Supprimer ce passage"
+msgstr "حذف هذا العرض"
+
+msgid "Action"
+msgstr "الإجراء"
+
+msgid "Préparer & démarrer"
+msgstr "التحضير والبدء"
+
+msgid "Rejoindre"
+msgstr "الانضمام"
+
+msgid "Préparer"
+msgstr "التحضير"
+
+msgid "Aucune soutenance n'est planifiée pour vous. Contactez votre professeur."
+msgstr "لا توجد مناقشة مجدولة لك. تواصل مع أستاذك."
+
+# ── Planifier passages ────────────────────────────────────────────────────────
+msgid "Retour à la soutenance"
+msgstr "العودة إلى المناقشة"
+
+msgid "planifié"
+msgstr "مجدول"
+
+msgid "Retirer cet étudiant de la session ?"
+msgstr "هل تريد إزالة هذا الطالب من الجلسة؟"
+
+msgid "Retirer"
+msgstr "إزالة"
+
+msgid "Aucun étudiant inscrit pour le moment."
+msgstr "لا يوجد طلاب مسجلون حاليا."
+
+msgid "Partagez le code de la classe."
+msgstr "شارك رمز الفصل."
+
+msgid "Code classe"
+msgstr "رمز الفصل"
+
+msgid "Créer un passage"
+msgstr "إنشاء عرض"
+
+msgid "Sélectionner les étudiant(s)"
+msgstr "اختر الطالب/الطلاب"
+
+msgid "1 étudiant = monôme, 2 = binôme, 3+ = groupe"
+msgstr "طالب واحد = فردي، 2 = ثنائي، 3 فأكثر = مجموعة"
+
+msgid "Ajouter ce passage"
+msgstr "إضافة هذا العرض"
+
+msgid "Tous les étudiants inscrits sont déjà planifiés !"
+msgstr "جميع الطلاب المسجلين مجدولون بالفعل!"
+
+msgid "Auto-planifier"
+msgstr "جدولة تلقائية"
+
+msgid "Manuel"
+msgstr "يدوي"
+
+msgid "Planning actuel"
+msgstr "الجدول الحالي"
+
+msgid "Supprimer cette session et tous ses passages ?"
+msgstr "هل تريد حذف هذه الجلسة وجميع عروضها؟"
+
+# ── Planification auto ────────────────────────────────────────────────────────
+msgid "Planification automatique"
+msgstr "الجدولة التلقائية"
+
+msgid "Paramètres"
+msgstr "الإعدادات"
+
+msgid "Générer les passages pour"
+msgstr "إنشاء العروض لـ"
+
+msgid "étudiant(s) ?"
+msgstr "طالب/طلاب؟"
+
+msgid "Générer"
+msgstr "إنشاء"
+
+msgid "Aperçu"
+msgstr "معاينة"
+
+msgid "Renseignez les paramètres pour voir un aperçu du planning."
+msgstr "أدخل الإعدادات لرؤية معاينة الجدول."
+
+msgid "Tous les étudiants sont déjà planifiés pour cette soutenance."
+msgstr "جميع الطلاب مجدولون بالفعل لهذه المناقشة."
+
+# ── Rejoindre session / classe ────────────────────────────────────────────────
+msgid "Organisée par"
+msgstr "منظمة من طرف"
+
+msgid "Créez votre compte pour rejoindre cette soutenance. Si vous avez déjà un compte,"
+msgstr "أنشئ حسابك للانضمام إلى هذه المناقشة. إذا كان لديك حساب مسبق،"
+
+msgid "connectez-vous ici"
+msgstr "سجل الدخول هنا"
+
+msgid "Prénom"
+msgstr "الاسم الأول"
+
+msgid "optionnel"
+msgstr "اختياري"
+
+msgid "Confirmer le mot de passe"
+msgstr "تأكيد كلمة المرور"
+
+msgid "Rejoindre la soutenance"
+msgstr "الانضمام إلى المناقشة"
+
+msgid "Créez votre compte étudiant pour rejoindre cette classe. Déjà inscrit ?"
+msgstr "أنشئ حساب طالب للانضمام إلى هذا الفصل. مسجل مسبقا؟"
+
+msgid "Connectez-vous ici"
+msgstr "سجل الدخول هنا"
+
+msgid "Rejoindre la classe"
+msgstr "الانضمام إلى الفصل"
+
+# ── Form classe ───────────────────────────────────────────────────────────────
+msgid "Modifier la classe"
+msgstr "تعديل الفصل"
+
+msgid "Créer une nouvelle classe"
+msgstr "إنشاء فصل جديد"
+
+msgid "Créer la classe"
+msgstr "إنشاء الفصل"
+
+# ── Dashboard étudiant ────────────────────────────────────────────────────────
+msgid "Rejoindre une soutenance"
+msgstr "الانضمام إلى مناقشة"
+
+msgid "Entrez le code partagé par votre professeur"
+msgstr "أدخل الرمز الذي شاركه أستاذك"
+
+msgid "Le code se trouve sur la fiche de soutenance partagée par votre enseignant (8 caractères)."
+msgstr "الرمز موجود في بطاقة المناقشة التي شاركها أستاذك (8 أحرف)."
+
+msgid "Prof"
+msgstr "الأستاذ"
+
+msgid "Aucune soutenance dans cette classe pour le moment."
+msgstr "لا توجد مناقشة في هذا الفصل حاليا."
+
+msgid "Mes passages planifiés"
+msgstr "عروضي المجدولة"
+
+msgid "Vous n'êtes inscrit à aucune soutenance pour le moment."
+msgstr "لم تنضم إلى أي مناقشة بعد."
+
+msgid "Rejoindre une soutenance avec un code"
+msgstr "الانضمام إلى مناقشة برمز"
+
+# ── Tableaux communs ──────────────────────────────────────────────────────────
+msgid "Étudiant(s)"
+msgstr "الطالب/الطلاب"
+
+msgid "Type"
+msgstr "النوع"
+
+msgid "Heure prévue"
+msgstr "الوقت المحدد"
+
+msgid "Statut"
+msgstr "الحالة"
+
+msgid "Actions"
+msgstr "الإجراءات"
+
+msgid "Notes"
+msgstr "النقاط"
+
+msgid "Aucun passage planifié."
+msgstr "لا توجد عروض مجدولة."
+
+msgid "Planifier"
+msgstr "جدولة"
+
+# ── Détail session ────────────────────────────────────────────────────────────
+msgid "Durée"
+msgstr "المدة"
+
+msgid "min de questions"
+msgstr "دقيقة من الأسئلة"
+
+msgid "Mode notation groupe"
+msgstr "نمط تقييم المجموعة"
+
+msgid "Critères"
+msgstr "المعايير"
+
+msgid "Planning des passages"
+msgstr "جدول العروض"
+
+msgid "Ajouter un passage"
+msgstr "إضافة عرض"
+
+msgid "Ajustement auto stress actif"
+msgstr "الحماية من التوتر مفعلة"
+
+msgid "Questionnement"
+msgstr "الاستجواب"
+
+msgid "Notation"
+msgstr "التقييم"
+
+msgid "code classe"
+msgstr "رمز الفصل"
+
+msgid "Supprimer cette soutenance et tous ses passages ?"
+msgstr "هل تريد حذف هذه المناقشة وجميع عروضها؟"
+
+# ── Upload fichiers ───────────────────────────────────────────────────────────
+msgid "Déposer vos fichiers"
+msgstr "رفع ملفاتك"
+
+msgid "Préparer ma soutenance"
+msgstr "تحضير مناقشتي"
+
+msgid "Avant de démarrer, déposez votre présentation PPTX"
+msgstr "قبل البدء، ارفع عرضك بصيغة PPTX"
+
+msgid "et votre rapport PDF (obligatoire)"
+msgstr "وتقريرك بصيغة PDF (إلزامي)"
+
+msgid "et, optionnellement, votre rapport PDF"
+msgstr "واختيارياً تقريرك بصيغة PDF"
+
+msgid "Présentation PPTX"
+msgstr "العرض PPTX"
+
+msgid "Déjà déposé"
+msgstr "تم الرفع مسبقاً"
+
+msgid "Rapport PDF"
+msgstr "تقرير PDF"
+
+msgid "obligatoire"
+msgstr "إلزامي"
+
+msgid "Téléverser & continuer"
+msgstr "رفع ومتابعة"
+
+msgid "À savoir avant de démarrer"
+msgstr "معلومات مهمة قبل البدء"
+
+msgid "Votre micro et votre caméra seront enregistrés en continu."
+msgstr "سيتم تسجيل الميكروفون والكاميرا باستمرار."
+
+msgid "La langue attendue est"
+msgstr "اللغة المطلوبة هي"
+
+# ── Détail passage (étudiant) ─────────────────────────────────────────────────
+msgid "Détail soutenance"
+msgstr "تفاصيل المناقشة"
+
+msgid "Votre soutenance n'a pas encore démarré."
+msgstr "لم تبدأ مناقشتك بعد."
+
+msgid "Votre soutenance est en cours."
+msgstr "مناقشتك جارية الآن."
+
+msgid "Rejoindre la salle"
+msgstr "الدخول إلى القاعة"
+
+msgid "Votre soutenance est terminée. La notation IA est"
+msgstr "انتهت مناقشتك. تقييم الذكاء الاصطناعي"
+
+msgid "disponible"
+msgstr "متاح"
+
+msgid "en cours"
+msgstr "قيد الإنجاز"
+
+msgid "Voir l'enregistrement"
+msgstr "مشاهدة التسجيل"
+
+msgid "Transcription de votre présentation"
+msgstr "نص عرضك"
+
+# ── Notes passage (prof) ──────────────────────────────────────────────────────
+msgid "Passage"
+msgstr "العرض"
+
+msgid "Détail de notation"
+msgstr "تفاصيل التقييم"
+
+msgid "Relancer la notation IA ? Les notes existantes seront écrasées."
+msgstr "هل تريد إعادة تشغيل التقييم؟ ستُحذف النقاط الحالية."
+
+msgid "(Re)noter"
+msgstr "(إعادة) التقييم"
+
+msgid "Notes IA"
+msgstr "نقاط الذكاء الاصطناعي"
+
+msgid "Relancer la notation IA ?"
+msgstr "هل تريد إعادة تشغيل التقييم؟"
+
+msgid "(Re)déclencher notation"
+msgstr "(إعادة) تفعيل التقييم"
+
+msgid "Note globale"
+msgstr "النقطة الإجمالية"
+
+msgid "Configuration IA utilisée"
+msgstr "إعدادات الذكاء الاصطناعي المستخدمة"
+
+msgid "Anti-stress actif"
+msgstr "الحماية من التوتر مفعلة"
+
+msgid "Durée prévue"
+msgstr "المدة المتوقعة"
+
+msgid "Transcription"
+msgstr "النص"
+
+msgid "Non noté"
+msgstr "غير مُقيَّم"
+
+msgid "Critère"
+msgstr "المعيار"
+
+msgid "Note IA"
+msgstr "نقطة الذكاء الاصطناعي"
+
+msgid "Note finale"
+msgstr "النقطة النهائية"
+
+msgid "Justificatif IA"
+msgstr "مبرر الذكاء الاصطناعي"
+
+msgid "Commentaire prof"
+msgstr "تعليق الأستاذ"
+
+msgid "Commentaire"
+msgstr "التعليق"
+
+msgid "modifiée"
+msgstr "معدلة"
+
+msgid "IA dit"
+msgstr "الذكاء الاصطناعي يقول"
+
+msgid "(aucun justificatif)"
+msgstr "(لا يوجد مبرر)"
+
+msgid "Prof (optionnel)"
+msgstr "الأستاذ (اختياري)"
+
+msgid "Votre commentaire..."
+msgstr "تعليقك..."
+
+msgid "Sauvegarder cette note"
+msgstr "حفظ هذه النقطة"
+
+msgid "Comment la note globale est calculée"
+msgstr "كيف تُحسب النقطة الإجمالية"
+
+msgid "Moyenne pondérée"
+msgstr "المتوسط المرجح"
+
+msgid "—"
+msgstr "—"
+
+msgid "modif."
+msgstr "معدل"
+
+msgid "Synthèse IA — analyse comportementale et verbale"
+msgstr "ملخص الذكاء الاصطناعي — التحليل السلوكي واللفظي"
+
+msgid "Ton"
+msgstr "النبرة"
+
+msgid "Disfluences"
+msgstr "تعثرات اللغة"
+
+msgid "Corps / discours"
+msgstr "التناسق / الخطاب"
+
+msgid "Aucune note enregistrée. Cliquez sur « (Re)noter » ci-dessus pour lancer la notation IA."
+msgstr "لا توجد نقاط مسجلة. انقر على «(إعادة) التقييم» أعلاه لتشغيل التقييم."
+
+msgid "Aucune note enregistrée. Cliquez sur « Déclencher notation » ci-dessus."
+msgstr "لا توجد نقاط مسجلة. انقر على «تفعيل التقييم» أعلاه."
+
+msgid "Questions / réponses"
+msgstr "الأسئلة والأجوبة"
+
+msgid "question(s)"
+msgstr "سؤال/أسئلة"
+
+msgid "IA"
+msgstr "الذكاء الاصطناعي"
+
+msgid "Données de posture et contact visuel"
+msgstr "بيانات الوضعية والتواصل البصري"
+
+msgid "analyse webcam MediaPipe"
+msgstr "تحليل الكاميرا MediaPipe"
+
+msgid "Contact visuel"
+msgstr "التواصل البصري"
+
+msgid "Inclinaison tête moy."
+msgstr "متوسط إمالة الرأس"
+
+msgid "Mouvement moyen"
+msgstr "متوسط الحركة"
+
+msgid "Transcription audio brute"
+msgstr "النص الصوتي الخام"
+
+msgid "caractères"
+msgstr "حرف"
+
+msgid "cliquez pour développer"
+msgstr "انقر للتوسيع"
+
+msgid "Transcriptions individuelles disponibles"
+msgstr "النصوص الفردية متاحة"
+
+msgid "multi-appareil"
+msgstr "متعدد الأجهزة"
+
+msgid "chars"
+msgstr "حرف"
+
+# ── Suivi live ────────────────────────────────────────────────────────────────
+msgid "Suivi en direct"
+msgstr "المتابعة المباشرة"
+
+msgid "Transcription en direct"
+msgstr "النص المباشر"
+
+msgid "Poser une question à l'étudiant"
+msgstr "طرح سؤال على الطالب"
+
+msgid "Tapez votre question..."
+msgstr "اكتب سؤالك..."
+
+msgid "Envoyer à l'étudiant"
+msgstr "إرسال إلى الطالب"
+
+msgid "Déclencher la notation IA maintenant ?"
+msgstr "هل تريد تفعيل تقييم الذكاء الاصطناعي الآن؟"
+
+msgid "Déclencher notation"
+msgstr "تفعيل التقييم"
+
+msgid "Voir / éditer"
+msgstr "عرض / تعديل"
+
+msgid "Les notes apparaîtront ici en temps réel dès que l'IA aura terminé son évaluation."
+msgstr "ستظهر النقاط هنا في الوقت الحقيقي بمجرد أن ينهي الذكاء الاصطناعي تقييمه."
+
+msgid "Événements en direct"
+msgstr "الأحداث المباشرة"
+
+msgid "Passage planifié"
+msgstr "عرض مجدول"
+
+msgid "Connexion live établie"
+msgstr "تم إنشاء الاتصال المباشر"
+
+msgid "Connexion fermée"
+msgstr "تم إغلاق الاتصال"
+
+msgid "Statut"
+msgstr "الحالة"
+
+msgid "Note"
+msgstr "النقطة"
+
+msgid "Question IA"
+msgstr "سؤال الذكاء الاصطناعي"
+
+msgid "Question prof envoyée"
+msgstr "تم إرسال سؤال الأستاذ"
+
+# ── Statuts passage ───────────────────────────────────────────────────────────
+msgid "En attente"
+msgstr "في الانتظار"
+
+msgid "En cours"
+msgstr "جارٍ"
+
+msgid "Questions"
+msgstr "الأسئلة"
+
+msgid "Terminé"
+msgstr "منتهٍ"
+
+msgid "Noté"
+msgstr "مُقيَّم"
+
+# ── Divers ────────────────────────────────────────────────────────────────────
+msgid "Erreur"
+msgstr "خطأ"
+
+# ── Terminologie Classe / Soutenance ─────────────────────────────────────────
+msgid "Rejoindre une classe"
+msgstr "الانضمام إلى فصل"
+
+msgid "Rejoindre une classe avec un code"
+msgstr "الانضمام إلى فصل برمز"
+
+msgid "Entrez le code de classe partagé par votre professeur (8 caractères)."
+msgstr "أدخل رمز الفصل الذي شاركه معك أستاذك (8 أحرف)."
+
+msgid "Vous n'êtes inscrit(e) à aucune classe pour le moment."
+msgstr "لم تنضم إلى أي فصل بعد."
+
+msgid "Erreur réseau"
+msgstr "خطأ في الشبكة"
+
+msgid "Voir / éditer"
+msgstr "عرض / تعديل"
+
+msgid "Commentaire du prof..."
+msgstr "تعليق الأستاذ..."
+
+# ── Landing page ──────────────────────────────────────────────────────────────
+msgid "Notation intelligente des soutenances"
+msgstr "التقييم الذكي للمناقشات الأكاديمية"
+
+msgid "Changer le thème"
+msgstr "تغيير المظهر"
+
+msgid "Créer un compte"
+msgstr "إنشاء حساب"
+
+msgid "Propulsé par Claude AI & Whisper"
+msgstr "مدعوم بـ Claude AI و Whisper"
+
+msgid "La notation des soutenances,"
+msgstr "تقييم المناقشات الأكاديمية،"
+
+msgid "réinventée par l'IA"
+msgstr "أُعيد ابتكاره بالذكاء الاصطناعي"
+
+msgid "SoutenanceAI automatise l'évaluation de vos présentations académiques : transcription en direct, questions intelligentes, notes multi-critères et rapports PDF en un clic."
+msgstr "يعمل SoutenanceAI على أتمتة تقييم عروضك الأكاديمية: نسخ فوري وأسئلة ذكية وتقييمات متعددة المعايير وتقارير PDF بنقرة واحدة."
+
+msgid "Je suis Professeur"
+msgstr "أنا أستاذ"
+
+msgid "Créez et gérez vos classes"
+msgstr "أنشئ فصولك الدراسية وأدرها"
+
+msgid "Créer mon compte"
+msgstr "إنشاء حسابي"
+
+msgid "Je suis Étudiant"
+msgstr "أنا طالب"
+
+msgid "Rejoignez votre classe"
+msgstr "انضم إلى فصلك"
+
+msgid "Vous avez un code de classe ?"
+msgstr "هل لديك رمز الفصل؟"
+
+msgid "Ex : AB12CD34"
+msgstr "مثال: AB12CD34"
+
+msgid "Automatisé par IA"
+msgstr "مؤتمت بالذكاء الاصطناعي"
+
+msgid "Langues supportées"
+msgstr "اللغات المدعومة"
+
+msgid "Personnalités IA"
+msgstr "شخصيات الذكاء الاصطناعي"
+
+msgid "Soutenances & étudiants"
+msgstr "المناقشات والطلاب"
+
+msgid "Paperasse inutile"
+msgstr "الأوراق غير الضرورية"
+
+msgid "Fonctionnalités"
+msgstr "الميزات"
+
+msgid "Tout ce dont vous avez besoin"
+msgstr "كل ما تحتاجه"
+
+msgid "Une plateforme complète pour gérer et noter vos soutenances académiques de A à Z."
+msgstr "منصة متكاملة لإدارة مناقشاتك الأكاديمية وتقييمها من الألف إلى الياء."
+
+msgid "Notation IA multi-critères"
+msgstr "تقييم ذكاء اصطناعي متعدد المعايير"
+
+msgid "Claude AI évalue chaque étudiant sur vos critères personnalisés (clarté, rigueur, structure…) avec des notes et des commentaires détaillés."
+msgstr "يقيّم Claude AI كل طالب وفق معاييرك المخصصة (الوضوح والدقة والبنية…) مع نقاط وتعليقات مفصلة."
+
+msgid "Transcription en temps réel"
+msgstr "نسخ في الوقت الفعلي"
+
+msgid "Whisper transcrit automatiquement la présentation orale de l'étudiant. Le texte s'affiche en direct dans votre tableau de bord."
+msgstr "ينسخ Whisper تلقائياً العرض الشفوي للطالب. يظهر النص مباشرة في لوحة تحكمك."
+
+msgid "Suivi live par WebSocket"
+msgstr "متابعة مباشرة عبر WebSocket"
+
+msgid "Suivez la soutenance en direct : transcription, statut, questions IA et notes apparaissent instantanément sans recharger la page."
+msgstr "تابع المناقشة مباشرة: تظهر النصوص والحالة وأسئلة الذكاء الاصطناعي والنقاط فوراً دون إعادة تحميل الصفحة."
+
+msgid "Rapport PDF automatique"
+msgstr "تقرير PDF تلقائي"
+
+msgid "Générez un rapport complet de soutenance en un clic : notes par critère, commentaires de l'IA, transcription et note globale."
+msgstr "أنشئ تقريراً كاملاً للمناقشة بنقرة واحدة: نقاط لكل معيار وتعليقات الذكاء الاصطناعي والنسخ والنقطة الإجمالية."
+
+msgid "Personnalités IA configurables"
+msgstr "شخصيات الذكاء الاصطناعي قابلة للتخصيص"
+
+msgid "Choisissez entre 4 personnalités évaluatrices : neutre, bienveillant, exigeant ou socratique — pour s'adapter à votre pédagogie."
+msgstr "اختر من بين 4 شخصيات تقييمية: محايدة ومتعاطفة ومتطلبة وسقراطية — لتتناسب مع أسلوبك التربوي."
+
+msgid "Multilingue (5 langues)"
+msgstr "متعدد اللغات (5 لغات)"
+
+msgid "Interface et évaluation disponibles en français, anglais, arabe/darija, espagnol et allemand. Support RTL inclus pour l'arabe."
+msgstr "الواجهة والتقييم متاحان بالفرنسية والإنجليزية والعربية/الدارجة والإسبانية والألمانية. دعم RTL مضمّن للعربية."
+
+msgid "Import CSV en masse"
+msgstr "استيراد CSV جماعي"
+
+msgid "Créez des dizaines de comptes étudiants en quelques secondes. Uploadez un CSV et téléchargez les identifiants générés automatiquement."
+msgstr "أنشئ عشرات حسابات الطلاب في ثوانٍ. ارفع ملف CSV وحمّل بيانات الاعتماد المُنشأة تلقائياً."
+
+msgid "Présentation PPTX intégrée"
+msgstr "عرض PPTX مدمج"
+
+msgid "L'étudiant dépose son PPTX, il est converti en PDF et affiché slide par slide dans le navigateur — sans logiciel supplémentaire."
+msgstr "يرفع الطالب ملف PPTX ويُحوَّل إلى PDF ويُعرض شريحة تلو الأخرى في المتصفح — دون برامج إضافية."
+
+msgid "Déroulement"
+msgstr "كيف يعمل"
+
+msgid "Comment ça marche ?"
+msgstr "كيف يعمل؟"
+
+msgid "En 4 étapes simples, de la création de soutenance à la remise des notes."
+msgstr "في 4 خطوات بسيطة، من إنشاء المناقشة إلى تسليم النقاط."
+
+msgid "Le prof crée la soutenance"
+msgstr "يُنشئ الأستاذ المناقشة"
+
+msgid "Définit les critères, la durée, la personnalité de l'IA et les consignes spécifiques."
+msgstr "يُحدد المعايير والمدة وشخصية الذكاء الاصطناعي والتعليمات المحددة."
+
+msgid "L'étudiant prépare"
+msgstr "يستعد الطالب"
+
+msgid "Dépose son PPTX et son rapport PDF, visualise les informations de sa soutenance."
+msgstr "يرفع ملف PPTX وتقريره بصيغة PDF ويطّلع على معلومات مناقشته."
+
+msgid "La soutenance se déroule"
+msgstr "تجري المناقشة"
+
+msgid "L'IA transcrit en direct, pose des questions et le prof suit tout en temps réel."
+msgstr "ينسخ الذكاء الاصطناعي مباشرة ويطرح أسئلة ويتابع الأستاذ كل شيء في الوقت الفعلي."
+
+msgid "Notes & rapport générés"
+msgstr "النقاط والتقرير جاهزان"
+
+msgid "L'IA évalue automatiquement, le prof valide et ajuste, le PDF est prêt."
+msgstr "يقيّم الذكاء الاصطناعي تلقائياً ويتحقق الأستاذ ويعدّل وملف PDF جاهز."
+
+msgid "Accès"
+msgstr "الوصول"
+
+msgid "Un espace pour chaque rôle"
+msgstr "مساحة لكل دور"
+
+msgid "Administrateur"
+msgstr "مدير النظام"
+
+msgid "Gère tous les comptes professeurs"
+msgstr "يدير جميع حسابات الأساتذة"
+
+msgid "Visualise les statistiques globales"
+msgstr "يطّلع على الإحصاءات العامة"
+
+msgid "Accède à toutes les soutenances"
+msgstr "يصل إلى جميع المناقشات"
+
+msgid "Crée et supprime les comptes"
+msgstr "ينشئ الحسابات ويحذفها"
+
+msgid "Professeur"
+msgstr "أستاذ"
+
+msgid "S'inscrit librement sur la plateforme"
+msgstr "يسجّل بحرية في المنصة"
+
+msgid "Crée et configure ses soutenances"
+msgstr "ينشئ مناقشاته ويضبطها"
+
+msgid "Importe ses étudiants par CSV"
+msgstr "يستورد طلابه عبر CSV"
+
+msgid "Suit les soutenances en direct"
+msgstr "يتابع المناقشات مباشرة"
+
+msgid "Valide et exporte les notes PDF"
+msgstr "يتحقق من النقاط ويصدّرها بصيغة PDF"
+
+msgid "Étudiant"
+msgstr "طالب"
+
+msgid "Rejoint une classe via code ou lien"
+msgstr "ينضم إلى الفصل عبر رمز أو رابط"
+
+msgid "Voit toutes ses soutenances"
+msgstr "يرى جميع مناقشاته"
+
+msgid "Dépose sa présentation PPTX"
+msgstr "يرفع عرضه بصيغة PPTX"
+
+msgid "Passe sa soutenance en ligne"
+msgstr "يُجري مناقشته عبر الإنترنت"
+
+msgid "Consulte ses notes et transcription"
+msgstr "يطّلع على نقاطه والنص المكتوب"
+
+msgid "Prêt à moderniser vos soutenances ?"
+msgstr "هل أنت مستعد لتحديث مناقشاتك؟"
+
+msgid "Créez votre compte professeur gratuitement et lancez votre première soutenance en moins de 5 minutes."
+msgstr "أنشئ حساب أستاذك مجاناً وأطلق أول مناقشة في أقل من 5 دقائق."
+
+msgid "Créer mon compte professeur"
+msgstr "إنشاء حساب الأستاذ"
+
+msgid "Déjà un compte ? Se connecter"
+msgstr "لديك حساب بالفعل؟ تسجيل الدخول"
+
+msgid "Plateforme de notation intelligente des soutenances académiques"
+msgstr "منصة التقييم الذكي للمناقشات الأكاديمية"
+
+msgid "Propulsé par"
+msgstr "مدعوم بـ"
+
+msgid "5 langues"
+msgstr "5 لغات"
+
+msgid "Open source"
+msgstr "مفتوح المصدر"
+
+
+# ── Salle de soutenance ───────────────────────────────────────────────────────
+msgid "Conversion des slides en cours…"
+msgstr "جارٍ تحويل الشرائح…"
+
+msgid "Actualisation dans"
+msgstr "التحديث خلال"
+
+msgid "Aucune présentation disponible."
+msgstr "لا يوجد عرض متاح."
+
+msgid "JURY IA"
+msgstr "لجنة الذكاء الاصطناعي"
+
+msgid "Bonjour,"
+msgstr "مرحباً،"
+
+msgid "Bienvenue à votre soutenance"
+msgstr "مرحباً بك في مناقشتك"
+
+msgid "Votre présentation est prête. Quand vous êtes prêt(e), cliquez sur"
+msgstr "عرضك جاهز. عندما تكون مستعداً، انقر على"
+
+msgid "Démarrer"
+msgstr "ابدأ"
+
+msgid "Micro ON"
+msgstr "الميكروفون مفعل"
+
+msgid "Micro OFF"
+msgstr "الميكروفون مغلق"
+
+msgid "Fin présentation"
+msgstr "إنهاء العرض"
+
+msgid "Terminer"
+msgstr "إنهاء"
+
+msgid "Question de l'IA"
+msgstr "سؤال الذكاء الاصطناعي"
+
+msgid "Micro actif — parlez, votre réponse s'écrit automatiquement"
+msgstr "الميكروفون نشط — تحدث وستُكتب إجابتك تلقائياً"
+
+msgid "Dictée vocale non disponible sur ce navigateur — tapez votre réponse."
+msgstr "الإملاء الصوتي غير متاح على هذا المتصفح — اكتب إجابتك."
+
+msgid "Parlez (micro actif) ou tapez votre réponse ici…"
+msgstr "تحدث (الميكروفون نشط) أو اكتب إجابتك هنا…"
+
+msgid "Passer"
+msgstr "تخطي"
+
+msgid "Valider ma réponse"
+msgstr "تأكيد إجابتي"
+
+msgid "Question"
+msgstr "سؤال"
+
+msgid "L'IA lit la question…"
+msgstr "الذكاء الاصطناعي يقرأ السؤال…"
+
+msgid "Parlez votre réponse (micro actif) ou tapez, puis cliquez sur Valider."
+msgstr "انطق إجابتك (الميكروفون نشط) أو اكتبها ثم انقر على تأكيد."
+
+msgid "Évaluation en cours…"
+msgstr "جارٍ التقييم…"
+
+msgid "Réponse vide. Passer cette question ?"
+msgstr "إجابة فارغة. تخطي هذا السؤال؟"
+
+msgid "La soutenance est en cours. Quitter maintenant perdra l'enregistrement."
+msgstr "المناقشة جارية. المغادرة الآن ستفقد التسجيل."

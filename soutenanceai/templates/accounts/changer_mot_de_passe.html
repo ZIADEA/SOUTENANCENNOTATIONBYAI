@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}Changer mon mot de passe{% endblock %}
+{% block content %}
+<h1>&#128274; Changer mon mot de passe</h1>
+
+<div class="card" style="max-width:480px;">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <div class="form-help">{{ field.help_text }}</div>
+                {% endif %}
+                {% for error in field.errors %}
+                    <div class="msg msg-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <div style="display:flex;gap:12px;margin-top:8px;">
+            <button type="submit" class="btn">Changer le mot de passe</button>
+            <a href="{% url 'accounts:dashboard_redirect' %}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

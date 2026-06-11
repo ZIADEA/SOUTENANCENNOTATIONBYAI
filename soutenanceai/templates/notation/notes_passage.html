@@ -1,0 +1,816 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Notes" %} — {{ passage.noms_etudiants }}{% endblock %}
+
+{% block content %}
+<style>
+/* ── Layout ─────────────────────────────── */
+.expl-header { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:24px; }
+.expl-actions { display:flex; gap:8px; flex-wrap:wrap; }
+
+/* ── Carte config IA ──────────────────── */
+.ia-config-bar {
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    background:var(--bg-card,#f0f4ff); border:1px solid var(--border);
+    border-radius:10px; padding:10px 16px; margin-bottom:20px; font-size:13px;
+}
+.ia-tag {
+    display:inline-flex; align-items:center; gap:5px;
+    background:#fff; border:1px solid var(--border);
+    border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600;
+}
+.ia-tag-label { color:var(--text-muted); font-weight:400; margin-right:2px; }
+
+/* ── Bloc étudiant ──────────────────── */
+.etudiant-bloc { margin-bottom:28px; }
+.etudiant-entete {
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--primary); color:#fff;
+    border-radius:10px 10px 0 0; padding:12px 18px;
+}
+.etudiant-nom { font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.note-globale-badge {
+    font-size:22px; font-weight:800; letter-spacing:-0.5px;
+    background:rgba(255,255,255,0.2); border-radius:8px; padding:4px 14px;
+}
+.note-globale-badge small { font-size:13px; font-weight:400; opacity:0.85; }
+
+/* ── Tableau critères ──────────────────── */
+.criteres-table { width:100%; border-collapse:collapse; font-size:13px; }
+.criteres-table th {
+    background:var(--bg-card,#f4f6fb); font-size:11px; text-transform:uppercase;
+    letter-spacing:.5px; padding:8px 10px; border-bottom:2px solid var(--border);
+    text-align:left; white-space:nowrap;
+}
+.criteres-table td { padding:10px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
+.criteres-table tr:last-child td { border-bottom:none; }
+.criteres-table tr.modifiee-prof { background: #fefce8; }
+.note-ia-val { color:var(--text-muted); font-size:12px; }
+.note-finale-input {
+    width:64px; text-align:center; font-weight:700; font-size:14px;
+    border:1px solid var(--border); border-radius:6px; padding:4px 6px;
+    background:var(--bg,#fff);
+}
+.note-finale-input:focus { outline:2px solid var(--primary); border-color:transparent; }
+.badge-modif {
+    font-size:10px; font-weight:600; padding:1px 6px; border-radius:10px;
+    background:#fde68a; color:#92400e; white-space:nowrap;
+}
+.justif-ia {
+    font-size:12px; color:var(--text-muted); line-height:1.5;
+    max-width:360px;
+}
+.justif-ia-label {
+    font-size:10px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.5px; color:var(--primary); margin-bottom:3px;
+}
+.justif-prof-zone { margin-top:6px; }
+.justif-prof-zone textarea {
+    font-size:12px; width:100%; min-width:200px; max-width:360px;
+    border:1px dashed var(--border); border-radius:6px; padding:4px 6px;
+    resize:vertical; background:var(--bg,#fff);
+}
+.btn-sauver { white-space:nowrap; }
+
+/* ── Formule calcul ──────────────────── */
+.formule-bloc {
+    border-top:2px solid var(--border); padding:14px 16px;
+    background:var(--bg-card,#f8f9fd); font-size:13px;
+}
+.formule-titre {
+    font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.5px; color:var(--text-muted); margin-bottom:8px;
+    display:flex; align-items:center; gap:6px;
+}
+.formule-eq {
+    font-family:monospace; font-size:13px; line-height:2;
+    overflow-x:auto; white-space:nowrap;
+    padding:8px 12px; background:var(--bg,#fff);
+    border:1px solid var(--border); border-radius:8px;
+    display:inline-block; max-width:100%;
+}
+.formule-result {
+    margin-top:8px; font-size:16px; font-weight:700;
+    color:var(--primary);
+}
+
+/* ── Section Q/R ──────────────────── */
+.qa-section { margin-top:10px; }
+.qa-item {
+    border-left:3px solid var(--primary); padding:10px 14px;
+    margin-bottom:10px; background:var(--bg-card,#f8f9fd); border-radius:0 8px 8px 0;
+    font-size:13px;
+}
+.qa-q { font-weight:700; color:var(--primary); margin-bottom:4px; }
+.qa-r { color:var(--text,#333); margin-bottom:4px; }
+.qa-eval { color:var(--text-muted); font-style:italic; font-size:12px; }
+.qa-note-badge {
+    display:inline-block; font-weight:700; font-size:12px;
+    background:var(--primary); color:#fff;
+    border-radius:10px; padding:1px 8px; margin-left:6px;
+}
+
+/* ── Posture ──────────────────────── */
+.posture-grid {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:10px; margin-top:8px;
+}
+.posture-card {
+    background:var(--bg,#fff); border:1px solid var(--border);
+    border-radius:8px; padding:10px 14px; text-align:center;
+}
+.posture-val { font-size:20px; font-weight:700; color:var(--primary); }
+.posture-lbl { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+/* ── Source transcription ────────── */
+.trans-badge {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px;
+}
+.trans-indiv { background:#dcfce7; color:#166534; }
+.trans-globale { background:#fef9c3; color:#854d0e; }
+</style>
+
+<!-- ══════════════════════════ EN-TÊTE ══════════════════════════ -->
+<div class="expl-header">
+    <div>
+        <h1 style="margin:0 0 4px 0;display:flex;align-items:center;gap:8px;">
+            <i data-lucide="clipboard-list" class="icon"></i>
+            {% trans "Détail de notation" %} — {% trans "Passage" %} #{{ passage.ordre_passage }}
+        </h1>
+        <div style="font-size:13px;color:var(--text-muted);">
+            {% trans "Soutenance" %} : <strong>{{ session.titre }}</strong>
+            &nbsp;·&nbsp; {% trans "Étudiants" %} : <strong>{{ passage.noms_etudiants }}</strong>
+            &nbsp;·&nbsp; <span class="badge badge-{{ passage.statut }}">{{ passage.get_statut_display }}</span>
+            {% if passage.date_debut and passage.date_fin %}
+            &nbsp;·&nbsp;
+            <i data-lucide="clock" class="icon-xs" style="color:var(--text-muted);"></i>
+            {% widthratio passage.date_fin|timeuntil:passage.date_debut 1 1 %} min
+            {% endif %}
+        </div>
+    </div>
+    <div class="expl-actions">
+        <form method="post" action="{% url 'notation:declencher' passage.id %}" style="display:inline"
+              onsubmit="return confirm('{% trans "Relancer la notation IA ? Les notes existantes seront écrasées." %}')">
+            {% csrf_token %}
+            <button class="btn btn-sm" style="display:inline-flex;align-items:center;gap:5px;">
+                <i data-lucide="zap" class="icon-xs"></i>{% trans "(Re)noter" %}
+            </button>
+        </form>
+        <a href="{% url 'notation:rapport_pdf' passage.id %}" class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:5px;">
+            <i data-lucide="file-text" class="icon-xs"></i>{% trans "Rapport PDF" %}
+        </a>
+        <a href="{% url 'sessions_app:detail_session' session.id %}" class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:5px;">
+            <i data-lucide="arrow-left" class="icon-xs"></i>{% trans "Retour" %}
+        </a>
+    </div>
+</div>
+
+<!-- ══════════════════════════ CONFIG IA ══════════════════════════ -->
+<div class="ia-config-bar">
+    <i data-lucide="cpu" class="icon-sm" style="color:var(--primary);flex-shrink:0;"></i>
+    <strong style="font-size:12px;margin-right:4px;">{% trans "Configuration IA utilisée" %} :</strong>
+
+    <span class="ia-tag">
+        <i data-lucide="message-circle" style="width:11px;height:11px;stroke-width:2;color:var(--primary);"></i>
+        <span class="ia-tag-label">{% trans "Questionnement" %}</span>
+        {{ session.get_style_questionnement_display }}
+    </span>
+
+    <span class="ia-tag">
+        <i data-lucide="star" style="width:11px;height:11px;stroke-width:2;color:var(--warning);"></i>
+        <span class="ia-tag-label">{% trans "Notation" %}</span>
+        {{ session.get_style_notation_display }}
+    </span>
+
+    <span class="ia-tag">
+        <i data-lucide="users" style="width:11px;height:11px;stroke-width:2;color:var(--primary);"></i>
+        <span class="ia-tag-label">{% trans "Mode groupe" %}</span>
+        {{ session.get_mode_notation_groupe_display }}
+    </span>
+
+    {% if session.ajustement_auto_stress %}
+    <span class="ia-tag" style="background:#dcfce7;border-color:#bbf7d0;">
+        <i data-lucide="shield-check" style="width:11px;height:11px;stroke-width:2;color:var(--success);"></i>
+        {% trans "Anti-stress actif" %}
+    </span>
+    {% endif %}
+
+    <span class="ia-tag">
+        <i data-lucide="clock" style="width:11px;height:11px;stroke-width:2;color:var(--primary);"></i>
+        <span class="ia-tag-label">{% trans "Durée prévue" %}</span>
+        {{ session.duree_presentation }} min + {{ session.duree_questions }} min Q/R
+    </span>
+</div>
+
+<!-- ══════════════ BLOCS PAR ÉTUDIANT ══════════════ -->
+{% for bloc in notes_par_etudiant %}
+<div class="card etudiant-bloc" style="padding:0;overflow:hidden;">
+
+    <!-- En-tête étudiant -->
+    <div class="etudiant-entete">
+        <div class="etudiant-nom">
+            <i data-lucide="user-circle" style="width:22px;height:22px;stroke-width:1.75;"></i>
+            {{ bloc.etudiant.get_full_name|default:bloc.etudiant.username }}
+            <!-- Source transcription -->
+            <span class="trans-badge {% if bloc.source_transcription == 'individuelle' %}trans-indiv{% else %}trans-globale{% endif %}">
+                <i data-lucide="mic" style="width:10px;height:10px;stroke-width:2;"></i>
+                {% trans "Transcription" %} {{ bloc.source_transcription }}
+            </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            {% if bloc.globale is not None %}
+            <div class="note-globale-badge">
+                {{ bloc.globale|floatformat:2 }}<small>/20</small>
+            </div>
+            {% else %}
+            <div class="note-globale-badge" style="font-size:14px;opacity:0.7;">
+                {% trans "Non noté" %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if bloc.notes %}
+    <!-- Tableau des critères -->
+    <div style="overflow-x:auto;">
+    <table class="criteres-table">
+        <thead>
+            <tr>
+                <th style="min-width:140px;">{% trans "Critère" %}</th>
+                <th style="width:60px;text-align:center;">{% trans "Coef." %}</th>
+                <th style="width:80px;text-align:center;">{% trans "Note IA" %}</th>
+                <th style="width:110px;text-align:center;">{% trans "Note finale" %}</th>
+                <th>{% trans "Justificatif IA" %}</th>
+                <th style="min-width:180px;">{% trans "Commentaire prof" %}</th>
+                <th style="width:50px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for n in bloc.notes %}
+        <tr data-note-id="{{ n.id }}" {% if n.modifiee_par_prof %}class="modifiee-prof"{% endif %}>
+            <!-- Critère -->
+            <td>
+                <strong style="font-size:13px;">{{ n.critere.nom }}</strong>
+                {% if n.critere.description %}
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">{{ n.critere.description }}</div>
+                {% endif %}
+            </td>
+
+            <!-- Coefficient -->
+            <td style="text-align:center;">
+                <span style="font-weight:700;font-size:13px;">{{ n.critere.coefficient }}</span>
+            </td>
+
+            <!-- Note IA brute -->
+            <td style="text-align:center;">
+                <div style="font-weight:700;font-size:15px;
+                    color:{% if n.note_ia >= 14 %}var(--success){% elif n.note_ia >= 10 %}var(--warning){% else %}var(--danger){% endif %};">
+                    {{ n.note_ia|floatformat:1 }}
+                </div>
+                <div style="font-size:10px;color:var(--text-muted);">/20 (IA)</div>
+            </td>
+
+            <!-- Note finale éditable -->
+            <td style="text-align:center;">
+                <input type="number" class="note-finale-input"
+                       min="0" max="20" step="0.5"
+                       value="{{ n.note_finale|floatformat:1 }}"
+                       name="note_finale">
+                {% if n.modifiee_par_prof %}
+                <div style="margin-top:3px;"><span class="badge-modif">{% trans "modifiée" %}</span></div>
+                {% endif %}
+            </td>
+
+            <!-- Justificatif IA (visible par défaut) -->
+            <td>
+                {% if n.commentaire_ia %}
+                <div class="justif-ia-label">
+                    <i data-lucide="cpu" style="width:10px;height:10px;stroke-width:2;"></i>
+                    {% trans "IA dit" %} :
+                </div>
+                <div class="justif-ia">{{ n.commentaire_ia|linebreaksbr }}</div>
+                {% else %}
+                <span style="font-size:11px;color:var(--text-muted);font-style:italic;">{% trans "(aucun justificatif)" %}</span>
+                {% endif %}
+            </td>
+
+            <!-- Commentaire prof -->
+            <td>
+                <div class="justif-prof-zone">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;
+                                letter-spacing:.5px;color:var(--text-muted);margin-bottom:3px;">
+                        {% trans "Prof (optionnel)" %}
+                    </div>
+                    <textarea name="commentaire_prof" rows="2"
+                              placeholder="{% trans "Votre commentaire..." %}"
+                              style="font-size:12px;width:100%;min-width:160px;
+                                     border:1px dashed var(--border);border-radius:6px;
+                                     padding:4px 6px;resize:vertical;background:var(--bg,#fff);">{{ n.commentaire_prof }}</textarea>
+                </div>
+            </td>
+
+            <!-- Bouton sauver -->
+            <td style="text-align:center;vertical-align:middle;">
+                <button class="btn btn-sm btn-sauver" onclick="sauverNote({{ n.id }}, this)"
+                        title="{% trans "Sauvegarder cette note" %}"
+                        style="display:inline-flex;align-items:center;gap:4px;padding:5px 8px;">
+                    <i data-lucide="save" class="icon-xs"></i>
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+
+    <!-- ── Formule de calcul transparente ── -->
+    <div class="formule-bloc">
+        <div class="formule-titre">
+            <i data-lucide="calculator" style="width:13px;height:13px;stroke-width:2;"></i>
+            {% trans "Comment la note globale est calculée" %}
+        </div>
+        <div class="formule-eq">
+            {% trans "Moyenne pondérée" %} = (
+            {% for t in bloc.termes %}
+                {{ t.note_finale|floatformat:1 }} × {{ t.coef }}
+                {% if not forloop.last %} + {% endif %}
+            {% endfor %}
+            ) ÷ (
+            {% for t in bloc.termes %}
+                {{ t.coef }}{% if not forloop.last %} + {% endif %}
+            {% endfor %}
+            ) = {{ bloc.total_pondere|floatformat:2 }} ÷ {{ bloc.total_coef }}
+        </div>
+        <div class="formule-result">
+            <i data-lucide="equal" style="width:16px;height:16px;stroke-width:2.5;display:inline-block;vertical-align:-3px;"></i>
+            {% if bloc.globale is not None %}
+                <strong>{{ bloc.globale|floatformat:2 }} / 20</strong>
+            {% else %}
+                {% trans "—" %}
+            {% endif %}
+        </div>
+
+        <!-- Détail contribution par critère -->
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+            {% for t in bloc.termes %}
+            <div style="font-size:11px;background:var(--bg,#fff);border:1px solid var(--border);
+                        border-radius:6px;padding:3px 9px;display:flex;gap:5px;align-items:center;">
+                <span style="font-weight:600;color:{% if t.note_finale >= 14 %}var(--success){% elif t.note_finale >= 10 %}var(--warning){% else %}var(--danger){% endif %};">
+                    {{ t.note_finale|floatformat:1 }}
+                </span>
+                <span style="color:var(--text-muted);">×</span>
+                <span style="font-weight:700;">{{ t.coef }}</span>
+                <span style="color:var(--text-muted);">=</span>
+                <span style="font-weight:700;">{{ t.produit }}</span>
+                <span style="color:var(--text-muted);font-size:10px;">({{ t.critere }})</span>
+                {% if t.modifiee %}<span class="badge-modif">{% trans "modif." %}</span>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ── Synthèse IA globale ──────────────────────────────── -->
+    {% if bloc.synthese_ia %}
+    <div style="margin-top:16px;padding:14px 16px;background:var(--bg,#f9fafb);
+                border:1px solid var(--border);border-radius:8px;border-left:3px solid var(--primary);">
+        <div style="font-size:12px;font-weight:700;color:var(--primary);text-transform:uppercase;
+                    letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+            <i data-lucide="brain" style="width:13px;height:13px;stroke-width:2;"></i>
+            {% trans "Synthèse IA — analyse comportementale et verbale" %}
+        </div>
+
+        <!-- Indicateurs rapides -->
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;">
+            {% if bloc.synthese_ia.ton_detecte %}
+            <div style="font-size:11px;padding:3px 10px;border-radius:12px;
+                        background:{% if bloc.synthese_ia.ton_detecte == 'assure' or bloc.synthese_ia.ton_detecte == 'enthousiaste' %}#dcfce7;color:var(--success);
+                        {% elif bloc.synthese_ia.ton_detecte == 'hesitant' or bloc.synthese_ia.ton_detecte == 'stresse' %}#fef9c3;color:#854d0e;
+                        {% else %}#f1f5f9;color:#475569;{% endif %}
+                        border:1px solid currentColor;font-weight:600;">
+                <i data-lucide="mic" style="width:10px;height:10px;stroke-width:2;display:inline-block;vertical-align:-1px;"></i>
+                {% trans "Ton" %} : {{ bloc.synthese_ia.ton_detecte }}
+            </div>
+            {% endif %}
+            {% if bloc.synthese_ia.disfluences_detectees %}
+            <div style="font-size:11px;padding:3px 10px;border-radius:12px;
+                        background:{% if bloc.synthese_ia.disfluences_detectees == 'aucune' %}#dcfce7;color:var(--success);
+                        {% elif bloc.synthese_ia.disfluences_detectees == 'rares' %}#f0fdf4;color:#166534;
+                        {% elif bloc.synthese_ia.disfluences_detectees == 'moderees' %}#fef9c3;color:#854d0e;
+                        {% else %}#fee2e2;color:var(--danger);{% endif %}
+                        border:1px solid currentColor;font-weight:600;">
+                <i data-lucide="alert-triangle" style="width:10px;height:10px;stroke-width:2;display:inline-block;vertical-align:-1px;"></i>
+                {% trans "Disfluences" %} : {{ bloc.synthese_ia.disfluences_detectees }}
+            </div>
+            {% endif %}
+            {% if bloc.synthese_ia.coherence_corps_discours %}
+            <div style="font-size:11px;padding:3px 10px;border-radius:12px;
+                        background:{% if bloc.synthese_ia.coherence_corps_discours == 'coherente' %}#dcfce7;color:var(--success);
+                        {% elif bloc.synthese_ia.coherence_corps_discours == 'legere_tension' %}#fef9c3;color:#854d0e;
+                        {% else %}#fee2e2;color:var(--danger);{% endif %}
+                        border:1px solid currentColor;font-weight:600;">
+                <i data-lucide="activity" style="width:10px;height:10px;stroke-width:2;display:inline-block;vertical-align:-1px;"></i>
+                {% trans "Corps / discours" %} : {{ bloc.synthese_ia.coherence_corps_discours }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Texte de synthèse -->
+        {% if bloc.synthese_ia.synthese %}
+        <div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-line;">
+            {{ bloc.synthese_ia.synthese }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div style="padding:20px;color:var(--text-muted);text-align:center;font-size:14px;">
+        <i data-lucide="alert-circle" class="icon-sm" style="display:block;margin:0 auto 8px;"></i>
+        {% trans "Aucune note enregistrée. Cliquez sur « (Re)noter » ci-dessus pour lancer la notation IA." %}
+    </div>
+    {% endif %}
+
+</div><!-- /card etudiant -->
+{% endfor %}
+
+<!-- ══════════════ SESSION Q/R ══════════════ -->
+{% if questions %}
+<div class="card">
+    <h2 style="margin-top:0;display:flex;align-items:center;gap:8px;font-size:16px;">
+        <i data-lucide="message-square" class="icon-sm" style="color:var(--primary);"></i>
+        {% trans "Questions / réponses" %}
+        <span style="font-size:12px;color:var(--text-muted);font-weight:400;">({{ questions|length }} {% trans "question(s)" %})</span>
+    </h2>
+    <div class="qa-section">
+    {% for q in questions %}
+    <div class="qa-item">
+        <div class="qa-q">
+            <i data-lucide="{% if q.auteur == 'ia' %}cpu{% else %}user{% endif %}"
+               style="width:12px;height:12px;stroke-width:2;display:inline-block;vertical-align:-1px;"></i>
+            {% if q.auteur == 'ia' %}{% trans "IA" %}{% else %}{% trans "Prof" %}{% endif %} :
+            {{ q.question }}
+        </div>
+        {% if q.reponse_etudiant %}
+        <div class="qa-r">
+            <i data-lucide="corner-down-right" style="width:11px;height:11px;stroke-width:2;color:var(--text-muted);display:inline-block;vertical-align:-1px;margin-right:3px;"></i>
+            {{ q.reponse_etudiant }}
+            {% if q.note_reponse is not None %}
+            <span class="qa-note-badge">{{ q.note_reponse|floatformat:1 }}/20</span>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% if q.evaluation_ia %}
+        <div class="qa-eval">
+            <i data-lucide="cpu" style="width:10px;height:10px;stroke-width:2;display:inline-block;vertical-align:-1px;"></i>
+            {{ q.evaluation_ia }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- ══════════════ DONNÉES POSTURE ══════════════ -->
+{% if passage.donnees_posture %}
+<div class="card">
+    <h2 style="margin-top:0;display:flex;align-items:center;gap:8px;font-size:16px;">
+        <i data-lucide="activity" class="icon-sm" style="color:var(--primary);"></i>
+        {% trans "Données de posture et contact visuel" %}
+        <span style="font-size:12px;color:var(--text-muted);font-weight:400;">({% trans "analyse webcam face-api.js" %})</span>
+    </h2>
+    <div class="posture-grid">
+        {% if passage.donnees_posture.pourcentage_contact_visuel is not None %}
+        <div class="posture-card">
+            <div class="posture-val"
+                style="color:{% if passage.donnees_posture.pourcentage_contact_visuel > 60 %}var(--success){% elif passage.donnees_posture.pourcentage_contact_visuel > 35 %}var(--warning){% else %}var(--danger){% endif %};">
+                {{ passage.donnees_posture.pourcentage_contact_visuel|floatformat:0 }}%
+            </div>
+            <div class="posture-lbl">{% trans "Contact visuel" %}</div>
+        </div>
+        {% endif %}
+        {% if passage.donnees_posture.inclinaison_tete_moyenne_deg is not None %}
+        <div class="posture-card">
+            <div class="posture-val">{{ passage.donnees_posture.inclinaison_tete_moyenne_deg|floatformat:1 }}°</div>
+            <div class="posture-lbl">{% trans "Inclinaison tête moy." %}</div>
+        </div>
+        {% endif %}
+        {% if passage.donnees_posture.nb_mesures %}
+        <div class="posture-card">
+            <div class="posture-val" style="font-size:16px;">{{ passage.donnees_posture.nb_mesures }}</div>
+            <div class="posture-lbl">{% trans "Mesures analysées" %}</div>
+        </div>
+        {% endif %}
+        {% if passage.donnees_posture.ratio_silence_pct is not None %}
+        <div class="posture-card">
+            <div class="posture-val"
+                style="color:{% if passage.donnees_posture.ratio_silence_pct < 20 %}var(--success){% elif passage.donnees_posture.ratio_silence_pct < 35 %}var(--warning){% else %}var(--danger){% endif %};">
+                {{ passage.donnees_posture.ratio_silence_pct|floatformat:0 }}%
+            </div>
+            <div class="posture-lbl">{% trans "Ratio silence" %}</div>
+        </div>
+        {% endif %}
+        {% if passage.donnees_posture.db_variation is not None %}
+        <div class="posture-card">
+            <div class="posture-val" style="font-size:16px;">{{ passage.donnees_posture.db_variation|floatformat:1 }} dB</div>
+            <div class="posture-lbl">{% trans "Variation intonation" %}</div>
+        </div>
+        {% endif %}
+        {% if passage.donnees_posture.debit_mots_par_min %}
+        <div class="posture-card">
+            <div class="posture-val" style="font-size:16px;">{{ passage.donnees_posture.debit_mots_par_min|floatformat:0 }}</div>
+            <div class="posture-lbl">{% trans "Mots/min" %}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if passage.donnees_posture.emotion_dominante %}
+    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);">
+            {% trans "Émotion dominante" %} :
+        </span>
+        <span style="font-size:12px;padding:3px 10px;border-radius:12px;
+                     background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd;font-weight:600;">
+            {{ passage.donnees_posture.emotion_dominante }}
+        </span>
+        {% if passage.donnees_posture.expressions_moyennes_pct %}
+        {% for expr, pct in passage.donnees_posture.expressions_moyennes_pct.items %}
+        {% if pct > 5 %}
+        <span style="font-size:11px;padding:2px 8px;border-radius:10px;
+                     background:var(--bg-card,#f4f6fb);border:1px solid var(--border);color:var(--text-muted);">
+            {{ expr }} {{ pct|floatformat:0 }}%
+        </span>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if passage.donnees_posture.commentaire_auto or passage.donnees_posture.commentaire_prosodie or passage.donnees_posture.commentaire_intonation %}
+    <div style="margin-top:12px;display:flex;flex-direction:column;gap:5px;">
+        {% if passage.donnees_posture.commentaire_auto %}
+        <div style="font-size:12px;color:var(--text-muted);display:flex;gap:5px;align-items:flex-start;">
+            <i data-lucide="eye" style="width:12px;height:12px;stroke-width:2;flex-shrink:0;margin-top:1px;color:var(--primary);"></i>
+            {{ passage.donnees_posture.commentaire_auto }}
+        </div>
+        {% endif %}
+        {% if passage.donnees_posture.commentaire_prosodie %}
+        <div style="font-size:12px;color:var(--text-muted);display:flex;gap:5px;align-items:flex-start;">
+            <i data-lucide="mic" style="width:12px;height:12px;stroke-width:2;flex-shrink:0;margin-top:1px;color:var(--primary);"></i>
+            {{ passage.donnees_posture.commentaire_prosodie }}
+        </div>
+        {% endif %}
+        {% if passage.donnees_posture.commentaire_intonation %}
+        <div style="font-size:12px;color:var(--text-muted);display:flex;gap:5px;align-items:flex-start;">
+            <i data-lucide="bar-chart-2" style="width:12px;height:12px;stroke-width:2;flex-shrink:0;margin-top:1px;color:var(--primary);"></i>
+            {{ passage.donnees_posture.commentaire_intonation }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- ══════════════ ENREGISTREMENT VIDEO ══════════════ -->
+{% if passage.enregistrement_video %}
+<div class="card" style="padding:0;overflow:hidden;">
+    <details>
+        <summary style="cursor:pointer;font-weight:700;font-size:14px;
+                        display:flex;align-items:center;gap:10px;list-style:none;
+                        padding:16px 20px;background:var(--bg-card,#f4f6fb);
+                        border-bottom:1px solid var(--border);">
+            <i data-lucide="video" class="icon-sm" style="color:var(--primary);flex-shrink:0;"></i>
+            {% trans "Enregistrement vidéo complet" %}
+            <span style="font-size:11px;color:var(--text-muted);font-weight:400;
+                         background:#e0e7ff;color:var(--primary);border-radius:10px;padding:2px 8px;margin-left:4px;">
+                présentation + questions
+            </span>
+            <span style="font-size:12px;color:var(--text-muted);font-weight:400;margin-left:auto;">
+                {% trans "cliquez pour afficher" %}
+            </span>
+        </summary>
+        <div style="padding:16px 20px;">
+            <video controls
+                   style="width:100%;max-height:480px;border-radius:8px;background:#000;display:block;"
+                   preload="metadata">
+                <source src="{{ passage.enregistrement_video.url }}" type="video/webm">
+                {% trans "Votre navigateur ne supporte pas la lecture vidéo." %}
+            </video>
+            <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                <a href="{{ passage.enregistrement_video.url }}" download
+                   class="btn btn-sm btn-secondary"
+                   style="display:inline-flex;align-items:center;gap:5px;">
+                    <i data-lucide="download" class="icon-xs"></i>
+                    {% trans "Télécharger" %}
+                </a>
+                <span style="font-size:12px;color:var(--text-muted);">
+                    <i data-lucide="info" style="width:11px;height:11px;stroke-width:2;display:inline-block;vertical-align:-1px;"></i>
+                    Fichier WebM (caméra étudiant, micro inclus)
+                </span>
+            </div>
+        </div>
+    </details>
+</div>
+{% endif %}
+
+<!-- ══════════════ ANALYSE VIDÉO DÉMO ══════════════ -->
+{% if passage.analyses_extra.demo_video %}
+{% with vd=passage.analyses_extra.demo_video %}
+<div class="card" style="border-left:4px solid var(--primary);">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <h3 style="margin:0;display:flex;align-items:center;gap:7px;">
+            <i data-lucide="video" class="icon" style="color:var(--primary);"></i>
+            {% trans "Analyse vidéo de démonstration" %}
+        </h3>
+        <div style="font-size:22px;font-weight:800;color:{% if vd.note >= 14 %}var(--success){% elif vd.note >= 10 %}var(--warning){% else %}var(--danger){% endif %};">
+            {{ vd.note|floatformat:1 }}<span style="font-size:13px;font-weight:400;color:var(--text-muted);">/20</span>
+        </div>
+    </div>
+    <p style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:14px;">{{ vd.commentaire }}</p>
+    {% if vd.points_forts %}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+            <div style="font-size:11px;font-weight:700;color:var(--success);text-transform:uppercase;margin-bottom:6px;">
+                <i data-lucide="check-circle" class="icon-xs" style="color:var(--success);"></i> Points forts
+            </div>
+            <ul style="margin:0;padding-left:16px;font-size:13px;color:var(--text);">
+                {% for p in vd.points_forts %}<li>{{ p }}</li>{% endfor %}
+            </ul>
+        </div>
+        <div>
+            <div style="font-size:11px;font-weight:700;color:var(--danger);text-transform:uppercase;margin-bottom:6px;">
+                <i data-lucide="alert-triangle" class="icon-xs" style="color:var(--danger);"></i> Points à améliorer
+            </div>
+            <ul style="margin:0;padding-left:16px;font-size:13px;color:var(--text);">
+                {% for p in vd.points_faibles %}<li>{{ p }}</li>{% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endwith %}
+{% endif %}
+
+<!-- ══════════════ ANALYSE GITHUB ══════════════ -->
+{% if passage.analyses_extra.github %}
+{% with gh=passage.analyses_extra.github %}
+<div class="card" style="border-left:4px solid #374151;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <h3 style="margin:0;display:flex;align-items:center;gap:7px;">
+            <i data-lucide="github" class="icon" style="color:#374151;"></i>
+            {% trans "Analyse dépôt GitHub" %}
+            {% if gh.url %}<a href="{{ gh.url }}" target="_blank" rel="noopener"
+               style="font-size:12px;font-weight:400;color:var(--primary);margin-left:6px;">
+                <i data-lucide="external-link" class="icon-xs"></i> {{ gh.url|truncatechars:40 }}</a>{% endif %}
+        </h3>
+        <div style="font-size:22px;font-weight:800;color:{% if gh.note >= 14 %}var(--success){% elif gh.note >= 10 %}var(--warning){% else %}var(--danger){% endif %};">
+            {{ gh.note|floatformat:1 }}<span style="font-size:13px;font-weight:400;color:var(--text-muted);">/20</span>
+        </div>
+    </div>
+    <p style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:14px;">{{ gh.commentaire }}</p>
+    {% if gh.points_forts %}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+            <div style="font-size:11px;font-weight:700;color:var(--success);text-transform:uppercase;margin-bottom:6px;">
+                <i data-lucide="check-circle" class="icon-xs" style="color:var(--success);"></i> Points forts
+            </div>
+            <ul style="margin:0;padding-left:16px;font-size:13px;color:var(--text);">
+                {% for p in gh.points_forts %}<li>{{ p }}</li>{% endfor %}
+            </ul>
+        </div>
+        <div>
+            <div style="font-size:11px;font-weight:700;color:var(--danger);text-transform:uppercase;margin-bottom:6px;">
+                <i data-lucide="alert-triangle" class="icon-xs" style="color:var(--danger);"></i> Points à améliorer
+            </div>
+            <ul style="margin:0;padding-left:16px;font-size:13px;color:var(--text);">
+                {% for p in gh.points_faibles %}<li>{{ p }}</li>{% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endwith %}
+{% endif %}
+
+<!-- ══════════════ TRANSCRIPTION BRUTE ══════════════ -->
+{% if passage.transcription %}
+<div class="card">
+    <details>
+        <summary style="cursor:pointer;font-weight:700;font-size:14px;
+                        display:flex;align-items:center;gap:8px;list-style:none;
+                        padding:4px 0;">
+            <i data-lucide="file-text" class="icon-sm" style="color:var(--primary);"></i>
+            {% trans "Transcription audio brute" %}
+            <span style="font-size:12px;color:var(--text-muted);font-weight:400;">
+                ({{ passage.transcription|length }} {% trans "caractères" %} — {% trans "cliquez pour développer" %})
+            </span>
+        </summary>
+        <div style="margin-top:12px;">
+            {% if passage.transcriptions_par_etudiant %}
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
+                <i data-lucide="users" style="width:12px;height:12px;stroke-width:2;display:inline-block;vertical-align:-1px;"></i>
+                {% trans "Transcriptions individuelles disponibles" %} ({% trans "multi-appareil" %}) :
+                {% for uid, txt in passage.transcriptions_par_etudiant.items %}
+                <strong>Étudiant {{ uid }}</strong> ({{ txt|length }} {% trans "chars" %}){% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+            {% endif %}
+            <pre style="font-size:12px;white-space:pre-wrap;word-break:break-word;
+                        background:var(--bg-card,#f8f9fd);border:1px solid var(--border);
+                        border-radius:8px;padding:12px;max-height:300px;overflow-y:auto;
+                        color:var(--text,#333);font-family:inherit;line-height:1.6;">{{ passage.transcription }}</pre>
+        </div>
+    </details>
+</div>
+{% endif %}
+
+<!-- ══════════════ JS SAUVEGARDE ══════════════ -->
+<script>
+function getCSRF() {
+    return document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1] || '';
+}
+
+async function sauverNote(noteId, btn) {
+    const tr = btn.closest('tr');
+    const noteInput    = tr.querySelector('input[name="note_finale"]');
+    const commentInput = tr.querySelector('textarea[name="commentaire_prof"]');
+
+    const fd = new FormData();
+    fd.append('note_finale', noteInput.value);
+    if (commentInput) fd.append('commentaire_prof', commentInput.value);
+
+    const icon = '<i data-lucide="save" class="icon-xs"></i>';
+    btn.disabled = true;
+    btn.innerHTML = '<span style="font-size:11px;">…</span>';
+
+    try {
+        const r = await fetch(`/notation/notes/${noteId}/modifier/`, {
+            method: 'POST', body: fd, headers: { 'X-CSRFToken': getCSRF() },
+        });
+        const data = await r.json();
+        if (data.ok) {
+            tr.classList.add('modifiee-prof');
+            // Recalculer la formule à la volée
+            recalculerFormule(tr.closest('.card'));
+            btn.innerHTML = '<i data-lucide="check" class="icon-xs" style="color:var(--success);"></i>';
+            lucide.createIcons({ nodes: [btn] });
+            setTimeout(() => {
+                btn.innerHTML = icon;
+                lucide.createIcons({ nodes: [btn] });
+                btn.disabled = false;
+            }, 1800);
+        } else {
+            alert('Erreur : ' + (data.erreur || 'inconnue'));
+            btn.innerHTML = icon; lucide.createIcons({ nodes: [btn] }); btn.disabled = false;
+        }
+    } catch (e) {
+        alert('Erreur réseau.');
+        btn.innerHTML = icon; lucide.createIcons({ nodes: [btn] }); btn.disabled = false;
+    }
+}
+
+// Recalcule la moyenne pondérée dynamiquement sans rechargement
+function recalculerFormule(cardEl) {
+    if (!cardEl) return;
+    const rows = cardEl.querySelectorAll('tbody tr[data-note-id]');
+    if (rows.length === 0) return;
+
+    let totalPondere = 0, totalCoef = 0;
+    const termes = [];
+
+    rows.forEach(tr => {
+        const noteFinaleInput = tr.querySelector('input[name="note_finale"]');
+        const coefEl = tr.querySelectorAll('td')[1]?.querySelector('span');
+        if (!noteFinaleInput || !coefEl) return;
+
+        const note = parseFloat(noteFinaleInput.value) || 0;
+        const coef = parseFloat(coefEl.textContent) || 0;
+        totalPondere += note * coef;
+        totalCoef    += coef;
+        termes.push({ note, coef });
+    });
+
+    const globale = totalCoef > 0 ? Math.round(totalPondere / totalCoef * 100) / 100 : null;
+
+    // Met à jour le badge note globale dans l'en-tête
+    const badge = cardEl.querySelector('.note-globale-badge');
+    if (badge && globale !== null) {
+        badge.innerHTML = globale.toFixed(2) + '<small>/20</small>';
+    }
+
+    // Met à jour la ligne formule-result
+    const resultEl = cardEl.querySelector('.formule-result strong');
+    if (resultEl && globale !== null) {
+        resultEl.textContent = globale.toFixed(2) + ' / 20';
+    }
+}
+
+// Recalcul en temps réel à chaque frappe dans un input note
+document.querySelectorAll('input[name="note_finale"]').forEach(input => {
+    input.addEventListener('input', () => recalculerFormule(input.closest('.card')));
+});
+</script>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Code d'accès" %} — {{ classe.nom }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.code-box{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border-radius:14px;padding:28px 32px;text-align:center;margin:20px 0;}
+.code-display{font-size:42px;font-weight:800;letter-spacing:8px;font-family:'Courier New',monospace;margin:12px 0;text-shadow:0 2px 4px rgba(0,0,0,.2);}
+.link-box{display:flex;gap:8px;align-items:center;background:var(--bg-card,#f8fafc);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;word-break:break-all;}
+.link-box a{color:var(--primary);text-decoration:none;flex:1;}
+.link-box a:hover{text-decoration:underline;}
+[data-theme="dark"] .link-box{background:#1e293b;border-color:#334155;}
+[data-theme="dark"] .link-box a{color:#60a5fa;}
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
+    <span style="display:flex;align-items:center;gap:8px;">
+        <i data-lucide="share-2" class="icon-md"></i>{% trans "Partager la classe" %}
+    </span>
+    <a href="{% url 'sessions_app:detail_classe' classe.id %}" class="btn btn-sm btn-secondary"
+       style="display:inline-flex;align-items:center;gap:5px;">
+        <i data-lucide="arrow-left" class="icon-sm"></i>{% trans "Retour" %}
+    </a>
+</h1>
+
+<div class="card" style="max-width:560px;margin:0 auto;">
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:0;">
+        {% trans "Classe" %} : <strong>{{ classe.nom }}</strong>
+    </p>
+
+    <div class="code-box">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;">
+            <i data-lucide="key" style="width:20px;height:20px;stroke-width:2;"></i>
+            <span style="font-size:15px;font-weight:600;">{% trans "Code d'accès classe" %}</span>
+        </div>
+        <div class="code-display">{{ classe.code_acces }}</div>
+        <div style="font-size:13px;opacity:.8;">{% trans "Partagez ce code à vos étudiants" %}</div>
+    </div>
+
+    <h3 style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+        <i data-lucide="qr-code" class="icon"></i>{% trans "QR Code" %}
+    </h3>
+    <div style="display:flex;justify-content:center;margin:16px 0;">
+        <div id="qrcode"></div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:0;">
+        {% trans "Scanner pour rejoindre directement." %}
+    </p>
+
+    <h3 style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+        <i data-lucide="link" class="icon"></i>{% trans "Lien direct" %}
+    </h3>
+    <div class="link-box">
+        <a href="{{ join_url }}" target="_blank" id="join-link">{{ join_url }}</a>
+        <button onclick="copyLink()" class="btn btn-sm btn-secondary"
+                style="display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
+                id="copy-btn">
+            <i data-lucide="copy" class="icon-sm"></i>{% trans "Copier" %}
+        </button>
+    </div>
+
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;color:var(--text-muted);font-size:13px;">
+        <i data-lucide="users" class="icon-sm"></i>
+        <strong>{{ classe.inscrits.count }}</strong>&nbsp;{% trans "inscrit(s)" %}
+        <a href="{% url 'sessions_app:detail_classe' classe.id %}" class="btn btn-sm btn-secondary"
+           style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;">
+            <i data-lucide="list" class="icon-sm"></i>{% trans "Voir la classe" %}
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    var url = document.getElementById('join-link').href;
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    new QRCode(document.getElementById('qrcode'), {
+        text: url, width: 200, height: 200,
+        colorDark: isDark ? '#f1f5f9' : '#1e293b',
+        colorLight: isDark ? '#1e293b' : '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+    });
+});
+function copyLink(){
+    var url = document.getElementById('join-link').href;
+    var btn = document.getElementById('copy-btn');
+    navigator.clipboard.writeText(url).then(function(){
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="check" style="width:15px;height:15px;stroke-width:2.25;display:inline-block;vertical-align:-3px;"></i> {% trans "Copié !" %}';
+        lucide.createIcons({nodes:[btn]});
+        setTimeout(function(){ btn.innerHTML = orig; lucide.createIcons({nodes:[btn]}); }, 2000);
+    });
+}
+</script>
+{% endblock %}

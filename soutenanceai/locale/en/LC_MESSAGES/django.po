@@ -1,0 +1,827 @@
+# English translations for SoutenanceAI
+# Copyright (C) 2024
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# base.html
+msgid "Admin"
+msgstr "Admin"
+
+msgid "Professeurs"
+msgstr "Professors"
+
+msgid "Étudiants"
+msgstr "Students"
+
+msgid "Mes sessions"
+msgstr "My sessions"
+
+msgid "Mes étudiants"
+msgstr "My students"
+
+msgid "Nouvelle session"
+msgstr "New session"
+
+msgid "Mes soutenances"
+msgstr "My defenses"
+
+msgid "Déconnexion"
+msgstr "Log out"
+
+msgid "Français"
+msgstr "French"
+
+# login.html
+msgid "Connexion"
+msgstr "Login"
+
+msgid "Notation IA des soutenances"
+msgstr "AI grading for thesis defenses"
+
+msgid "Identifiant"
+msgstr "Username"
+
+msgid "Mot de passe"
+msgstr "Password"
+
+msgid "Se connecter"
+msgstr "Sign in"
+
+msgid "Pas de compte ? Contactez votre professeur ou l'administrateur."
+msgstr "No account? Contact your professor or the administrator."
+
+# dashboard_superadmin.html
+msgid "Dashboard Superadmin"
+msgstr "Superadmin Dashboard"
+
+msgid "Dashboard administrateur"
+msgstr "Admin Dashboard"
+
+msgid "Soutenances"
+msgstr "Defenses"
+
+msgid "Passages planifiés"
+msgstr "Planned passages"
+
+msgid "Passages terminés"
+msgstr "Completed passages"
+
+msgid "Moyenne générale"
+msgstr "Overall average"
+
+msgid "Professeurs récents"
+msgstr "Recent professors"
+
+msgid "Nouveau professeur"
+msgstr "New professor"
+
+msgid "Nom"
+msgstr "Name"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Créé le"
+msgstr "Created on"
+
+msgid "Aucun professeur."
+msgstr "No professors."
+
+# liste_utilisateurs.html
+msgid "Nom complet"
+msgstr "Full name"
+
+msgid "Nouvel étudiant"
+msgstr "New student"
+
+msgid "Supprimer ce compte ?"
+msgstr "Delete this account?"
+
+msgid "Supprimer"
+msgstr "Delete"
+
+msgid "Aucun compte."
+msgstr "No accounts."
+
+# creer_compte.html
+msgid "Créer le compte"
+msgstr "Create account"
+
+msgid "Annuler"
+msgstr "Cancel"
+
+# sessions dashboard
+msgid "Mes sessions de soutenance"
+msgstr "My defense sessions"
+
+msgid "Titre"
+msgstr "Title"
+
+msgid "Langue"
+msgstr "Language"
+
+msgid "Personnalité IA"
+msgstr "AI personality"
+
+msgid "Passages"
+msgstr "Passages"
+
+msgid "Éditer"
+msgstr "Edit"
+
+msgid "Vous n'avez pas encore créé de session de soutenance."
+msgstr "You have not created any defense session yet."
+
+msgid "Créer ma première session"
+msgstr "Create my first session"
+
+# detail_session.html
+msgid "Description"
+msgstr "Description"
+
+msgid "Durée"
+msgstr "Duration"
+
+msgid "min de questions"
+msgstr "min of questions"
+
+msgid "Mode notation groupe"
+msgstr "Group grading mode"
+
+msgid "Critères"
+msgstr "Criteria"
+
+msgid "Planning des passages"
+msgstr "Passage schedule"
+
+msgid "Ajouter un passage"
+msgstr "Add a passage"
+
+msgid "Étudiant(s)"
+msgstr "Student(s)"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Heure prévue"
+msgstr "Scheduled time"
+
+msgid "Statut"
+msgstr "Status"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "Notes"
+msgstr "Grades"
+
+msgid "Aucun passage planifié."
+msgstr "No passages scheduled."
+
+msgid "Supprimer cette session et tous ses passages ?"
+msgstr "Delete this session and all its passages?"
+
+# form_session.html
+msgid "Éditer"
+msgstr "Edit"
+
+msgid "Nouvelle"
+msgstr "New"
+
+msgid "soutenance"
+msgstr "defense"
+
+msgid "Nouvelle session de soutenance"
+msgstr "New defense session"
+
+msgid "Informations générales"
+msgstr "General information"
+
+msgid "Durée présentation (min)"
+msgstr "Presentation duration (min)"
+
+msgid "Durée questions (min)"
+msgstr "Questions duration (min)"
+
+msgid "Nombre maximum de questions IA"
+msgstr "Maximum number of AI questions"
+
+msgid "Rapport écrit"
+msgstr "Written report"
+
+msgid "Rapport obligatoire"
+msgstr "Mandatory report"
+
+msgid "Coefficient du rapport"
+msgstr "Report coefficient"
+
+msgid "Personnalité & consignes pour l'IA"
+msgstr "Personality & instructions for AI"
+
+msgid "Personnalité de l'IA évaluatrice"
+msgstr "Evaluating AI personality"
+
+msgid "Consignes libres"
+msgstr "Free instructions"
+
+msgid "Donnez à l'IA des indications spécifiques sur ce qu'il faut évaluer, le public cible, etc."
+msgstr "Give the AI specific instructions on what to evaluate, the target audience, etc."
+
+msgid "Critères de notation"
+msgstr "Grading criteria"
+
+msgid "Cochez les critères à utiliser et ajustez leur coefficient."
+msgstr "Check the criteria to use and adjust their coefficient."
+
+msgid "Coef."
+msgstr "Coef."
+
+msgid "Critères personnalisés"
+msgstr "Custom criteria"
+
+msgid "Ajouter un critère perso"
+msgstr "Add a custom criterion"
+
+msgid "Mode de notation pour les groupes"
+msgstr "Group grading mode"
+
+msgid "En mode <strong>mixte</strong>, la note finale = coef_groupe × note_collective + coef_individuel × note_individuelle."
+msgstr "In <strong>mixed</strong> mode, final grade = group_coef × collective_grade + individual_coef × individual_grade."
+
+msgid "Coefficient groupe (mixte)"
+msgstr "Group coefficient (mixed)"
+
+msgid "Coefficient individuel (mixte)"
+msgstr "Individual coefficient (mixed)"
+
+msgid "Mettre à jour"
+msgstr "Update"
+
+msgid "Créer la soutenance"
+msgstr "Create defense"
+
+msgid "Nom du critère"
+msgstr "Criterion name"
+
+# form_passage.html
+msgid "Nouveau"
+msgstr "New"
+
+msgid "passage"
+msgstr "passage"
+
+msgid "Nouveau passage"
+msgstr "New passage"
+
+msgid "Soutenance"
+msgstr "Defense"
+
+msgid "Enregistrer"
+msgstr "Save"
+
+msgid "Supprimer ce passage ?"
+msgstr "Delete this passage?"
+
+msgid "Supprimer ce passage"
+msgstr "Delete this passage"
+
+# presentation dashboard
+msgid "Heure prévue"
+msgstr "Scheduled time"
+
+msgid "Action"
+msgstr "Action"
+
+msgid "Préparer & démarrer"
+msgstr "Prepare & start"
+
+msgid "Rejoindre"
+msgstr "Join"
+
+msgid "Voir"
+msgstr "View"
+
+msgid "Aucune soutenance n'est planifiée pour vous. Contactez votre professeur."
+msgstr "No defense is scheduled for you. Contact your professor."
+
+# upload.html
+msgid "Déposer vos fichiers"
+msgstr "Upload your files"
+
+msgid "Préparer ma soutenance"
+msgstr "Prepare my defense"
+
+msgid "Avant de démarrer, déposez votre présentation PPTX"
+msgstr "Before starting, upload your PPTX presentation"
+
+msgid "et votre rapport PDF (obligatoire)"
+msgstr "and your PDF report (mandatory)"
+
+msgid "et, optionnellement, votre rapport PDF"
+msgstr "and optionally your PDF report"
+
+msgid "Présentation PPTX"
+msgstr "PPTX presentation"
+
+msgid "Déjà déposé"
+msgstr "Already uploaded"
+
+msgid "Rapport PDF"
+msgstr "PDF report"
+
+msgid "obligatoire"
+msgstr "mandatory"
+
+msgid "Téléverser & continuer"
+msgstr "Upload & continue"
+
+msgid "Retour"
+msgstr "Back"
+
+msgid "À savoir avant de démarrer"
+msgstr "Important before starting"
+
+msgid "Votre micro et votre caméra seront enregistrés en continu."
+msgstr "Your microphone and camera will be recorded continuously."
+
+msgid "La langue attendue est"
+msgstr "The expected language is"
+
+# detail_passage.html
+msgid "Détail soutenance"
+msgstr "Defense details"
+
+msgid "Votre soutenance n'a pas encore démarré."
+msgstr "Your defense has not started yet."
+
+msgid "Votre soutenance est en cours."
+msgstr "Your defense is in progress."
+
+msgid "Rejoindre la salle"
+msgstr "Join the room"
+
+msgid "Votre soutenance est terminée. La notation IA est"
+msgstr "Your defense is over. AI grading is"
+
+msgid "disponible"
+msgstr "available"
+
+msgid "en cours"
+msgstr "in progress"
+
+msgid "Voir l'enregistrement"
+msgstr "Watch the recording"
+
+msgid "Transcription de votre présentation"
+msgstr "Transcription of your presentation"
+
+# notes_passage.html
+msgid "Notes"
+msgstr "Grades"
+
+msgid "Passage"
+msgstr "Passage"
+
+msgid "Notes IA"
+msgstr "AI grades"
+
+msgid "Relancer la notation IA ?"
+msgstr "Relaunch AI grading?"
+
+msgid "(Re)déclencher notation"
+msgstr "(Re)trigger grading"
+
+msgid "Rapport PDF"
+msgstr "PDF report"
+
+msgid "Personnalité IA"
+msgstr "AI personality"
+
+msgid "Note globale"
+msgstr "Overall grade"
+
+msgid "Critère"
+msgstr "Criterion"
+
+msgid "Note IA"
+msgstr "AI grade"
+
+msgid "Note finale"
+msgstr "Final grade"
+
+msgid "Commentaire"
+msgstr "Comment"
+
+msgid "Voir / éditer"
+msgstr "View / edit"
+
+msgid "Commentaire du prof..."
+msgstr "Professor's comment..."
+
+msgid "Aucune note enregistrée. Cliquez sur « Déclencher notation » ci-dessus."
+msgstr "No grades recorded. Click \"Trigger grading\" above."
+
+msgid "Erreur"
+msgstr "Error"
+
+msgid "Erreur réseau"
+msgstr "Network error"
+
+# suivi_live.html
+msgid "Suivi en direct"
+msgstr "Live monitoring"
+
+msgid "Transcription en direct"
+msgstr "Live transcription"
+
+msgid "Poser une question à l'étudiant"
+msgstr "Ask the student a question"
+
+msgid "Tapez votre question..."
+msgstr "Type your question..."
+
+msgid "Envoyer à l'étudiant"
+msgstr "Send to student"
+
+msgid "Déclencher la notation IA maintenant ?"
+msgstr "Trigger AI grading now?"
+
+msgid "Déclencher notation"
+msgstr "Trigger grading"
+
+msgid "Événements en direct"
+msgstr "Live events"
+
+msgid "Passage planifié"
+msgstr "Planned passage"
+
+msgid "Connexion live établie"
+msgstr "Live connection established"
+
+msgid "Connexion fermée"
+msgstr "Connection closed"
+
+msgid "Statut"
+msgstr "Status"
+
+msgid "Note"
+msgstr "Grade"
+
+msgid "Question IA"
+msgstr "AI question"
+
+msgid "Question prof envoyée"
+msgstr "Professor question sent"
+
+msgid "En attente"
+msgstr "Waiting"
+
+msgid "En cours"
+msgstr "In progress"
+
+msgid "Questions"
+msgstr "Questions"
+
+msgid "Terminé"
+msgstr "Completed"
+
+msgid "Noté"
+msgstr "Graded"
+
+# ── Terminologie Classe / Soutenance ─────────────────────────────────────────
+msgid "Rejoindre une classe"
+msgstr "Join a class"
+
+msgid "Rejoindre une classe avec un code"
+msgstr "Join a class with a code"
+
+msgid "Entrez le code de classe partagé par votre professeur (8 caractères)."
+msgstr "Enter the class code shared by your professor (8 characters)."
+
+msgid "Vous n'êtes inscrit(e) à aucune classe pour le moment."
+msgstr "You are not enrolled in any class at the moment."
+
+msgid "Questions / réponses"
+msgstr "Questions / answers"
+
+msgid "Retour à la soutenance"
+msgstr "Back to defense"
+
+msgid "Partager la soutenance"
+msgstr "Share defense"
+
+msgid "Rejoindre la soutenance"
+msgstr "Join defense"
+
+msgid "Rejoindre une soutenance"
+msgstr "Join a defense"
+
+msgid "Créez votre compte pour rejoindre cette soutenance. Si vous avez déjà un compte,"
+msgstr "Create your account to join this defense. If you already have an account,"
+
+# ── Landing page ──────────────────────────────────────────────────────────────
+msgid "Notation intelligente des soutenances"
+msgstr "Intelligent grading for academic defenses"
+
+msgid "Changer le thème"
+msgstr "Toggle theme"
+
+msgid "Créer un compte"
+msgstr "Create account"
+
+msgid "Propulsé par Claude AI & Whisper"
+msgstr "Powered by Claude AI & Whisper"
+
+msgid "La notation des soutenances,"
+msgstr "Academic defense grading,"
+
+msgid "réinventée par l'IA"
+msgstr "reinvented by AI"
+
+msgid "SoutenanceAI automatise l'évaluation de vos présentations académiques : transcription en direct, questions intelligentes, notes multi-critères et rapports PDF en un clic."
+msgstr "SoutenanceAI automates the evaluation of your academic presentations: live transcription, intelligent questions, multi-criteria grading and PDF reports in one click."
+
+msgid "Je suis Professeur"
+msgstr "I am a Teacher"
+
+msgid "Créez et gérez vos classes"
+msgstr "Create and manage your classes"
+
+msgid "Créer mon compte"
+msgstr "Create my account"
+
+msgid "Je suis Étudiant"
+msgstr "I am a Student"
+
+msgid "Rejoignez votre classe"
+msgstr "Join your class"
+
+msgid "Vous avez un code de classe ?"
+msgstr "Do you have a class code?"
+
+msgid "Ex : AB12CD34"
+msgstr "E.g.: AB12CD34"
+
+msgid "Automatisé par IA"
+msgstr "AI Automated"
+
+msgid "Langues supportées"
+msgstr "Supported languages"
+
+msgid "Personnalités IA"
+msgstr "AI personalities"
+
+msgid "Soutenances & étudiants"
+msgstr "Defenses & students"
+
+msgid "Paperasse inutile"
+msgstr "Unnecessary paperwork"
+
+msgid "Fonctionnalités"
+msgstr "Features"
+
+msgid "Tout ce dont vous avez besoin"
+msgstr "Everything you need"
+
+msgid "Une plateforme complète pour gérer et noter vos soutenances académiques de A à Z."
+msgstr "A complete platform to manage and grade your academic defenses from A to Z."
+
+msgid "Notation IA multi-critères"
+msgstr "Multi-criteria AI grading"
+
+msgid "Claude AI évalue chaque étudiant sur vos critères personnalisés (clarté, rigueur, structure…) avec des notes et des commentaires détaillés."
+msgstr "Claude AI evaluates each student on your custom criteria (clarity, rigor, structure…) with detailed grades and comments."
+
+msgid "Transcription en temps réel"
+msgstr "Real-time transcription"
+
+msgid "Whisper transcrit automatiquement la présentation orale de l'étudiant. Le texte s'affiche en direct dans votre tableau de bord."
+msgstr "Whisper automatically transcribes the student's oral presentation. The text appears live in your dashboard."
+
+msgid "Suivi live par WebSocket"
+msgstr "Live tracking via WebSocket"
+
+msgid "Suivez la soutenance en direct : transcription, statut, questions IA et notes apparaissent instantanément sans recharger la page."
+msgstr "Follow the defense live: transcription, status, AI questions and grades appear instantly without reloading the page."
+
+msgid "Rapport PDF automatique"
+msgstr "Automatic PDF report"
+
+msgid "Générez un rapport complet de soutenance en un clic : notes par critère, commentaires de l'IA, transcription et note globale."
+msgstr "Generate a complete defense report in one click: grades by criterion, AI comments, transcription and overall grade."
+
+msgid "Personnalités IA configurables"
+msgstr "Configurable AI personalities"
+
+msgid "Choisissez entre 4 personnalités évaluatrices : neutre, bienveillant, exigeant ou socratique — pour s'adapter à votre pédagogie."
+msgstr "Choose from 4 evaluator personalities: neutral, supportive, demanding or Socratic — to match your teaching style."
+
+msgid "Multilingue (5 langues)"
+msgstr "Multilingual (5 languages)"
+
+msgid "Interface et évaluation disponibles en français, anglais, arabe/darija, espagnol et allemand. Support RTL inclus pour l'arabe."
+msgstr "Interface and evaluation available in French, English, Arabic/Darija, Spanish and German. RTL support included for Arabic."
+
+msgid "Import CSV en masse"
+msgstr "Bulk CSV import"
+
+msgid "Créez des dizaines de comptes étudiants en quelques secondes. Uploadez un CSV et téléchargez les identifiants générés automatiquement."
+msgstr "Create dozens of student accounts in seconds. Upload a CSV and download automatically generated credentials."
+
+msgid "Présentation PPTX intégrée"
+msgstr "Integrated PPTX presentation"
+
+msgid "L'étudiant dépose son PPTX, il est converti en PDF et affiché slide par slide dans le navigateur — sans logiciel supplémentaire."
+msgstr "The student uploads their PPTX, it is converted to PDF and displayed slide by slide in the browser — no additional software needed."
+
+msgid "Déroulement"
+msgstr "How it works"
+
+msgid "Comment ça marche ?"
+msgstr "How does it work?"
+
+msgid "En 4 étapes simples, de la création de soutenance à la remise des notes."
+msgstr "In 4 simple steps, from defense creation to grade submission."
+
+msgid "Le prof crée la soutenance"
+msgstr "The teacher creates the defense"
+
+msgid "Définit les critères, la durée, la personnalité de l'IA et les consignes spécifiques."
+msgstr "Defines the criteria, duration, AI personality and specific instructions."
+
+msgid "L'étudiant prépare"
+msgstr "The student prepares"
+
+msgid "Dépose son PPTX et son rapport PDF, visualise les informations de sa soutenance."
+msgstr "Uploads their PPTX and PDF report, views information about their defense."
+
+msgid "La soutenance se déroule"
+msgstr "The defense takes place"
+
+msgid "L'IA transcrit en direct, pose des questions et le prof suit tout en temps réel."
+msgstr "The AI transcribes live, asks questions and the teacher follows everything in real time."
+
+msgid "Notes & rapport générés"
+msgstr "Grades & report generated"
+
+msgid "L'IA évalue automatiquement, le prof valide et ajuste, le PDF est prêt."
+msgstr "The AI evaluates automatically, the teacher validates and adjusts, the PDF is ready."
+
+msgid "Accès"
+msgstr "Access"
+
+msgid "Un espace pour chaque rôle"
+msgstr "A space for each role"
+
+msgid "Administrateur"
+msgstr "Administrator"
+
+msgid "Gère tous les comptes professeurs"
+msgstr "Manages all teacher accounts"
+
+msgid "Visualise les statistiques globales"
+msgstr "Views global statistics"
+
+msgid "Accède à toutes les soutenances"
+msgstr "Accesses all defenses"
+
+msgid "Crée et supprime les comptes"
+msgstr "Creates and deletes accounts"
+
+msgid "Professeur"
+msgstr "Teacher"
+
+msgid "S'inscrit librement sur la plateforme"
+msgstr "Registers freely on the platform"
+
+msgid "Crée et configure ses soutenances"
+msgstr "Creates and configures their defenses"
+
+msgid "Importe ses étudiants par CSV"
+msgstr "Imports their students via CSV"
+
+msgid "Suit les soutenances en direct"
+msgstr "Monitors defenses live"
+
+msgid "Valide et exporte les notes PDF"
+msgstr "Validates and exports PDF grades"
+
+msgid "Étudiant"
+msgstr "Student"
+
+msgid "Rejoint une classe via code ou lien"
+msgstr "Joins a class via code or link"
+
+msgid "Voit toutes ses soutenances"
+msgstr "Views all their defenses"
+
+msgid "Dépose sa présentation PPTX"
+msgstr "Uploads their PPTX presentation"
+
+msgid "Passe sa soutenance en ligne"
+msgstr "Takes their defense online"
+
+msgid "Consulte ses notes et transcription"
+msgstr "Views their grades and transcription"
+
+msgid "Prêt à moderniser vos soutenances ?"
+msgstr "Ready to modernize your defenses?"
+
+msgid "Créez votre compte professeur gratuitement et lancez votre première soutenance en moins de 5 minutes."
+msgstr "Create your teacher account for free and launch your first defense in less than 5 minutes."
+
+msgid "Créer mon compte professeur"
+msgstr "Create my teacher account"
+
+msgid "Déjà un compte ? Se connecter"
+msgstr "Already have an account? Log in"
+
+msgid "Plateforme de notation intelligente des soutenances académiques"
+msgstr "Intelligent grading platform for academic defenses"
+
+msgid "Propulsé par"
+msgstr "Powered by"
+
+msgid "5 langues"
+msgstr "5 languages"
+
+msgid "Open source"
+msgstr "Open source"
+
+
+# ── Salle de soutenance ───────────────────────────────────────────────────────
+msgid "Conversion des slides en cours…"
+msgstr "Converting slides…"
+
+msgid "Actualisation dans"
+msgstr "Refreshing in"
+
+msgid "Aucune présentation disponible."
+msgstr "No presentation available."
+
+msgid "JURY IA"
+msgstr "AI JURY"
+
+msgid "Bonjour,"
+msgstr "Hello,"
+
+msgid "Bienvenue à votre soutenance"
+msgstr "Welcome to your defense"
+
+msgid "Votre présentation est prête. Quand vous êtes prêt(e), cliquez sur"
+msgstr "Your presentation is ready. When you are ready, click"
+
+msgid "Démarrer"
+msgstr "Start"
+
+msgid "Micro ON"
+msgstr "Mic ON"
+
+msgid "Micro OFF"
+msgstr "Mic OFF"
+
+msgid "Fin présentation"
+msgstr "End presentation"
+
+msgid "Terminer"
+msgstr "Finish"
+
+msgid "Question de l'IA"
+msgstr "AI question"
+
+msgid "Micro actif — parlez, votre réponse s'écrit automatiquement"
+msgstr "Mic active — speak, your answer is written automatically"
+
+msgid "Dictée vocale non disponible sur ce navigateur — tapez votre réponse."
+msgstr "Voice dictation not available on this browser — type your answer."
+
+msgid "Parlez (micro actif) ou tapez votre réponse ici…"
+msgstr "Speak (mic active) or type your answer here…"
+
+msgid "Passer"
+msgstr "Skip"
+
+msgid "Valider ma réponse"
+msgstr "Submit my answer"
+
+msgid "Question"
+msgstr "Question"
+
+msgid "L'IA lit la question…"
+msgstr "The AI is reading the question…"
+
+msgid "Parlez votre réponse (micro actif) ou tapez, puis cliquez sur Valider."
+msgstr "Speak your answer (mic active) or type, then click Submit."
+
+msgid "Évaluation en cours…"
+msgstr "Evaluating…"
+
+msgid "Réponse vide. Passer cette question ?"
+msgstr "Empty answer. Skip this question?"
+
+msgid "La soutenance est en cours. Quitter maintenant perdra l'enregistrement."
+msgstr "The defense is in progress. Leaving now will lose the recording."

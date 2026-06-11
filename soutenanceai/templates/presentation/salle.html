@@ -1,0 +1,1073 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_BIDI %}dir="rtl"{% else %}dir="ltr"{% endif %}>
+<head>
+    <meta charset="UTF-8">
+    <title>{% trans "Soutenance" %} — {{ session.titre }}</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <style>
+        /* PDF.js viewer intégré dans la salle */
+        /* .slide-area : position:absolute;inset:0 vient de main.css — ne pas surcharger ici */
+        #pdf-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+            border-radius: 4px;
+            display: block;
+        }
+        .slide-placeholder {
+            color: #888;
+            font-size: 1.1rem;
+            text-align: center;
+            padding: 2rem;
+        }
+        /* Barre de progression slides */
+        .slide-progress {
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+        }
+        .slide-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .slide-dot.active { background: #fff; }
+    </style>
+</head>
+<body>
+<div class="salle-wrapper">
+    <div class="salle-main">
+        <div class="slide-area" id="slide-area">
+            {% if pdf_url %}
+                <canvas id="pdf-canvas"></canvas>
+                <div class="slide-progress" id="slide-dots"></div>
+            {% else %}
+                <div class="slide-placeholder" id="conversion-placeholder">
+                    {% if passage.fichier_pptx %}
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+                            <div style="width:36px;height:36px;border:3px solid rgba(255,255,255,0.15);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;"></div>
+                            <span>{% trans "Conversion des slides en cours…" %}</span>
+                            <span style="font-size:0.8rem;opacity:0.5;" id="refresh-countdown">{% trans "Actualisation dans" %} <strong id="cpt">5</strong> s</span>
+                        </div>
+                        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+                        <script>
+                        (function(){
+                            var n = 5;
+                            var cpt = document.getElementById('cpt');
+                            var iv = setInterval(function(){
+                                n--;
+                                if(cpt) cpt.textContent = n;
+                                if(n <= 0){ clearInterval(iv); location.reload(); }
+                            }, 1000);
+                        })();
+                        </script>
+                    {% else %}
+                        {% trans "Aucune présentation disponible." %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        {% if prof_avatar %}
+        <!-- Avatar professeur (jury IA) — coin bas-droite -->
+        <div id="prof-avatar-pip" style="
+            position:absolute;bottom:16px;right:16px;
+            width:155px;border-radius:10px;overflow:hidden;
+            background:#000;
+            box-shadow:0 4px 16px rgba(0,0,0,0.6);
+            border:2px solid rgba(99,102,241,0.5);
+            z-index:21;display:flex;flex-direction:column;align-items:center;">
+            <img src="{% static prof_avatar %}"
+                 alt="Jury IA"
+                 style="width:100%;display:block;opacity:0.9;" />
+            <div style="width:100%;padding:5px 6px;background:rgba(15,15,30,0.85);
+                        text-align:center;font-size:10px;color:#c7d2fe;
+                        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                <span style="color:var(--primary);font-weight:700;font-size:9px;letter-spacing:0.5px;">{% trans "JURY IA" %}</span>
+                &nbsp;·&nbsp; {{ prof_nom }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Webcam étudiant — coin bas-gauche (inline style prioritaire sur CSS) -->
+        <div class="webcam-pip" style="bottom:16px;left:16px;right:auto;width:180px;height:135px;">
+            <video id="webcam" autoplay muted playsinline></video>
+            <!-- Badge REC (visible pendant l'enregistrement) -->
+            <div id="rec-badge" style="
+                display:none;position:absolute;top:6px;left:6px;
+                background:rgba(220,38,38,0.9);color:#fff;
+                padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;
+                letter-spacing:1px;align-items:center;gap:4px;">
+                <span style="width:6px;height:6px;background:#fff;border-radius:50%;
+                             display:inline-block;animation:recpulse 1s ease-in-out infinite;"></span>
+                REC
+            </div>
+            <style>
+            @keyframes recpulse{0%,100%{opacity:1}50%{opacity:0.3}}
+            </style>
+            <!-- Badge locuteur actif (face-api.js — identification par photo) -->
+            <div id="locuteur-actif" style="
+                position:absolute;bottom:6px;left:6px;right:6px;
+                display:none;
+                background:rgba(0,0,0,0.75);color:#fff;
+                padding:3px 8px;border-radius:10px;font-size:11px;
+                align-items:center;gap:5px;justify-content:center;">
+                <i data-lucide="user-check" style="width:11px;height:11px;stroke-width:2;color:#4ade80;flex-shrink:0;"></i>
+                <span id="locuteur-nom" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
+            </div>
+            <!-- Badge expression faciale dominante (face-api.js faceExpressionNet) -->
+            <div id="expression-badge" style="
+                position:absolute;top:6px;right:6px;
+                display:none;
+                background:rgba(0,0,0,0.65);color:#fff;
+                padding:3px 9px;border-radius:10px;font-size:11px;
+                align-items:center;gap:4px;">
+                <i data-lucide="activity" style="width:11px;height:11px;stroke-width:2;color:#60a5fa;flex-shrink:0;"></i>
+                <span id="expression-label"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Banniere d'accueil IA (visible avant le clic sur Démarrer) -->
+    <div id="bienvenue-banner" style="
+        position:absolute;top:0;left:0;right:0;z-index:50;
+        background:linear-gradient(135deg,rgba(79,70,229,0.95),rgba(99,102,241,0.9));
+        color:#fff;padding:18px 24px;
+        display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+        box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+        <div style="flex:1;min-width:200px;">
+            <div style="font-size:1.15rem;font-weight:700;margin-bottom:4px;">
+                {% trans "Bonjour," %} <span style="color:#c7d2fe;">{{ etudiant_nom }}</span> !
+            </div>
+            <div style="font-size:0.85rem;opacity:0.9;line-height:1.4;">
+                {% trans "Bienvenue à votre soutenance" %} &laquo;&nbsp;<strong>{{ session.titre }}</strong>&nbsp;&raquo;.<br>
+                {% trans "Votre présentation est prête. Quand vous êtes prêt(e), cliquez sur" %}
+                <strong style="color:#fbbf24;">{% trans "Démarrer" %}</strong>.
+            </div>
+        </div>
+        <div style="font-size:0.75rem;opacity:0.7;text-align:right;white-space:nowrap;">
+            {% trans "Durée" %} : {{ session.duree_presentation }} min<br>
+            {% trans "Questions" %} : {{ session.nb_questions_max }} max
+        </div>
+    </div>
+
+    <div class="salle-bar">
+        <div class="timer" id="timer">00:00 / {{ session.duree_presentation }}:00</div>
+
+        <div class="slide-nav">
+            <button class="ctrl-btn" onclick="slidePrev()">◀</button>
+            <span class="slide-counter">
+                <span id="slide-current">1</span> / <span id="slide-total">—</span>
+            </span>
+            <button class="ctrl-btn" onclick="slideNext()">▶</button>
+        </div>
+
+        <div class="controls">
+            <button class="ctrl-btn active" id="btn-mic" onclick="toggleMic()"><i data-lucide="mic" style="width:14px;height:14px;stroke-width:2;display:inline-block;vertical-align:-2px;"></i> {% trans "Micro ON" %}</button>
+            <button class="ctrl-btn" id="btn-start" onclick="demarrer()">▶ {% trans "Démarrer" %}</button>
+            <button class="ctrl-btn" id="btn-stop-pres" onclick="terminerPresentation()" disabled>⏸ {% trans "Fin présentation" %}</button>
+            <button class="ctrl-btn danger" id="btn-end" onclick="terminerPassage()" disabled>⏹ {% trans "Terminer" %}</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal questions IA -->
+<div class="qa-overlay" id="qa-overlay">
+    <div class="qa-modal">
+        <!-- En-tête : titre + timer décompte -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+            <h2 style="margin:0;font-size:1.05rem;">
+                <i data-lucide="cpu" style="width:18px;height:18px;stroke-width:1.75;display:inline-block;vertical-align:-3px;margin-right:6px;color:var(--primary);"></i>
+                {% trans "Question de l'IA" %}
+            </h2>
+            <div id="qa-timer" style="display:flex;align-items:center;gap:5px;
+                                      font-size:13px;font-weight:700;color:var(--primary);
+                                      background:#ede9fe;padding:4px 12px;border-radius:20px;
+                                      transition:background 0.3s,color 0.3s;">
+                <i data-lucide="clock" style="width:13px;height:13px;stroke-width:2.5;"></i>
+                <span id="qa-timer-val">--:--</span>
+            </div>
+        </div>
+
+        <div class="qa-question" id="qa-question-text">...</div>
+
+        <!-- Indicateur micro actif (STT) -->
+        <div id="qa-mic-status" style="display:none;margin-top:10px;
+             padding:7px 12px;border-radius:8px;
+             background:#f0fdf4;border:1px solid #86efac;color:var(--success);
+             font-size:12px;align-items:center;gap:7px;">
+            <span style="width:8px;height:8px;background:var(--success);border-radius:50%;
+                         display:inline-block;flex-shrink:0;
+                         animation:recpulse 1s ease-in-out infinite;"></span>
+            {% trans "Micro actif — parlez, votre réponse s'écrit automatiquement" %}
+        </div>
+
+        <!-- Message si STT non supporté -->
+        <div id="qa-nostt" style="display:none;margin-top:10px;
+             padding:7px 12px;border-radius:8px;
+             background:#fef3c7;border:1px solid #fcd34d;color:#92400e;
+             font-size:12px;align-items:center;gap:7px;">
+            <i data-lucide="alert-triangle" style="width:13px;height:13px;stroke-width:2;flex-shrink:0;"></i>
+            {% trans "Dictée vocale non disponible sur ce navigateur — tapez votre réponse." %}
+        </div>
+
+        <p class="qa-status" id="qa-status" style="margin-top:10px;"></p>
+
+        <textarea id="qa-reponse" class="form-input" rows="4"
+                  placeholder="{% trans 'Parlez (micro actif) ou tapez votre réponse ici…' %}"
+                  style="margin-top:8px;"></textarea>
+
+        <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+            <button class="btn btn-secondary" onclick="skipQuestion()">{% trans "Passer" %}</button>
+            <button class="btn" onclick="validerReponse()" style="display:flex;align-items:center;gap:5px;">
+                <i data-lucide="check" style="width:14px;height:14px;stroke-width:2.5;"></i>
+                {% trans "Valider ma réponse" %}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- PDF.js depuis CDN (mozilla/pdfjs-dist) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs" type="module"></script>
+
+<script type="module">
+// ============ Initialisation PDF.js ============
+import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs';
+
+const PDF_URL = "{{ pdf_url|escapejs }}";
+const PASSAGE_ID = {{ passage.id }};
+const DUREE_PRES_SEC = {{ session.duree_presentation }} * 60;
+const DUREE_QUESTIONS_SEC = {{ session.duree_questions }} * 60;
+const LANGUE = "{{ session.langue }}";
+const NB_QUESTIONS = {{ session.nb_questions_max }};
+const CSRF = '{{ csrf_token }}';
+const ETUDIANT_NOM = "{{ etudiant_nom|escapejs }}";
+const SESSION_TITRE = "{{ session.titre|escapejs }}";
+
+// Chaînes UI traduites (langue de l'interface)
+const I18N = {
+    microOn:      "{% filter escapejs %}{% trans 'Micro ON' %}{% endfilter %}",
+    microOff:     "{% filter escapejs %}{% trans 'Micro OFF' %}{% endfilter %}",
+    question:     "{% filter escapejs %}{% trans 'Question' %}{% endfilter %}",
+    iaLit:        "{% filter escapejs %}{% trans "L'IA lit la question…" %}{% endfilter %}",
+    parlezReponse:"{% filter escapejs %}{% trans 'Parlez votre réponse (micro actif) ou tapez, puis cliquez sur Valider.' %}{% endfilter %}",
+    evaluation:   "{% filter escapejs %}{% trans 'Évaluation en cours…' %}{% endfilter %}",
+    reponseVide:  "{% filter escapejs %}{% trans 'Réponse vide. Passer cette question ?' %}{% endfilter %}",
+    quitterAlerte:"{% filter escapejs %}{% trans "La soutenance est en cours. Quitter maintenant perdra l'enregistrement." %}{% endfilter %}",
+};
+
+let pdfDoc = null;
+let currentPage = 1;
+let totalPages = 0;
+let renderTask = null;
+
+const canvas = document.getElementById('pdf-canvas');
+const ctx = canvas ? canvas.getContext('2d') : null;
+
+function getCSRF() {
+    return document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1] || CSRF;
+}
+
+async function renderPage(num) {
+    if (!pdfDoc || !canvas) return;
+    if (renderTask) { try { renderTask.cancel(); } catch(_) {} }
+
+    const page = await pdfDoc.getPage(num);
+    const container = document.getElementById('slide-area');
+    const maxW = container.clientWidth  || 960;
+    const maxH = container.clientHeight || 540;
+
+    const viewport = page.getViewport({ scale: 1 });
+    const scale = Math.min(maxW / viewport.width, maxH / viewport.height) * 0.97;
+    const scaled = page.getViewport({ scale });
+
+    canvas.width  = scaled.width;
+    canvas.height = scaled.height;
+
+    renderTask = page.render({ canvasContext: ctx, viewport: scaled });
+    await renderTask.promise;
+
+    document.getElementById('slide-current').textContent = num;
+    document.getElementById('slide-total').textContent   = totalPages;
+
+    // Points de progression
+    const dots = document.getElementById('slide-dots');
+    if (dots) {
+        dots.innerHTML = '';
+        // Affiche max 20 points pour ne pas déborder
+        const step = totalPages > 20 ? Math.ceil(totalPages / 20) : 1;
+        for (let i = 1; i <= totalPages; i += step) {
+            const d = document.createElement('span');
+            d.className = 'slide-dot' + (i === num ? ' active' : '');
+            d.onclick = () => goToPage(i);
+            dots.appendChild(d);
+        }
+    }
+}
+
+async function initPdf() {
+    if (!PDF_URL || !canvas) return;
+    try {
+        pdfDoc = await pdfjsLib.getDocument(PDF_URL).promise;
+        totalPages = pdfDoc.numPages;
+        await renderPage(1);
+    } catch (e) {
+        console.error('[PDF.js] Erreur chargement :', e);
+        if (canvas) canvas.closest('.slide-area').innerHTML =
+            '<div class="slide-placeholder">Erreur de chargement du PDF.</div>';
+    }
+}
+initPdf();
+
+window.slidePrev = function() { if (currentPage > 1) goToPage(currentPage - 1); };
+window.slideNext = function() { if (currentPage < totalPages) goToPage(currentPage + 1); };
+function goToPage(n) {
+    currentPage = n;
+    renderPage(n);
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') window.slideNext();
+    else if (e.key === 'ArrowLeft') window.slidePrev();
+});
+
+// Re-render si la fenêtre est redimensionnée
+let resizeTimer;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => renderPage(currentPage), 200);
+});
+
+// ============ Webcam + audio ============
+let stream = null;
+let micActive = true;
+
+async function initMedia() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        document.getElementById('webcam').srcObject = stream;
+        initAudioAnalyser();  // AudioContext apres getUserMedia (interaction utilisateur implicite)
+    } catch (e) {
+        alert("Impossible d'accéder à la caméra/micro : " + e.message);
+    }
+}
+initMedia();
+
+window.toggleMic = function() {
+    micActive = !micActive;
+    stream?.getAudioTracks().forEach(t => t.enabled = micActive);
+    const btn = document.getElementById('btn-mic');
+    btn.innerHTML = micActive
+        ? '<i data-lucide="mic" style="width:14px;height:14px;stroke-width:2;display:inline-block;vertical-align:-2px;"></i> ' + I18N.microOn
+        : '<i data-lucide="mic-off" style="width:14px;height:14px;stroke-width:2;display:inline-block;vertical-align:-2px;"></i> ' + I18N.microOff;
+    lucide.createIcons({nodes: [btn]});
+    btn.classList.toggle('active', micActive);
+};
+
+// ============ Timer ============
+let timerInterval = null;
+let secondesEcoulees = 0;
+
+function updateTimer() {
+    secondesEcoulees++;
+    const m = Math.floor(secondesEcoulees / 60).toString().padStart(2, '0');
+    const s = (secondesEcoulees % 60).toString().padStart(2, '0');
+    const dm = Math.floor(DUREE_PRES_SEC / 60);
+    const t = document.getElementById('timer');
+    t.textContent = `${m}:${s} / ${dm}:00`;
+    if (secondesEcoulees > DUREE_PRES_SEC) t.classList.add('danger');
+    else if (secondesEcoulees > DUREE_PRES_SEC * 0.85) t.classList.add('warning');
+}
+
+// ============ Audio streaming WebSocket (chunks 30s → Groq Whisper) ============
+let audioWs = null;
+const pendingChunks = [];
+let presEnCours = false;
+let mediaRecorder = null;
+
+// Exposés sur window pour que face-api.js (script non-module) y accède
+Object.defineProperty(window, 'presEnCours', { get: () => presEnCours });
+Object.defineProperty(window, 'audioWs',    { get: () => audioWs });
+
+function openAudioWs() {
+    if (audioWs && (audioWs.readyState === WebSocket.OPEN || audioWs.readyState === WebSocket.CONNECTING)) return;
+    const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    audioWs = new WebSocket(`${scheme}://${window.location.host}/ws/passage/${PASSAGE_ID}/audio/`);
+    audioWs.binaryType = 'arraybuffer';
+    audioWs.onopen = () => {
+        while (pendingChunks.length > 0 && audioWs.readyState === WebSocket.OPEN) {
+            audioWs.send(pendingChunks.shift());
+        }
+    };
+    audioWs.onmessage = (e) => {
+        try {
+            const msg = JSON.parse(e.data);
+            if (msg.type === 'audio_ack' && msg.transcrit) {
+                console.log(`[audio-ws] chunk #${msg.chunk} transcrit (${msg.texte?.length || 0} chars)`);
+            }
+        } catch(_) {}
+    };
+    audioWs.onclose = (e) => {
+        if (presEnCours) setTimeout(openAudioWs, 1000);
+    };
+    audioWs.onerror = (e) => console.error('[audio-ws] erreur', e);
+}
+
+function envoyerChunkAudio(arrayBuffer) {
+    if (audioWs && audioWs.readyState === WebSocket.OPEN) {
+        audioWs.send(arrayBuffer);
+    } else {
+        pendingChunks.push(arrayBuffer);
+        if (!audioWs || audioWs.readyState === WebSocket.CLOSED) openAudioWs();
+    }
+}
+
+async function startAudioChunks() {
+    if (!stream) await initMedia();
+    if (!audioWs) openAudioWs();
+
+    const audioStream = new MediaStream(stream.getAudioTracks());
+    let mime = 'audio/webm;codecs=opus';
+    if (!MediaRecorder.isTypeSupported(mime)) mime = 'audio/webm';
+    mediaRecorder = new MediaRecorder(audioStream, { mimeType: mime });
+
+    const chunkParts = [];
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunkParts.push(e.data); };
+    mediaRecorder.onstop = async () => {
+        if (chunkParts.length > 0) {
+            const blob = new Blob(chunkParts, { type: mime });
+            envoyerChunkAudio(await blob.arrayBuffer());
+        }
+        if (presEnCours) startAudioChunks();
+    };
+    mediaRecorder.start();
+    setTimeout(() => { try { mediaRecorder?.stop(); } catch(e) {} }, 30000);
+}
+
+// ============ Video recording ============
+let videoRecorder = null;
+let videoChunks = [];
+
+function startVideoRecording() {
+    if (!stream) return;
+    let mime = 'video/webm;codecs=vp8,opus';
+    if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
+    videoRecorder = new MediaRecorder(stream, { mimeType: mime });
+    videoRecorder.ondataavailable = (e) => { if (e.data.size > 0) videoChunks.push(e.data); };
+    videoRecorder.start(5000);  // Chunk toutes les 5s — evite blocage memoire
+
+    // Afficher le badge REC
+    const rec = document.getElementById('rec-badge');
+    if (rec) rec.style.display = 'flex';
+}
+
+async function stopVideoRecording() {
+    if (!videoRecorder || videoRecorder.state === 'inactive') return;
+    // Masquer badge REC
+    const rec = document.getElementById('rec-badge');
+    if (rec) rec.style.display = 'none';
+
+    return new Promise(resolve => {
+        videoRecorder.onstop = async () => {
+            if (videoChunks.length === 0) { resolve(); return; }
+            const blob = new Blob(videoChunks, { type: 'video/webm' });
+            const fd = new FormData();
+            fd.append('video', blob, `soutenance_${PASSAGE_ID}.webm`);
+            try {
+                await fetch(`/presentation/passage/${PASSAGE_ID}/api/video/`, {
+                    method: 'POST', body: fd, headers: { 'X-CSRFToken': getCSRF() },
+                });
+            } catch (err) {
+                console.error('[video] Echec upload :', err);
+            }
+            resolve();
+        };
+        videoRecorder.stop();
+    });
+}
+
+// Protection : avertir si l'etudiant tente de fermer l'onglet pendant la soutenance
+window.addEventListener('beforeunload', (e) => {
+    if (presEnCours || (videoRecorder && videoRecorder.state === 'recording')) {
+        e.preventDefault();
+        e.returnValue = I18N.quitterAlerte;
+        return e.returnValue;
+    }
+});
+
+// ============ Posture / Expressions / Prosodie (face-api.js + Web Audio API) ============
+// Le buffer est partagé avec le script face-api non-module via window._expressionBuf
+const expressionBuffer = [];
+const volumeSamples = [];
+window._expressionBuf = expressionBuffer;
+
+// Analyse prosodique : volume du micro via Web Audio API
+let audioCtx = null;
+let analyserNode = null;
+
+function initAudioAnalyser() {
+    if (!stream) return;
+    try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaStreamSource(stream);
+        analyserNode = audioCtx.createAnalyser();
+        analyserNode.fftSize = 256;
+        source.connect(analyserNode);
+        const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+        setInterval(() => {
+            if (!presEnCours) return;
+            analyserNode.getByteFrequencyData(dataArray);
+            const rms = Math.sqrt(dataArray.reduce((s, v) => s + v * v, 0) / dataArray.length);
+            // Conversion amplitude → dB approximatif
+            const db = rms > 0 ? 20 * Math.log10(rms / 255) : -60;
+            volumeSamples.push(parseFloat(db.toFixed(1)));
+            if (volumeSamples.length > 5000) volumeSamples.shift();
+        }, 200);
+    } catch (e) { console.warn('[audio-analyser] Indisponible :', e); }
+}
+
+async function envoyerPosture() {
+    if (expressionBuffer.length === 0 && volumeSamples.length === 0) return;
+    // Calculer un résumé prosodique (ratio de silence, volume moyen)
+    let prosody = {};
+    if (volumeSamples.length > 0) {
+        const silence = volumeSamples.filter(v => v < -35).length;
+        const mean = volumeSamples.reduce((a, b) => a + b, 0) / volumeSamples.length;
+        // Écart-type du volume = proxy d'intonation (voix plate vs. expressive)
+        const variance = volumeSamples.reduce((s, v) => s + (v - mean) ** 2, 0) / volumeSamples.length;
+        prosody = {
+            db_moyen: parseFloat(mean.toFixed(1)),
+            db_variation: parseFloat(Math.sqrt(variance).toFixed(1)),
+            ratio_silence: parseFloat((silence / volumeSamples.length).toFixed(3)),
+        };
+    }
+    const data = { mesures: expressionBuffer.splice(0), prosody };
+    try {
+        await fetch(`/presentation/passage/${PASSAGE_ID}/api/posture/`, {
+            method: 'POST', body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+        });
+    } catch (e) { console.error(e); }
+}
+// Flush toutes les 30s pendant la presentation + appel explicite dans terminerPassage()
+setInterval(() => { if (presEnCours) envoyerPosture(); }, 30000);
+
+// ============ Contrôles ============
+// Message d'accueil IA selon la langue de la session
+function texteAccueil() {
+    const messages = {
+        fr: `Bonjour ${ETUDIANT_NOM}, bienvenue à votre soutenance : ${SESSION_TITRE}. Vous pouvez commencer votre présentation.`,
+        en: `Hello ${ETUDIANT_NOM}, welcome to your defense: ${SESSION_TITRE}. You may begin your presentation.`,
+        es: `Hola ${ETUDIANT_NOM}, bienvenido a su defensa: ${SESSION_TITRE}. Puede comenzar su presentación.`,
+        de: `Hallo ${ETUDIANT_NOM}, willkommen zu Ihrer Verteidigung: ${SESSION_TITRE}. Sie können Ihre Präsentation beginnen.`,
+        ar: `مرحباً ${ETUDIANT_NOM}، مرحباً بك في مناقشتك: ${SESSION_TITRE}. يمكنك البدء في عرضك.`,
+    };
+    return messages[LANGUE] || messages['fr'];
+}
+
+// Message de fin : l'IA remercie l'étudiant après la dernière question
+function texteAuRevoir() {
+    const messages = {
+        fr: `Merci ${ETUDIANT_NOM} pour votre passage. Vous avez répondu à toutes les questions. Nous avons bien noté votre prestation et vous souhaitons bonne chance pour vos résultats. La soutenance est maintenant terminée.`,
+        en: `Thank you ${ETUDIANT_NOM} for your presentation. You have answered all the questions. We have noted your performance and wish you the best of luck with your results. The defense is now over.`,
+        es: `Gracias ${ETUDIANT_NOM} por su presentación. Ha respondido a todas las preguntas. Hemos tomado nota de su prestación y le deseamos mucha suerte. La defensa ha terminado.`,
+        de: `Vielen Dank ${ETUDIANT_NOM} für Ihre Präsentation. Sie haben alle Fragen beantwortet. Wir wünschen Ihnen viel Erfolg. Die Verteidigung ist nun beendet.`,
+        ar: `شكراً ${ETUDIANT_NOM} على مناقشتك. لقد اجبت على جميع الاسئلة. نتمنى لك حظاً سعيداً في نتائجك. لقد انتهت المناقشة الآن.`,
+    };
+    return messages[LANGUE] || messages['fr'];
+}
+
+window.demarrer = async function() {
+    // Cacher la banniere d'accueil + re-rendre le slide sur la bonne taille
+    const banner = document.getElementById('bienvenue-banner');
+    if (banner) banner.style.display = 'none';
+    // Laisser le navigateur recalculer le layout avant de re-rendre la slide
+    await new Promise(r => setTimeout(r, 50));
+    if (pdfDoc) renderPage(currentPage);
+
+    // Message vocal de bienvenue (avant de demarrer le timer)
+    await parlerTexte(texteAccueil());
+
+    await fetch(`/presentation/passage/${PASSAGE_ID}/api/demarrer/`, {
+        method: 'POST', headers: { 'X-CSRFToken': getCSRF() },
+    });
+    presEnCours = true;
+    timerInterval = setInterval(updateTimer, 1000);
+    startAudioChunks();
+    startVideoRecording();
+    document.getElementById('btn-start').disabled = true;
+    document.getElementById('btn-stop-pres').disabled = false;
+    document.getElementById('btn-end').disabled = false;
+};
+
+window.terminerPresentation = async function() {
+    presEnCours = false;
+    // Arrêter le timer de présentation (peu importe le temps restant)
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    try { mediaRecorder?.stop(); } catch(e) {}
+    document.getElementById('btn-stop-pres').disabled = true;
+    document.getElementById('btn-start').disabled = true;
+
+    let questions = [];
+    try {
+        const r = await fetch(`/presentation/passage/${PASSAGE_ID}/api/terminer-presentation/`, {
+            method: 'POST', headers: { 'X-CSRFToken': getCSRF() },
+        });
+        const data = await r.json();
+        questions = data.questions || [];
+    } catch (_) {}
+
+    if (questions.length > 0) {
+        await poserQuestionsIA(questions);
+    } else {
+        // Pas de questions générées → au revoir + terminer directement
+        await parlerTexte(texteAuRevoir());
+        window.terminerPassage();
+    }
+};
+
+let _passageTermine = false;  // Guard : un seul appel possible
+
+window.terminerPassage = async function() {
+    if (_passageTermine) return;
+    _passageTermine = true;
+
+    // Désactiver tous les boutons de contrôle immédiatement
+    ['btn-end', 'btn-stop-pres', 'btn-start'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = true;
+    });
+
+    presEnCours = false;
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    stopQaTimer();
+    stopSTT();
+    try { mediaRecorder?.stop(); } catch(e) {}
+    await new Promise(r => setTimeout(r, 500));
+    try { audioWs?.close(); } catch(e) {}
+    await stopVideoRecording();
+    await envoyerPosture();
+
+    try {
+        await fetch(`/presentation/passage/${PASSAGE_ID}/api/terminer-passage/`, {
+            method: 'POST', headers: { 'X-CSRFToken': getCSRF() },
+        });
+    } catch (e) {
+        console.error('[terminer-passage] Erreur réseau :', e);
+    }
+
+    // Redirection immédiate — la notation s'exécute en arrière-plan côté serveur
+    window.location.href = `/presentation/passage/${PASSAGE_ID}/`;
+};
+
+// ============ Questions IA ============
+const SPEECH_LANG = { fr: 'fr-FR', en: 'en-US', es: 'es-ES', de: 'de-DE', ar: 'ar-SA' }[LANGUE] || 'fr-FR';
+
+function parlerTexte(texte) {
+    return new Promise(resolve => {
+        if (!window.speechSynthesis) { resolve(); return; }
+        // Annuler toute synthèse en cours avant d'en démarrer une nouvelle
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(texte);
+        u.lang = SPEECH_LANG;
+        u.rate = 0.95;
+        u.onend = resolve;
+        u.onerror = resolve;
+        window.speechSynthesis.speak(u);
+    });
+}
+
+let currentQuestion = null;
+let currentQuestionResolve = null;
+
+// ============ STT — Dictée vocale en temps réel ============
+const SRConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+let speechRec = null;
+let sttFinalTranscript = '';
+let sttActive = false;
+
+function startSTT() {
+    if (!SRConstructor) {
+        // Navigateur non compatible — afficher avertissement
+        const warn = document.getElementById('qa-nostt');
+        if (warn) warn.style.display = 'flex';
+        return;
+    }
+    stopSTT(/* silent= */ true);
+    sttActive = true;
+
+    speechRec = new SRConstructor();
+    speechRec.lang = SPEECH_LANG;
+    speechRec.continuous = true;
+    speechRec.interimResults = true;
+
+    speechRec.onresult = (event) => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+                sttFinalTranscript += event.results[i][0].transcript + ' ';
+            } else {
+                interim += event.results[i][0].transcript;
+            }
+        }
+        const ta = document.getElementById('qa-reponse');
+        if (ta) ta.value = sttFinalTranscript + interim;
+    };
+
+    speechRec.onerror = (e) => {
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+            console.warn('[STT] Permission micro refusée');
+            sttActive = false;
+            const warn = document.getElementById('qa-nostt');
+            if (warn) warn.style.display = 'flex';
+            return;
+        }
+        // 'no-speech' = silence prolongé — relancer silencieusement
+        if (sttActive) setTimeout(startSTT, 300);
+    };
+
+    speechRec.onend = () => {
+        // Relance automatique tant que la session Q&A est active
+        if (sttActive) setTimeout(startSTT, 200);
+    };
+
+    try {
+        speechRec.start();
+        const micEl = document.getElementById('qa-mic-status');
+        if (micEl) micEl.style.display = 'flex';
+        if (window.lucide) lucide.createIcons({ nodes: [document.getElementById('qa-mic-status')] });
+    } catch (e) {
+        console.warn('[STT] Erreur démarrage :', e);
+    }
+}
+
+function stopSTT(silent = false) {
+    sttActive = false;
+    if (speechRec) {
+        speechRec.onend  = null;
+        speechRec.onerror = null;
+        try { speechRec.stop(); } catch (_) {}
+        speechRec = null;
+    }
+    if (!silent) {
+        const micEl = document.getElementById('qa-mic-status');
+        if (micEl) micEl.style.display = 'none';
+    }
+}
+
+// ============ Timer session questions ============
+let qaTimerInterval = null;
+let qaSecondesRestantes = 0;
+
+function startQaTimer() {
+    qaSecondesRestantes = DUREE_QUESTIONS_SEC;
+    _updateQaTimerDisplay();
+    qaTimerInterval = setInterval(() => {
+        qaSecondesRestantes--;
+        _updateQaTimerDisplay();
+        if (qaSecondesRestantes <= 0) {
+            _finirQa(/* timeout= */ true);
+        }
+    }, 1000);
+}
+
+function stopQaTimer() {
+    if (qaTimerInterval) { clearInterval(qaTimerInterval); qaTimerInterval = null; }
+}
+
+function _updateQaTimerDisplay() {
+    const secs = Math.max(qaSecondesRestantes, 0);
+    const m = Math.floor(secs / 60).toString().padStart(2, '0');
+    const s = (secs % 60).toString().padStart(2, '0');
+    const valEl = document.getElementById('qa-timer-val');
+    if (valEl) valEl.textContent = `${m}:${s}`;
+    const timerEl = document.getElementById('qa-timer');
+    if (timerEl) {
+        if (secs < 60) {
+            // Moins d'1 min : rouge urgent
+            timerEl.style.cssText += ';color:var(--danger);background:#fef2f2;';
+        } else if (secs < DUREE_QUESTIONS_SEC * 0.3) {
+            // Moins de 30 % du temps : orange
+            timerEl.style.cssText += ';color:var(--warning);background:#fef3c7;';
+        }
+    }
+}
+
+function _finirQa(timeout = false) {
+    stopQaTimer();
+    stopSTT();
+    qaTermine = true;  // Signal : sortir de la boucle de questions
+    if (timeout) {
+        // Valider la réponse courante (partielle) avant de fermer
+        const reponse = (document.getElementById('qa-reponse')?.value || '').trim();
+        if (reponse && currentQuestion) {
+            fetch(`/presentation/passage/${PASSAGE_ID}/api/repondre/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+                body: JSON.stringify({ question: currentQuestion, reponse }),
+            }).catch(() => {});
+        }
+    }
+    document.getElementById('qa-overlay').classList.remove('active');
+    // Résoudre la promesse en cours pour débloquer la boucle de questions
+    currentQuestionResolve?.();
+    // L'IA remercie l'étudiant puis termine (délai 300ms pour laisser le fetch partir)
+    setTimeout(async () => {
+        await parlerTexte(texteAuRevoir());
+        window.terminerPassage();
+    }, 300);
+}
+
+// Variable de contrôle pour sortir de la boucle de questions en cas de timeout
+let qaTermine = false;
+
+async function poserQuestionsIA(questions) {
+    qaTermine = false;
+    document.getElementById('qa-overlay').classList.add('active');
+    if (window.lucide) lucide.createIcons({ nodes: [document.querySelector('.qa-modal')] });
+    startQaTimer();
+
+    for (let i = 0; i < questions.length; i++) {
+        if (qaTermine || qaSecondesRestantes <= 0) break;
+
+        const q = questions[i];
+        currentQuestion = q;
+        sttFinalTranscript = '';
+
+        document.getElementById('qa-question-text').textContent =
+            `${I18N.question} ${i + 1}/${questions.length} : ${q}`;
+        document.getElementById('qa-status').textContent = I18N.iaLit;
+        document.getElementById('qa-reponse').value = '';
+
+        // STT arrêté pendant la lecture TTS (évite de capter la voix de synthèse)
+        stopSTT(/* silent= */ true);
+        const micEl = document.getElementById('qa-mic-status');
+        if (micEl) micEl.style.display = 'none';
+
+        await parlerTexte(q);
+        if (qaSecondesRestantes <= 0 || qaTermine) break;
+
+        // Démarrer la dictée vocale
+        document.getElementById('qa-status').textContent = I18N.parlezReponse;
+        startSTT();
+
+        // Attendre que l'étudiant valide ou passe
+        await new Promise(resolve => { currentQuestionResolve = resolve; });
+        stopSTT();
+
+        if (qaTermine) break;
+    }
+
+    // Si la boucle s'arrête naturellement (toutes questions répondues)
+    if (!qaTermine) {
+        qaTermine = true;
+        stopQaTimer();
+        stopSTT();
+        document.getElementById('qa-overlay').classList.remove('active');
+        // L'IA remercie l'étudiant avant de terminer
+        await parlerTexte(texteAuRevoir());
+        window.terminerPassage();
+    }
+}
+
+window.validerReponse = async function() {
+    const reponse = document.getElementById('qa-reponse').value.trim();
+    if (!reponse) {
+        if (!confirm(I18N.reponseVide)) return;
+    }
+    stopSTT();
+    document.getElementById('qa-status').textContent = I18N.evaluation;
+    try {
+        await fetch(`/presentation/passage/${PASSAGE_ID}/api/repondre/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+            body: JSON.stringify({ question: currentQuestion, reponse }),
+        });
+    } catch (_) {}
+    currentQuestionResolve?.();
+};
+
+window.skipQuestion = function() {
+    stopSTT();
+    sttFinalTranscript = '';
+    currentQuestionResolve?.();
+};
+</script>
+
+<!-- ========== face-api.js — expressions faciales + posture + locuteur ========== -->
+<!-- Chargé en script classique (non-module) après le module PDF.js             -->
+<!-- Réseaux chargés : ssdMobilenetv1 + faceLandmark68Net + faceRecognitionNet  -->
+<!--                   + faceExpressionNet (7 émotions en temps réel)            -->
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+<script>
+(function () {
+    const FACE_MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+    let faceMatcher = null;
+    // faceNetsReady : true dès que les 4 réseaux sont chargés — sans photo nécessaire
+    // Permet le démarrage de la détection expressions/posture même sans photos de profil
+    let faceNetsReady = false;
+
+    const EXPR_LABELS = {
+        neutral:'neutre', happy:'souriant', sad:'triste',
+        fearful:'stresse', surprised:'surpris', angry:'nerveux', disgusted:'inconfort',
+    };
+
+    // ── Initialisation asynchrone en arrière-plan ──────────────────────────
+    async function initFaceRecognition() {
+        if (!window.faceapi) return;
+        try {
+            // Chargement des 4 réseaux (ssdMobilenetv1 ~6MB + landmarks ~350KB
+            //                          + recognition ~6MB + expressions ~350KB)
+            await Promise.all([
+                faceapi.nets.ssdMobilenetv1.loadFromUri(FACE_MODEL_URL),
+                faceapi.nets.faceLandmark68Net.loadFromUri(FACE_MODEL_URL),
+                faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODEL_URL),
+                faceapi.nets.faceExpressionNet.loadFromUri(FACE_MODEL_URL),
+            ]);
+            faceNetsReady = true;
+            console.info('[face-api] Reseaux charges — expressions + posture actives.');
+
+            // Chargement optionnel des photos de référence (identification locuteur)
+            const resp = await fetch(
+                `/presentation/passage/${PASSAGE_ID}/api/face-descriptors/`,
+                { credentials: 'same-origin' }
+            );
+            if (!resp.ok) return;
+            const { etudiants } = await resp.json();
+            if (!etudiants || etudiants.length === 0) {
+                console.info('[face-api] Aucune photo de profil — identification locuteur desactivee.');
+                return;
+            }
+            const labeled = [];
+            for (const etu of etudiants) {
+                try {
+                    const img = await faceapi.fetchImage(etu.photo_url);
+                    const det = await faceapi.detectSingleFace(img)
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+                    if (det) {
+                        labeled.push(new faceapi.LabeledFaceDescriptors(
+                            `${etu.nom}|${etu.user_id}`, [det.descriptor]
+                        ));
+                    } else {
+                        console.warn('[face-api] Visage non detecte dans photo de', etu.nom);
+                    }
+                } catch (e) {
+                    console.warn('[face-api] Erreur photo de', etu.nom, e);
+                }
+            }
+            if (labeled.length === 0) return;
+            faceMatcher = new faceapi.FaceMatcher(labeled, 0.55);
+            console.info('[face-api] Identification locuteur initialisee pour', labeled.length, 'etudiant(s).');
+        } catch (err) {
+            console.warn('[face-api] Init echouee (non bloquant) :', err);
+        }
+    }
+
+    // ── Analyse combinée toutes les 4s : expressions + posture + locuteur ──
+    // Une seule détection par cycle pour ne pas surcharger le thread principal
+    async function analyserVisage() {
+        if (!faceNetsReady) return;
+        if (!window.presEnCours) return;
+        const videoEl = document.getElementById('webcam');
+        if (!videoEl || videoEl.paused || videoEl.videoWidth === 0) return;
+        try {
+            const det = await faceapi.detectSingleFace(videoEl)
+                .withFaceLandmarks()
+                .withFaceDescriptor()
+                .withFaceExpressions();
+            if (!det) return;
+
+            // ── Posture depuis landmarks (68 points du visage) ──────────────
+            const lm = det.landmarks.positions;
+            const leftEye  = lm[36];   // coin externe oeil gauche
+            const rightEye = lm[45];   // coin externe oeil droit
+            const nose     = lm[33];   // pointe du nez
+            const faceWidth = Math.abs(lm[16].x - lm[0].x) || 1;
+            // Inclinaison de la tête (angle entre les deux yeux)
+            const headTiltRad = Math.atan2(rightEye.y - leftEye.y, rightEye.x - leftEye.x);
+            const headTiltDeg = headTiltRad * 180 / Math.PI;
+            // Contact visuel : le nez doit rester centré entre les yeux et la tête droite
+            const noseDrift = Math.abs(nose.x - (leftEye.x + rightEye.x) / 2) / faceWidth;
+            const lookingAtCamera = noseDrift < 0.15 && Math.abs(headTiltDeg) < 20;
+
+            // ── Expressions émotionnelles ────────────────────────────────────
+            const expr = det.expressions;
+
+            // Enregistrer dans le buffer partagé avec le module ES
+            if (window._expressionBuf) {
+                window._expressionBuf.push({
+                    timestamp: Date.now() / 1000,
+                    looking_at_camera: lookingAtCamera,
+                    head_tilt: parseFloat(headTiltDeg.toFixed(2)),
+                    shoulders_visible: true,
+                    mouvement: 0,
+                    expressions: {
+                        neutral:   parseFloat((expr.neutral   || 0).toFixed(3)),
+                        happy:     parseFloat((expr.happy     || 0).toFixed(3)),
+                        sad:       parseFloat((expr.sad       || 0).toFixed(3)),
+                        fearful:   parseFloat((expr.fearful   || 0).toFixed(3)),
+                        surprised: parseFloat((expr.surprised || 0).toFixed(3)),
+                        angry:     parseFloat((expr.angry     || 0).toFixed(3)),
+                        disgusted: parseFloat((expr.disgusted || 0).toFixed(3)),
+                    },
+                });
+                if (window._expressionBuf.length > 1000) window._expressionBuf.shift();
+            }
+
+            // Mettre à jour le badge d'expression dominante
+            const entries = Object.entries(expr).sort((a, b) => b[1] - a[1]);
+            const top = entries[0];
+            const labelEl    = document.getElementById('expression-label');
+            const exprBadge  = document.getElementById('expression-badge');
+            if (labelEl && exprBadge && top && top[1] > 0.3) {
+                labelEl.textContent = EXPR_LABELS[top[0]] || top[0];
+                exprBadge.style.display = 'flex';
+                if (window.lucide) lucide.createIcons({ nodes: [exprBadge] });
+            }
+
+            // ── Identification locuteur (optionnel — uniquement si photos dispo) ──
+            if (faceMatcher) {
+                const match = faceMatcher.findBestMatch(det.descriptor);
+                if (match.label !== 'unknown') {
+                    const [nom, userId] = match.label.split('|');
+                    const confidence = +(1 - match.distance).toFixed(2);
+                    // Broadcast via WebSocket (log côté serveur + prof live)
+                    if (window.audioWs && window.audioWs.readyState === WebSocket.OPEN) {
+                        window.audioWs.send(JSON.stringify({
+                            type: 'face_event',
+                            user_id: parseInt(userId),
+                            nom,
+                            confidence,
+                        }));
+                    }
+                    const locBadge = document.getElementById('locuteur-actif');
+                    const nomEl    = document.getElementById('locuteur-nom');
+                    if (locBadge && nomEl) {
+                        nomEl.textContent = nom + ' (' + Math.round(confidence * 100) + '%)';
+                        locBadge.style.display = 'flex';
+                    }
+                }
+            }
+        } catch (_) {}
+    }
+
+    setInterval(analyserVisage, 4000);
+
+    // Lancer l'initialisation dès que possible
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initFaceRecognition);
+    } else {
+        initFaceRecognition();
+    }
+})();
+</script>
+</body>
+</html>

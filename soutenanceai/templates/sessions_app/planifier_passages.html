@@ -1,0 +1,859 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Planifier les passages" %} — {{ session.titre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Étudiants liste ─────────────────────────────────────── */
+.etu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-bottom: 6px;
+    background: var(--bg-card, #f8fafc);
+    transition: background 0.15s;
+    cursor: pointer;
+}
+.etu-item:hover { background: var(--bg, #f0f4ff); }
+.etu-item input[type=checkbox] {
+    width: 16px; height: 16px;
+    cursor: pointer;
+    accent-color: var(--primary, var(--primary));
+    flex-shrink: 0;
+}
+[data-theme="dark"] .etu-item { background: #1e293b; }
+[data-theme="dark"] .etu-item:hover { background: #0f172a; }
+
+.badge-planifie {
+    font-size: 11px; background: #dcfce7; color: #166534;
+    border-radius: 4px; padding: 2px 7px; font-weight: 600; flex-shrink: 0;
+}
+[data-theme="dark"] .badge-planifie { background: #14532d; color: #86efac; }
+
+/* ── Badge type dynamique ─────────────────────────────────── */
+#type-preview {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    min-width: 60px;
+    text-align: center;
+    transition: color 0.2s;
+}
+
+/* ── Panneau auto ─────────────────────────────────────────── */
+#panel-auto {
+    display: none;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    background: var(--bg-card);
+    margin-top: 12px;
+}
+.radio-pill label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 13px;
+}
+.radio-pill label:hover { background: var(--bg, #f0f4ff); }
+.radio-pill input[type=radio] {
+    accent-color: var(--primary, var(--primary));
+    width: 15px; height: 15px;
+}
+[data-theme="dark"] .radio-pill label:hover { background: #0f172a; }
+
+/* ── Table planning ───────────────────────────────────────── */
+.passage-row td { vertical-align: middle; }
+.retirer-form { display: inline; }
+
+/* ── Colonnes triables ─────────────────────────────────────── */
+#table-planning thead .col-sortable:hover {
+    background: rgba(79,70,229,.08);
+}
+#table-planning thead .col-sortable.sort-asc  .sort-ico::after { content: ' ▲'; color:var(--primary); }
+#table-planning thead .col-sortable.sort-desc .sort-ico::after { content: ' ▼'; color:var(--primary); }
+#table-planning thead .col-sortable.sort-asc  .sort-ico,
+#table-planning thead .col-sortable.sort-desc .sort-ico { color: var(--primary); }
+
+/* ── Modal recalcul ───────────────────────────────────────── */
+#modal-recalcul {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, .5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+#modal-recalcul .modal-box {
+    width: 420px;
+    max-width: 94vw;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ── En-tête ─────────────────────────────────────────────────────────────── #}
+<h1 style="display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap;">
+    <span style="display:flex;align-items:center;gap:8px;">
+        <i data-lucide="calendar" class="icon-md"></i>
+        {% trans "Planifier les passages" %}
+    </span>
+    <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <a href="{% url 'sessions_app:importer_groupes' session.id %}"
+           class="btn btn-sm"
+           style="display:inline-flex;align-items:center;gap:5px;">
+            <i data-lucide="file-up" class="icon-sm"></i>{% trans "Importer fichier" %}
+        </a>
+        <a href="{% url 'sessions_app:detail_session' session.id %}"
+           class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:5px;">
+            <i data-lucide="arrow-left" class="icon-sm"></i>{% trans "Retour à la soutenance" %}
+        </a>
+    </span>
+</h1>
+<p style="color:var(--text-muted);font-size:14px;margin-bottom:20px;">
+    {% trans "Soutenance" %} : <strong>{{ session.titre }}</strong>
+    &nbsp;·&nbsp;
+    <span style="font-size:12px;">
+        <i data-lucide="clock" style="width:12px;height:12px;display:inline-block;vertical-align:-2px;"></i>
+        {{ session.duree_presentation }} min présentation + {{ session.duree_questions }} min questions
+    </span>
+</p>
+
+{# ── Grille principale : inscrits | formulaire manuel ───────────────────── #}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+
+    {# ── Colonne gauche : inscrits ── #}
+    <div class="card">
+        <h2 style="display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+            <i data-lucide="users" class="icon"></i>
+            {% trans "Étudiants inscrits" %}
+            <span class="badge badge-en_cours" style="margin-left:auto;">{{ tous_inscrits.count }}</span>
+        </h2>
+
+        {% if tous_inscrits %}
+        <div style="margin-bottom:16px;">
+            {% for u in tous_inscrits %}
+            <div class="etu-item" style="cursor:default;">
+                <i data-lucide="user" class="icon-sm" style="color:var(--text-muted);flex-shrink:0;"></i>
+                <span style="flex:1;font-size:14px;">{{ u.get_full_name|default:u.username }}</span>
+                {% if u.id in deja_planifies_ids %}
+                    <span class="badge-planifie">
+                        <i data-lucide="check" style="width:11px;height:11px;stroke-width:3;display:inline-block;vertical-align:-1px;"></i>
+                        {% trans "planifié" %}
+                    </span>
+                {% endif %}
+                {% if classe %}
+                <form method="post"
+                      action="{% url 'sessions_app:retirer_inscrit_classe' classe.id u.id %}"
+                      class="retirer-form">
+                {% else %}
+                <form method="post"
+                      action="{% url 'sessions_app:retirer_inscrit' session.id u.id %}"
+                      class="retirer-form">
+                {% endif %}
+                    {% csrf_token %}
+                    <span class="retirer-confirmer" style="display:none;align-items:center;gap:4px;">
+                        <span style="font-size:11px;color:var(--text-muted);">{% trans "Retirer ?" %}</span>
+                        <button type="submit" class="btn btn-sm btn-danger"
+                                style="padding:2px 7px;font-size:11px;">{% trans "Oui" %}</button>
+                        <button type="button" class="btn btn-sm btn-secondary btn-annuler-retirer"
+                                style="padding:2px 7px;font-size:11px;">{% trans "Non" %}</button>
+                    </span>
+                    <button type="button"
+                            class="btn btn-sm btn-danger btn-demander-retirer"
+                            style="padding:3px 7px;font-size:11px;display:flex;align-items:center;gap:3px;"
+                            title="{% trans "Retirer" %}">
+                        <i data-lucide="x" class="icon-xs"></i>
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color:var(--text-muted);font-size:13px;">
+            {% trans "Aucun étudiant inscrit pour le moment." %}
+            {% if classe %}
+            <a href="{% url 'sessions_app:code_classe' classe.id %}">{% trans "Partagez le code de la classe." %}</a>
+            {% else %}
+            <a href="{% url 'sessions_app:code_session' session.id %}">{% trans "Partagez le code d'accès." %}</a>
+            {% endif %}
+        </p>
+        {% endif %}
+
+        <div style="padding-top:12px;border-top:1px solid var(--border);display:flex;gap:8px;">
+            {% if classe %}
+            <a href="{% url 'sessions_app:code_classe' classe.id %}"
+               class="btn btn-sm btn-secondary"
+               style="display:inline-flex;align-items:center;gap:4px;">
+                <i data-lucide="share-2" class="icon-sm"></i>{% trans "Code classe" %}
+            </a>
+            {% else %}
+            <a href="{% url 'sessions_app:code_session' session.id %}"
+               class="btn btn-sm btn-secondary"
+               style="display:inline-flex;align-items:center;gap:4px;">
+                <i data-lucide="share-2" class="icon-sm"></i>{% trans "Code & QR" %}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── Colonne droite : formulaire nouveau passage + panneau auto ── #}
+    <div>
+        <div class="card">
+            <h2 style="display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+                <i data-lucide="plus-circle" class="icon"></i>
+                {% trans "Créer un passage" %}
+            </h2>
+
+            {% if inscrits_non_planifies %}
+            <form method="post" id="form-passage">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="nouveau_passage">
+
+                {# Sélection étudiants avec badge type dynamique #}
+                <div class="form-group">
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <i data-lucide="users" class="icon-sm"></i>
+                        <strong>{% trans "Sélectionner les étudiant(s)" %}</strong>
+                        <span id="type-preview" style="color:var(--text-muted);">—</span>
+                    </label>
+                    <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
+                        {% trans "1 étudiant = Monôme · 2 = Binôme · 3+ = Groupe" %}
+                    </p>
+                    {% for etudiant in form.etudiants %}
+                    <div class="etu-item" onclick="this.querySelector('input').click()">
+                        {{ etudiant.tag }}
+                        <label for="{{ etudiant.id_for_label }}"
+                               style="cursor:pointer;flex:1;font-size:14px;">
+                            {{ etudiant.choice_label }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                    {% if form.etudiants.errors %}
+                    <div style="color:var(--danger);font-size:12px;margin-top:4px;">
+                        {{ form.etudiants.errors.0 }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                {# Numéro d'ordre #}
+                <div class="form-group">
+                    <label for="{{ form.ordre_passage.id_for_label }}"
+                           style="display:flex;align-items:center;gap:5px;">
+                        <i data-lucide="hash" class="icon-sm"></i>
+                        {{ form.ordre_passage.label }}
+                    </label>
+                    {{ form.ordre_passage }}
+                    {% if form.ordre_passage.errors %}
+                    <div style="color:var(--danger);font-size:12px;">{{ form.ordre_passage.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                {# Heure prévue avec aide auto-suggestion #}
+                <div class="form-group">
+                    <label for="{{ form.heure_prevue.id_for_label }}"
+                           style="display:flex;align-items:center;gap:5px;">
+                        <i data-lucide="clock" class="icon-sm"></i>
+                        {{ form.heure_prevue.label }}
+                        <span id="heure-hint"
+                              style="font-size:11px;color:var(--text-muted);margin-left:4px;font-weight:400;display:none;">
+                            (auto-suggérée)
+                        </span>
+                    </label>
+                    {{ form.heure_prevue }}
+                    {% if form.heure_prevue.errors %}
+                    <div style="color:var(--danger);font-size:12px;">{{ form.heure_prevue.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit"
+                        class="btn"
+                        style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;">
+                    <i data-lucide="plus" class="icon-sm"></i>
+                    {% trans "Ajouter ce passage" %}
+                </button>
+            </form>
+
+            {% else %}
+            <div style="text-align:center;padding:24px 0;color:var(--text-muted);">
+                <i data-lucide="check-circle"
+                   style="width:40px;height:40px;stroke-width:1.5;color:var(--success);display:block;margin:0 auto 12px;"></i>
+                <p style="font-size:14px;margin:0;">
+                    {% trans "Tous les étudiants inscrits sont déjà planifiés !" %}
+                </p>
+            </div>
+            {% endif %}
+
+            {# ── Bouton toggle Auto-planifier ── #}
+            <div style="margin-top:16px;">
+                <button type="button"
+                        id="btn-toggle-auto"
+                        class="btn btn-sm"
+                        style="width:100%;display:flex;align-items:center;gap:6px;justify-content:center;
+                               background:var(--bg-card);border:1px dashed var(--border);color:var(--text);">
+                    <i data-lucide="zap" class="icon-sm" style="color:var(--warning);"></i>
+                    {% trans "Auto-planifier" %}
+                    {% if nb_inscrits_restants > 0 %}
+                    <span style="font-size:11px;color:var(--text-muted);">({{ nb_inscrits_restants }} restant(s))</span>
+                    {% endif %}
+                    <i data-lucide="chevron-down" class="icon-sm ico-toggle" style="margin-left:auto;"></i>
+                </button>
+
+                {# ── Panneau auto collapsible ── #}
+                <div id="panel-auto">
+                    <form method="post" id="form-auto">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="auto_planifier">
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                            <div class="form-group" style="margin:0;">
+                                <label style="font-size:12px;display:flex;align-items:center;gap:4px;">
+                                    <i data-lucide="calendar" class="icon-xs"></i>
+                                    {{ form_auto.date_passage.label }}
+                                </label>
+                                {{ form_auto.date_passage }}
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label style="font-size:12px;display:flex;align-items:center;gap:4px;">
+                                    <i data-lucide="clock" class="icon-xs"></i>
+                                    {{ form_auto.heure_debut.label }}
+                                </label>
+                                {{ form_auto.heure_debut }}
+                            </div>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                            <div class="form-group" style="margin:0;">
+                                <label style="font-size:12px;">
+                                    Durée / créneau (min)
+                                </label>
+                                {{ form_auto.duree_minutes }}
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">
+                                    = {{ session.duree_presentation }} min présent.
+                                    + {{ session.duree_questions }} min questions
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label style="font-size:12px;">{{ form_auto.pause_minutes.label }}</label>
+                                {{ form_auto.pause_minutes }}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="font-size:12px;display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                                <i data-lucide="users" class="icon-xs"></i>
+                                {{ form_auto.type_groupe.label }}
+                            </label>
+                            <div class="radio-pill">
+                                {% for radio in form_auto.type_groupe %}
+                                <label>{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="font-size:12px;display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                                <i data-lucide="shuffle" class="icon-xs"></i>
+                                {{ form_auto.ordre.label }}
+                            </label>
+                            <div class="radio-pill">
+                                {% for radio in form_auto.ordre %}
+                                <label>{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {# Aperçu temps réel #}
+                        <div id="apercu-auto"
+                             style="border:1px solid var(--border);border-radius:8px;
+                                    padding:10px 12px;margin-bottom:14px;min-height:60px;
+                                    background:var(--bg);font-size:13px;">
+                            <span style="color:var(--text-muted);">
+                                Renseignez les paramètres pour voir un aperçu.
+                            </span>
+                        </div>
+
+                        {% if nb_inscrits_restants > 0 %}
+                        <button type="submit"
+                                class="btn"
+                                style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;">
+                            <i data-lucide="zap" class="icon-sm"></i>
+                            Générer ({{ nb_inscrits_restants }} étudiant(s))
+                        </button>
+                        {% else %}
+                        <p style="text-align:center;color:var(--text-muted);font-size:13px;">
+                            Tous les étudiants sont déjà planifiés.
+                        </p>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+        </div>{# fin card #}
+    </div>
+</div>
+
+{# ── Planning actuel ─────────────────────────────────────────────────────── #}
+{% if passages %}
+<div style="display:flex;align-items:center;gap:10px;margin-top:28px;margin-bottom:12px;flex-wrap:wrap;">
+    <h2 style="display:flex;align-items:center;gap:8px;margin:0;">
+        <i data-lucide="list-ordered" class="icon"></i>
+        {% trans "Planning actuel" %}
+        <span class="badge badge-en_cours" style="margin-left:4px;">{{ passages.count }}</span>
+    </h2>
+    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="{% url 'sessions_app:exporter_planning_xlsx' session.id %}"
+           class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:5px;"
+           title="Télécharger le planning au format Excel">
+            <i data-lucide="download" class="icon-sm"></i>
+            Export XLSX
+        </a>
+        <button onclick="document.getElementById('modal-recalcul').style.display='flex'"
+                class="btn btn-sm btn-secondary"
+                style="display:inline-flex;align-items:center;gap:5px;">
+            <i data-lucide="refresh-cw" class="icon-sm"></i>
+            Recalculer le planning
+        </button>
+    </div>
+</div>
+
+<div class="card" style="padding:0;overflow:hidden;">
+    <table id="table-planning">
+        <thead>
+            <tr>
+                <th class="col-sortable" data-col="0" style="width:50px;cursor:pointer;user-select:none;"
+                    title="Trier par numéro de passage">
+                    # <span class="sort-ico" style="font-size:10px;color:var(--text-muted);">&#8597;</span>
+                </th>
+                <th class="col-sortable" data-col="1" style="cursor:pointer;user-select:none;"
+                    title="Trier par nom">
+                    {% trans "Étudiant(s)" %} <span class="sort-ico" style="font-size:10px;color:var(--text-muted);">&#8597;</span>
+                </th>
+                <th class="col-sortable" data-col="2" style="cursor:pointer;user-select:none;"
+                    title="Trier par type">
+                    {% trans "Type" %} <span class="sort-ico" style="font-size:10px;color:var(--text-muted);">&#8597;</span>
+                </th>
+                <th class="col-sortable" data-col="3" style="cursor:pointer;user-select:none;"
+                    title="Trier par heure">
+                    {% trans "Heure prévue" %} <span class="sort-ico" style="font-size:10px;color:var(--text-muted);">&#8597;</span>
+                </th>
+                <th class="col-sortable" data-col="4" style="cursor:pointer;user-select:none;"
+                    title="Trier par statut">
+                    {% trans "Statut" %} <span class="sort-ico" style="font-size:10px;color:var(--text-muted);">&#8597;</span>
+                </th>
+                <th style="width:130px;">{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in passages %}
+            <tr class="passage-row">
+                <td style="font-weight:700;text-align:center;">{{ p.ordre_passage }}</td>
+                <td>
+                    {% for e in p.etudiants.all %}
+                    <span style="display:inline-flex;align-items:center;gap:4px;margin-right:4px;white-space:nowrap;">
+                        <i data-lucide="user" class="icon-xs" style="color:var(--text-muted);"></i>
+                        {{ e.get_full_name|default:e.username }}
+                    </span>
+                    {% endfor %}
+                </td>
+                <td style="white-space:nowrap;">{{ p.get_type_groupe_display }}</td>
+                <td style="white-space:nowrap;font-family:monospace;font-size:13px;">
+                    {{ p.heure_prevue|date:"d/m H:i" }}
+                </td>
+                <td>
+                    <span class="badge badge-{{ p.statut }}">{{ p.get_statut_display }}</span>
+                </td>
+                <td>
+                    <a href="{% url 'sessions_app:suivi_live' p.id %}"
+                       class="btn btn-sm"
+                       style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;"
+                       title="Suivi live">
+                        <i data-lucide="radio" class="icon-xs"></i>
+                    </a>
+                    <a href="{% url 'sessions_app:editer_passage' p.id %}"
+                       class="btn btn-sm btn-secondary"
+                       style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;"
+                       title="Éditer">
+                        <i data-lucide="edit-2" class="icon-xs"></i>
+                    </a>
+                    {# Suppression inline sans popup navigateur #}
+                    <span class="del-wrap" style="display:inline-flex;align-items:center;gap:3px;">
+                        <button type="button"
+                                class="btn btn-sm btn-danger btn-del-ask"
+                                style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;"
+                                title="Supprimer"
+                                onclick="demanderSuppr(this)">
+                            <i data-lucide="trash-2" class="icon-xs"></i>
+                        </button>
+                        <form method="post"
+                              action="{% url 'sessions_app:supprimer_passage' p.id %}"
+                              class="del-confirm-form"
+                              style="display:none;align-items:center;gap:3px;">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="btn btn-sm btn-danger"
+                                    style="padding:3px 8px;font-size:11px;font-weight:700;white-space:nowrap;">
+                                Oui, suppr.
+                            </button>
+                            <button type="button"
+                                    class="btn btn-sm btn-secondary"
+                                    style="padding:3px 8px;font-size:11px;"
+                                    onclick="annulerSuppr(this)">
+                                Non
+                            </button>
+                        </form>
+                    </span>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{# ── Modal : Recalculer le planning ──────────────────────────────────────── #}
+<div id="modal-recalcul">
+    <div class="card modal-box">
+        <h3 style="margin-top:0;display:flex;align-items:center;gap:8px;">
+            <i data-lucide="refresh-cw" class="icon"></i>
+            Recalculer le planning
+        </h3>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+            Redéfinit les heures de <strong>tous les passages</strong> en séquence à partir d'une
+            heure de départ. La durée par créneau est fixée automatiquement :
+            <strong>{{ session.duree_presentation }} min présentation
+            + {{ session.duree_questions }} min questions
+            = {{ duree_suggeree }} min</strong>.
+        </p>
+        <form method="post" action="{% url 'sessions_app:recalculer_planning' session.id %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:5px;">
+                    <i data-lucide="clock" class="icon-sm"></i>
+                    Heure de début du 1er passage
+                </label>
+                <input type="datetime-local"
+                       name="heure_ref"
+                       class="form-input"
+                       required
+                       value="{{ passages.0.heure_prevue|date:'Y-m-d\TH:i'|default:'' }}">
+            </div>
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:5px;">
+                    <i data-lucide="coffee" class="icon-sm"></i>
+                    Pause entre chaque créneau (min)
+                </label>
+                <input type="number"
+                       name="pause_minutes"
+                       class="form-input"
+                       value="5"
+                       min="0"
+                       style="width:100px;">
+            </div>
+            <div id="recalcul-apercu"
+                 style="font-size:12px;color:var(--text-muted);margin-bottom:16px;
+                        padding:8px;background:var(--bg);border-radius:6px;border:1px solid var(--border);">
+                Aperçu : créneau = {{ duree_suggeree }} min + pause → saisir une heure pour calculer
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button type="button"
+                        onclick="document.getElementById('modal-recalcul').style.display='none'"
+                        class="btn btn-secondary">Annuler</button>
+                <button type="submit" class="btn">
+                    <i data-lucide="check" class="icon-sm"></i>
+                    Appliquer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Retrait étudiant inline (sans popup navigateur) ──────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-demander-retirer').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var form = this.closest('form');
+            this.style.display = 'none';
+            form.querySelector('.retirer-confirmer').style.display = 'inline-flex';
+        });
+    });
+    document.querySelectorAll('.btn-annuler-retirer').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var form = this.closest('form');
+            form.querySelector('.retirer-confirmer').style.display = 'none';
+            form.querySelector('.btn-demander-retirer').style.display = 'inline-flex';
+        });
+    });
+});
+
+// ── Suppression inline (sans popup navigateur) ───────────────────────────
+function demanderSuppr(btn) {
+    var wrap = btn.closest('.del-wrap');
+    btn.style.display = 'none';
+    var form = wrap.querySelector('.del-confirm-form');
+    form.style.display = 'inline-flex';
+}
+function annulerSuppr(btnNon) {
+    var wrap = btnNon.closest('.del-wrap');
+    wrap.querySelector('.del-confirm-form').style.display = 'none';
+    wrap.querySelector('.btn-del-ask').style.display = 'inline-flex';
+}
+
+// ── Constantes passées depuis Django ──────────────────────────────────────
+var PROCHAIN_ORDRE = {{ prochain_ordre }};
+var DUREE_SESSION  = {{ session.duree_presentation }} + {{ session.duree_questions }};
+var DERNIER_ISO    = "{{ dernier_passage_iso }}";
+var NB_RESTANTS    = {{ nb_inscrits_restants }};
+var DUREE_SUGGEREE = {{ duree_suggeree }};
+
+// ── Formulaire manuel ─────────────────────────────────────────────────────
+
+function majCompteurEtudiants() {
+    var coches = document.querySelectorAll('#form-passage input[type=checkbox]:checked');
+    var n = coches.length;
+    var preview = document.getElementById('type-preview');
+    if (!preview) return;
+
+    var labels = { 0: '—', 1: 'Monôme', 2: 'Binôme' };
+    var label = n <= 2 ? (labels[n] || '—') : ('Groupe (' + n + ')');
+    var colors = { 0: 'var(--text-muted)', 1: 'var(--primary)', 2: 'var(--success)' };
+    var color = n <= 2 ? colors[n] : 'var(--warning)';
+
+    preview.textContent = label;
+    preview.style.color = color;
+    preview.style.borderColor = (n > 0) ? color : 'var(--border)';
+
+    if (n > 0) suggererHeure();
+}
+
+function suggererHeure() {
+    var champ = document.querySelector('#form-passage [name="heure_prevue"]');
+    if (!champ) return;
+    if (champ.value) return;  // ne pas écraser une valeur déjà saisie
+
+    var hint = document.getElementById('heure-hint');
+    try {
+        var base;
+        if (DERNIER_ISO) {
+            base = new Date(DERNIER_ISO);
+            base.setMinutes(base.getMinutes() + DUREE_SESSION + 5);
+        } else {
+            base = new Date();
+            // Arrondir à la prochaine demi-heure
+            var m = base.getMinutes();
+            base.setMinutes(m < 30 ? 30 : 60, 0, 0);
+        }
+        // Format local YYYY-MM-DDTHH:MM (sans les ms ni le timezone)
+        var pad = function(n) { return n < 10 ? '0' + n : '' + n; };
+        var y   = base.getFullYear();
+        var mo  = pad(base.getMonth() + 1);
+        var d   = pad(base.getDate());
+        var h   = pad(base.getHours());
+        var mi  = pad(base.getMinutes());
+        champ.value = y + '-' + mo + '-' + d + 'T' + h + ':' + mi;
+        if (hint) hint.style.display = 'inline';
+    } catch(e) {}
+}
+
+// Attacher les listeners aux checkboxes
+document.addEventListener('DOMContentLoaded', function() {
+    // Pré-remplir le numéro d'ordre
+    var ordreInput = document.querySelector('#form-passage input[name="ordre_passage"]');
+    if (ordreInput && !ordreInput.value) ordreInput.value = PROCHAIN_ORDRE;
+
+    // Counter d'étudiants
+    document.querySelectorAll('#form-passage input[type=checkbox]').forEach(function(cb) {
+        cb.addEventListener('change', majCompteurEtudiants);
+    });
+});
+
+// ── Toggle panneau auto ───────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', function() {
+    var btn   = document.getElementById('btn-toggle-auto');
+    var panel = document.getElementById('panel-auto');
+    if (!btn || !panel) return;
+
+    btn.addEventListener('click', function() {
+        var open = panel.style.display !== 'none';
+        panel.style.display = open ? 'none' : 'block';
+        var ico = btn.querySelector('.ico-toggle');
+        if (ico) {
+            ico.setAttribute('data-lucide', open ? 'chevron-down' : 'chevron-up');
+            lucide.createIcons({ nodes: [btn] });
+        }
+        if (!open) updateApercuAuto();  // recalculer l'aperçu à l'ouverture
+    });
+});
+
+// ── Aperçu auto-planifier ─────────────────────────────────────────────────
+
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+function updateApercuAuto() {
+    var heure  = document.querySelector('#panel-auto [name="heure_debut"]');
+    var dureeI = document.querySelector('#panel-auto [name="duree_minutes"]');
+    var pauseI = document.querySelector('#panel-auto [name="pause_minutes"]');
+    var typeEl = document.querySelector('#panel-auto input[name="type_groupe"]:checked');
+    var apercu = document.getElementById('apercu-auto');
+    if (!apercu) return;
+
+    var heureVal = heure ? heure.value : '';
+    var duree    = dureeI ? (parseInt(dureeI.value) || 0) : 0;
+    var pause    = pauseI ? (parseInt(pauseI.value) || 0) : 0;
+    var typeG    = typeEl ? typeEl.value : 'monome';
+    var step     = { monome: 1, binome: 2, groupe: 3 }[typeG] || 1;
+    var nbPass   = Math.ceil(NB_RESTANTS / step);
+
+    if (!heureVal || !duree || NB_RESTANTS === 0) {
+        apercu.innerHTML = '<span style="color:var(--text-muted);">Renseignez les paramètres pour voir un aperçu.</span>';
+        return;
+    }
+
+    var parts = heureVal.split(':').map(Number);
+    var h = parts[0], m = parts[1];
+    var lines = [];
+    var maxShow = Math.min(nbPass, 8);
+    for (var i = 0; i < maxShow; i++) {
+        var total = h * 60 + m + i * (duree + pause);
+        var hh = Math.floor(total / 60) % 24;
+        var mm = total % 60;
+        var typeLabel = step === 1 ? 'Monôme' : (step === 2 ? 'Binôme' : 'Groupe');
+        lines.push(
+            '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;' +
+            'border-bottom:1px solid var(--border);font-size:12px;">' +
+            '<span style="font-weight:700;min-width:28px;color:var(--text-muted);">#' + (i + 1) + '</span>' +
+            '<span style="color:var(--primary);font-family:monospace;font-weight:600;">' + pad2(hh) + ':' + pad2(mm) + '</span>' +
+            '<span style="color:var(--text-muted);">' + duree + ' min · ' + typeLabel + '</span>' +
+            '</div>'
+        );
+    }
+    if (nbPass > maxShow) {
+        lines.push('<div style="color:var(--text-muted);font-size:11px;padding-top:4px;">… et ' + (nbPass - maxShow) + ' autre(s) passage(s)</div>');
+    }
+    var totalMin = nbPass > 0 ? (nbPass - 1) * (duree + pause) + duree : 0;
+    lines.push(
+        '<div style="margin-top:8px;font-size:11px;color:var(--text-muted);font-style:italic;">' +
+        'Total : ' + nbPass + ' passage(s) · durée totale estimée : ' + totalMin + ' min</div>'
+    );
+    apercu.innerHTML = lines.join('');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    ['heure_debut', 'duree_minutes', 'pause_minutes'].forEach(function(name) {
+        var el = document.querySelector('#panel-auto [name="' + name + '"]');
+        if (el) el.addEventListener('input', updateApercuAuto);
+    });
+    document.querySelectorAll('#panel-auto input[name="type_groupe"]').forEach(function(r) {
+        r.addEventListener('change', updateApercuAuto);
+    });
+});
+
+// ── Modal recalcul — aperçu ───────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', function() {
+    var hRef   = document.querySelector('#modal-recalcul [name="heure_ref"]');
+    var pRef   = document.querySelector('#modal-recalcul [name="pause_minutes"]');
+    var apercu = document.getElementById('recalcul-apercu');
+    var NB_PASS = {{ passages.count|default:0 }};
+
+    function updateRecalculApercu() {
+        if (!hRef || !apercu || !hRef.value) return;
+        var pause = pRef ? (parseInt(pRef.value) || 0) : 0;
+        var base = new Date(hRef.value);
+        if (isNaN(base.getTime())) return;
+        var slots = [];
+        var maxShow = Math.min(NB_PASS, 5);
+        for (var i = 0; i < maxShow; i++) {
+            var dt = new Date(base.getTime() + i * (DUREE_SUGGEREE + pause) * 60000);
+            slots.push('#' + (i + 1) + ' → ' + pad2(dt.getHours()) + ':' + pad2(dt.getMinutes()));
+        }
+        if (NB_PASS > maxShow) slots.push('…');
+        apercu.textContent = slots.join('  ·  ');
+    }
+
+    if (hRef) hRef.addEventListener('input', updateRecalculApercu);
+    if (pRef) pRef.addEventListener('input', updateRecalculApercu);
+
+    // Fermer modal en cliquant sur le fond
+    var modal = document.getElementById('modal-recalcul');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    }
+});
+
+// ── Tri des colonnes du tableau planning ─────────────────────────────────────
+(function() {
+    var table = document.getElementById('table-planning');
+    if (!table) return;
+    var tbody = table.querySelector('tbody');
+    var headers = table.querySelectorAll('thead .col-sortable');
+    var sortState = { col: 0, asc: true };  // tri par défaut : colonne # ascendant
+
+    function getValeur(row, col) {
+        var td = row.cells[col];
+        if (!td) return '';
+        // Colonne heure : extraire le texte brut (format DD/MM HH:MM)
+        return td.textContent.trim().toLowerCase();
+    }
+
+    function trierTableau(col) {
+        var asc = (sortState.col === col) ? !sortState.asc : true;
+        sortState = { col: col, asc: asc };
+
+        var rows = Array.from(tbody.querySelectorAll('tr.passage-row'));
+        rows.sort(function(a, b) {
+            var va = getValeur(a, col);
+            var vb = getValeur(b, col);
+            // Tri numérique pour la colonne #
+            if (col === 0) {
+                va = parseInt(va) || 0;
+                vb = parseInt(vb) || 0;
+                return asc ? va - vb : vb - va;
+            }
+            return asc ? va.localeCompare(vb, 'fr') : vb.localeCompare(va, 'fr');
+        });
+
+        // Réinsérer les lignes dans le bon ordre
+        rows.forEach(function(r) { tbody.appendChild(r); });
+
+        // Mettre à jour les icônes
+        headers.forEach(function(th, i) {
+            th.classList.remove('sort-asc', 'sort-desc');
+            if (i === col) th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+        });
+    }
+
+    headers.forEach(function(th, i) {
+        th.addEventListener('click', function() { trierTableau(i); });
+    });
+
+    // Tri initial par colonne # (ordre de passage)
+    trierTableau(0);
+})();
+</script>
+{% endblock %}

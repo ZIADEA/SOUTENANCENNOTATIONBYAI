@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Code d'accès" %} — {{ session.titre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.code-box {
+    background: var(--primary, var(--primary));
+    color: #fff;
+    border-radius: 14px;
+    padding: 28px 32px;
+    text-align: center;
+    margin: 24px 0;
+}
+.code-display {
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: 8px;
+    font-family: 'Courier New', monospace;
+    margin: 12px 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,.2);
+}
+.code-sub { font-size: 13px; opacity: .8; margin-top: 4px; }
+.qr-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+#qrcode canvas, #qrcode img { border-radius: 8px; }
+.link-box {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: var(--bg-card, #f8fafc);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    word-break: break-all;
+}
+.link-box a { color: var(--primary); text-decoration: none; flex: 1; }
+.link-box a:hover { text-decoration: underline; }
+[data-theme="dark"] .link-box { background: #1e293b; border-color: #334155; }
+[data-theme="dark"] .link-box a { color: #60a5fa; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
+    <span style="display:flex;align-items:center;gap:8px;">
+        <i data-lucide="share-2" class="icon-md"></i>
+        {% trans "Partager la soutenance" %}
+    </span>
+    <a href="{% url 'sessions_app:detail_session' session.id %}" class="btn btn-sm btn-secondary"
+       style="display:flex;align-items:center;gap:5px;">
+        <i data-lucide="arrow-left" class="icon-sm"></i>
+        {% trans "Retour" %}
+    </a>
+</h1>
+
+<div class="card" style="max-width:560px;margin:0 auto;">
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:0;">
+        {% trans "Soutenance" %} : <strong>{{ session.titre }}</strong>
+    </p>
+
+    {# ── Code d'accès ── #}
+    <div class="code-box">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;">
+            <i data-lucide="key" style="width:20px;height:20px;stroke-width:2;"></i>
+            <span style="font-size:15px;font-weight:600;">{% trans "Code d'accès" %}</span>
+        </div>
+        <div class="code-display">{{ session.code_acces }}</div>
+        <div class="code-sub">{% trans "Partagez ce code à vos étudiants" %}</div>
+    </div>
+
+    {# ── QR Code ── #}
+    <h3 style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+        <i data-lucide="qr-code" class="icon"></i>
+        {% trans "QR Code" %}
+    </h3>
+    <div class="qr-wrapper">
+        <div id="qrcode"></div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:0;">
+        {% trans "Les étudiants peuvent scanner ce QR pour rejoindre directement." %}
+    </p>
+
+    {# ── Lien direct ── #}
+    <h3 style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+        <i data-lucide="link" class="icon"></i>
+        {% trans "Lien direct" %}
+    </h3>
+    <div class="link-box">
+        <a href="{{ join_url }}" target="_blank" id="join-link">{{ join_url }}</a>
+        <button onclick="copyLink()" class="btn btn-sm btn-secondary"
+                style="display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
+                id="copy-btn">
+            <i data-lucide="copy" class="icon-sm"></i>
+            {% trans "Copier" %}
+        </button>
+    </div>
+
+    {# ── Inscrits ── #}
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:6px;color:var(--text-muted);font-size:13px;">
+            <i data-lucide="users" class="icon-sm"></i>
+            <strong>{{ session.inscrits.count }}</strong>&nbsp;{% trans "étudiant(s) inscrit(s)" %}
+            <a href="{% url 'sessions_app:planifier_passages' session.id %}" class="btn btn-sm" style="margin-left:auto;display:flex;align-items:center;gap:4px;">
+                <i data-lucide="calendar" class="icon-sm"></i>
+                {% trans "Planifier les passages" %}
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    var joinUrl = document.getElementById('join-link').href;
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    new QRCode(document.getElementById('qrcode'), {
+        text: joinUrl,
+        width: 200,
+        height: 200,
+        colorDark: isDark ? '#f1f5f9' : '#1e293b',
+        colorLight: isDark ? '#1e293b' : '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+    });
+});
+
+function copyLink(){
+    var url = document.getElementById('join-link').href;
+    navigator.clipboard.writeText(url).then(function(){
+        var btn = document.getElementById('copy-btn');
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="check" style="width:15px;height:15px;stroke-width:2.25;display:inline-block;vertical-align:-3px;"></i> {% trans "Copié !" %}';
+        lucide.createIcons({nodes:[btn]});
+        setTimeout(function(){ btn.innerHTML = orig; lucide.createIcons({nodes:[btn]}); }, 2000);
+    }).catch(function(){
+        // Fallback for older browsers
+        var ta = document.createElement('textarea');
+        ta.value = url;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+    });
+}
+</script>
+{% endblock %}

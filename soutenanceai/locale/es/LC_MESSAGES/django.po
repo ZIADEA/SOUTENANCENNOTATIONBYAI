@@ -1,0 +1,777 @@
+# Spanish translations for SoutenanceAI
+# Copyright (C) 2024
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Admin"
+msgstr "Admin"
+
+msgid "Professeurs"
+msgstr "Profesores"
+
+msgid "Étudiants"
+msgstr "Estudiantes"
+
+msgid "Mes sessions"
+msgstr "Mis sesiones"
+
+msgid "Mes étudiants"
+msgstr "Mis estudiantes"
+
+msgid "Nouvelle session"
+msgstr "Nueva sesión"
+
+msgid "Mes soutenances"
+msgstr "Mis defensas"
+
+msgid "Déconnexion"
+msgstr "Cerrar sesión"
+
+msgid "Connexion"
+msgstr "Iniciar sesión"
+
+msgid "Notation IA des soutenances"
+msgstr "Calificación IA de defensas"
+
+msgid "Identifiant"
+msgstr "Usuario"
+
+msgid "Mot de passe"
+msgstr "Contraseña"
+
+msgid "Se connecter"
+msgstr "Entrar"
+
+msgid "Pas de compte ? Contactez votre professeur ou l'administrateur."
+msgstr "¿Sin cuenta? Contacte a su profesor o al administrador."
+
+msgid "Dashboard Superadmin"
+msgstr "Panel de Superadmin"
+
+msgid "Dashboard administrateur"
+msgstr "Panel de administración"
+
+msgid "Sessions de soutenance"
+msgstr "Sesiones de defensa"
+
+msgid "Passages planifiés"
+msgstr "Pasajes planificados"
+
+msgid "Passages terminés"
+msgstr "Pasajes completados"
+
+msgid "Moyenne générale"
+msgstr "Promedio general"
+
+msgid "Professeurs récents"
+msgstr "Profesores recientes"
+
+msgid "Nouveau professeur"
+msgstr "Nuevo profesor"
+
+msgid "Nom"
+msgstr "Nombre"
+
+msgid "Email"
+msgstr "Correo"
+
+msgid "Créé le"
+msgstr "Creado el"
+
+msgid "Aucun professeur."
+msgstr "Sin profesores."
+
+msgid "Nom complet"
+msgstr "Nombre completo"
+
+msgid "Nouvel étudiant"
+msgstr "Nuevo estudiante"
+
+msgid "Supprimer ce compte ?"
+msgstr "¿Eliminar esta cuenta?"
+
+msgid "Supprimer"
+msgstr "Eliminar"
+
+msgid "Aucun compte."
+msgstr "Sin cuentas."
+
+msgid "Créer le compte"
+msgstr "Crear cuenta"
+
+msgid "Annuler"
+msgstr "Cancelar"
+
+msgid "Mes sessions de soutenance"
+msgstr "Mis sesiones de defensa"
+
+msgid "Titre"
+msgstr "Título"
+
+msgid "Langue"
+msgstr "Idioma"
+
+msgid "Personnalité IA"
+msgstr "Personalidad IA"
+
+msgid "Passages"
+msgstr "Pasajes"
+
+msgid "Éditer"
+msgstr "Editar"
+
+msgid "Vous n'avez pas encore créé de session de soutenance."
+msgstr "Aún no ha creado ninguna sesión de defensa."
+
+msgid "Créer ma première session"
+msgstr "Crear mi primera sesión"
+
+msgid "Description"
+msgstr "Descripción"
+
+msgid "Durée"
+msgstr "Duración"
+
+msgid "min de questions"
+msgstr "min de preguntas"
+
+msgid "Mode notation groupe"
+msgstr "Modo de calificación grupal"
+
+msgid "Critères"
+msgstr "Criterios"
+
+msgid "Planning des passages"
+msgstr "Planificación de pasajes"
+
+msgid "Ajouter un passage"
+msgstr "Añadir un pasaje"
+
+msgid "Étudiant(s)"
+msgstr "Estudiante(s)"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "Heure prévue"
+msgstr "Hora prevista"
+
+msgid "Statut"
+msgstr "Estado"
+
+msgid "Actions"
+msgstr "Acciones"
+
+msgid "Notes"
+msgstr "Notas"
+
+msgid "Aucun passage planifié."
+msgstr "Sin pasajes planificados."
+
+msgid "Supprimer cette session et tous ses passages ?"
+msgstr "¿Eliminar esta sesión y todos sus pasajes?"
+
+msgid "Nouvelle"
+msgstr "Nueva"
+
+msgid "soutenance"
+msgstr "defensa"
+
+msgid "Nouvelle session de soutenance"
+msgstr "Nueva sesión de defensa"
+
+msgid "Informations générales"
+msgstr "Información general"
+
+msgid "Durée présentation (min)"
+msgstr "Duración presentación (min)"
+
+msgid "Durée questions (min)"
+msgstr "Duración preguntas (min)"
+
+msgid "Nombre maximum de questions IA"
+msgstr "Número máximo de preguntas IA"
+
+msgid "Rapport écrit"
+msgstr "Informe escrito"
+
+msgid "Rapport obligatoire"
+msgstr "Informe obligatorio"
+
+msgid "Coefficient du rapport"
+msgstr "Coeficiente del informe"
+
+msgid "Personnalité & consignes pour l'IA"
+msgstr "Personalidad e instrucciones para la IA"
+
+msgid "Personnalité de l'IA évaluatrice"
+msgstr "Personalidad de la IA evaluadora"
+
+msgid "Consignes libres"
+msgstr "Instrucciones libres"
+
+msgid "Donnez à l'IA des indications spécifiques sur ce qu'il faut évaluer, le public cible, etc."
+msgstr "Dé a la IA indicaciones específicas sobre qué evaluar, el público objetivo, etc."
+
+msgid "Critères de notation"
+msgstr "Criterios de calificación"
+
+msgid "Cochez les critères à utiliser et ajustez leur coefficient."
+msgstr "Marque los criterios a utilizar y ajuste su coeficiente."
+
+msgid "Coef."
+msgstr "Coef."
+
+msgid "Critères personnalisés"
+msgstr "Criterios personalizados"
+
+msgid "Ajouter un critère perso"
+msgstr "Añadir criterio personalizado"
+
+msgid "Mode de notation pour les groupes"
+msgstr "Modo de calificación para grupos"
+
+msgid "En mode <strong>mixte</strong>, la note finale = coef_groupe × note_collective + coef_individuel × note_individuelle."
+msgstr "En modo <strong>mixto</strong>, nota final = coef_grupo × nota_colectiva + coef_individual × nota_individual."
+
+msgid "Coefficient groupe (mixte)"
+msgstr "Coeficiente grupal (mixto)"
+
+msgid "Coefficient individuel (mixte)"
+msgstr "Coeficiente individual (mixto)"
+
+msgid "Mettre à jour"
+msgstr "Actualizar"
+
+msgid "Créer la soutenance"
+msgstr "Crear defensa"
+
+msgid "Nom du critère"
+msgstr "Nombre del criterio"
+
+msgid "Nouveau"
+msgstr "Nuevo"
+
+msgid "passage"
+msgstr "pasaje"
+
+msgid "Nouveau passage"
+msgstr "Nuevo pasaje"
+
+msgid "Soutenance"
+msgstr "Defensa"
+
+msgid "Enregistrer"
+msgstr "Guardar"
+
+msgid "Supprimer ce passage ?"
+msgstr "¿Eliminar este pasaje?"
+
+msgid "Supprimer ce passage"
+msgstr "Eliminar este pasaje"
+
+msgid "Action"
+msgstr "Acción"
+
+msgid "Préparer & démarrer"
+msgstr "Preparar & comenzar"
+
+msgid "Rejoindre"
+msgstr "Unirse"
+
+msgid "Voir"
+msgstr "Ver"
+
+msgid "Aucune soutenance n'est planifiée pour vous. Contactez votre professeur."
+msgstr "No hay ninguna defensa planificada para usted. Contacte a su profesor."
+
+msgid "Déposer vos fichiers"
+msgstr "Subir sus archivos"
+
+msgid "Préparer ma soutenance"
+msgstr "Preparar mi defensa"
+
+msgid "Avant de démarrer, déposez votre présentation PPTX"
+msgstr "Antes de comenzar, suba su presentación PPTX"
+
+msgid "et votre rapport PDF (obligatoire)"
+msgstr "y su informe PDF (obligatorio)"
+
+msgid "et, optionnellement, votre rapport PDF"
+msgstr "y, opcionalmente, su informe PDF"
+
+msgid "Présentation PPTX"
+msgstr "Presentación PPTX"
+
+msgid "Déjà déposé"
+msgstr "Ya subido"
+
+msgid "Rapport PDF"
+msgstr "Informe PDF"
+
+msgid "obligatoire"
+msgstr "obligatorio"
+
+msgid "Téléverser & continuer"
+msgstr "Subir & continuar"
+
+msgid "Retour"
+msgstr "Volver"
+
+msgid "À savoir avant de démarrer"
+msgstr "Importante antes de comenzar"
+
+msgid "Votre micro et votre caméra seront enregistrés en continu."
+msgstr "Su micrófono y cámara serán grabados continuamente."
+
+msgid "La langue attendue est"
+msgstr "El idioma esperado es"
+
+msgid "Détail soutenance"
+msgstr "Detalle de defensa"
+
+msgid "Votre soutenance n'a pas encore démarré."
+msgstr "Su defensa aún no ha comenzado."
+
+msgid "Votre soutenance est en cours."
+msgstr "Su defensa está en curso."
+
+msgid "Rejoindre la salle"
+msgstr "Unirse a la sala"
+
+msgid "Votre soutenance est terminée. La notation IA est"
+msgstr "Su defensa ha terminado. La calificación IA está"
+
+msgid "disponible"
+msgstr "disponible"
+
+msgid "en cours"
+msgstr "en curso"
+
+msgid "Voir l'enregistrement"
+msgstr "Ver la grabación"
+
+msgid "Transcription de votre présentation"
+msgstr "Transcripción de su presentación"
+
+msgid "Passage"
+msgstr "Pasaje"
+
+msgid "Notes IA"
+msgstr "Notas IA"
+
+msgid "Relancer la notation IA ?"
+msgstr "¿Relanzar la calificación IA?"
+
+msgid "(Re)déclencher notation"
+msgstr "(Re)iniciar calificación"
+
+msgid "Note globale"
+msgstr "Nota global"
+
+msgid "Critère"
+msgstr "Criterio"
+
+msgid "Note IA"
+msgstr "Nota IA"
+
+msgid "Note finale"
+msgstr "Nota final"
+
+msgid "Commentaire"
+msgstr "Comentario"
+
+msgid "Voir / éditer"
+msgstr "Ver / editar"
+
+msgid "Commentaire du prof..."
+msgstr "Comentario del profesor..."
+
+msgid "Aucune note enregistrée. Cliquez sur « Déclencher notation » ci-dessus."
+msgstr "Sin notas registradas. Haga clic en «Iniciar calificación» arriba."
+
+msgid "Erreur"
+msgstr "Error"
+
+msgid "Erreur réseau"
+msgstr "Error de red"
+
+msgid "Suivi en direct"
+msgstr "Seguimiento en vivo"
+
+msgid "Transcription en direct"
+msgstr "Transcripción en vivo"
+
+msgid "Poser une question à l'étudiant"
+msgstr "Hacer una pregunta al estudiante"
+
+msgid "Tapez votre question..."
+msgstr "Escriba su pregunta..."
+
+msgid "Envoyer à l'étudiant"
+msgstr "Enviar al estudiante"
+
+msgid "Déclencher la notation IA maintenant ?"
+msgstr "¿Iniciar calificación IA ahora?"
+
+msgid "Déclencher notation"
+msgstr "Iniciar calificación"
+
+msgid "Événements en direct"
+msgstr "Eventos en vivo"
+
+msgid "Passage planifié"
+msgstr "Pasaje planificado"
+
+msgid "Connexion live établie"
+msgstr "Conexión en vivo establecida"
+
+msgid "Connexion fermée"
+msgstr "Conexión cerrada"
+
+msgid "Note"
+msgstr "Nota"
+
+msgid "Question IA"
+msgstr "Pregunta IA"
+
+msgid "Question prof envoyée"
+msgstr "Pregunta del profesor enviada"
+
+msgid "En attente"
+msgstr "En espera"
+
+msgid "En cours"
+msgstr "En curso"
+
+msgid "Questions"
+msgstr "Preguntas"
+
+msgid "Terminé"
+msgstr "Terminado"
+
+msgid "Noté"
+msgstr "Calificado"
+
+# ── Terminologie Classe / Soutenance ─────────────────────────────────────────
+msgid "Rejoindre une classe"
+msgstr "Unirse a una clase"
+
+msgid "Rejoindre une classe avec un code"
+msgstr "Unirse a una clase con un código"
+
+msgid "Entrez le code de classe partagé par votre professeur (8 caractères)."
+msgstr "Introduzca el código de clase compartido por su profesor (8 caracteres)."
+
+msgid "Vous n'êtes inscrit(e) à aucune classe pour le moment."
+msgstr "No está inscrito en ninguna clase por el momento."
+
+msgid "Questions / réponses"
+msgstr "Preguntas / respuestas"
+
+# ── Landing page ──────────────────────────────────────────────────────────────
+msgid "Notation intelligente des soutenances"
+msgstr "Calificación inteligente de defensas académicas"
+
+msgid "Changer le thème"
+msgstr "Cambiar tema"
+
+msgid "Créer un compte"
+msgstr "Crear cuenta"
+
+msgid "Propulsé par Claude AI & Whisper"
+msgstr "Impulsado por Claude AI & Whisper"
+
+msgid "La notation des soutenances,"
+msgstr "La calificación de las defensas,"
+
+msgid "réinventée par l'IA"
+msgstr "reinventada por la IA"
+
+msgid "SoutenanceAI automatise l'évaluation de vos présentations académiques : transcription en direct, questions intelligentes, notes multi-critères et rapports PDF en un clic."
+msgstr "SoutenanceAI automatiza la evaluación de sus presentaciones académicas: transcripción en directo, preguntas inteligentes, notas multi-criterio e informes PDF con un clic."
+
+msgid "Je suis Professeur"
+msgstr "Soy Profesor/a"
+
+msgid "Créez et gérez vos classes"
+msgstr "Crea y gestiona tus clases"
+
+msgid "Créer mon compte"
+msgstr "Crear mi cuenta"
+
+msgid "Je suis Étudiant"
+msgstr "Soy Estudiante"
+
+msgid "Rejoignez votre classe"
+msgstr "Únete a tu clase"
+
+msgid "Vous avez un code de classe ?"
+msgstr "¿Tienes un código de clase?"
+
+msgid "Ex : AB12CD34"
+msgstr "Ej.: AB12CD34"
+
+msgid "Automatisé par IA"
+msgstr "Automatizado por IA"
+
+msgid "Langues supportées"
+msgstr "Idiomas admitidos"
+
+msgid "Personnalités IA"
+msgstr "Personalidades de IA"
+
+msgid "Soutenances & étudiants"
+msgstr "Defensas y estudiantes"
+
+msgid "Paperasse inutile"
+msgstr "Papeleo innecesario"
+
+msgid "Fonctionnalités"
+msgstr "Funcionalidades"
+
+msgid "Tout ce dont vous avez besoin"
+msgstr "Todo lo que necesitas"
+
+msgid "Une plateforme complète pour gérer et noter vos soutenances académiques de A à Z."
+msgstr "Una plataforma completa para gestionar y calificar sus defensas académicas de la A a la Z."
+
+msgid "Notation IA multi-critères"
+msgstr "Calificación IA multi-criterio"
+
+msgid "Claude AI évalue chaque étudiant sur vos critères personnalisés (clarté, rigueur, structure…) avec des notes et des commentaires détaillés."
+msgstr "Claude AI evalúa a cada estudiante según sus criterios personalizados (claridad, rigor, estructura…) con notas y comentarios detallados."
+
+msgid "Transcription en temps réel"
+msgstr "Transcripción en tiempo real"
+
+msgid "Whisper transcrit automatiquement la présentation orale de l'étudiant. Le texte s'affiche en direct dans votre tableau de bord."
+msgstr "Whisper transcribe automáticamente la presentación oral del estudiante. El texto aparece en directo en su panel de control."
+
+msgid "Suivi live par WebSocket"
+msgstr "Seguimiento en vivo por WebSocket"
+
+msgid "Suivez la soutenance en direct : transcription, statut, questions IA et notes apparaissent instantanément sans recharger la page."
+msgstr "Siga la defensa en directo: transcripción, estado, preguntas de IA y notas aparecen al instante sin recargar la página."
+
+msgid "Rapport PDF automatique"
+msgstr "Informe PDF automático"
+
+msgid "Générez un rapport complet de soutenance en un clic : notes par critère, commentaires de l'IA, transcription et note globale."
+msgstr "Genere un informe completo de defensa con un clic: notas por criterio, comentarios de la IA, transcripción y nota global."
+
+msgid "Personnalités IA configurables"
+msgstr "Personalidades de IA configurables"
+
+msgid "Choisissez entre 4 personnalités évaluatrices : neutre, bienveillant, exigeant ou socratique — pour s'adapter à votre pédagogie."
+msgstr "Elija entre 4 personalidades evaluadoras: neutral, comprensivo, exigente o socrático — para adaptarse a su pedagogía."
+
+msgid "Multilingue (5 langues)"
+msgstr "Multilingüe (5 idiomas)"
+
+msgid "Interface et évaluation disponibles en français, anglais, arabe/darija, espagnol et allemand. Support RTL inclus pour l'arabe."
+msgstr "Interfaz y evaluación disponibles en francés, inglés, árabe/darija, español y alemán. Soporte RTL incluido para el árabe."
+
+msgid "Import CSV en masse"
+msgstr "Importación CSV masiva"
+
+msgid "Créez des dizaines de comptes étudiants en quelques secondes. Uploadez un CSV et téléchargez les identifiants générés automatiquement."
+msgstr "Cree docenas de cuentas de estudiantes en segundos. Suba un CSV y descargue las credenciales generadas automáticamente."
+
+msgid "Présentation PPTX intégrée"
+msgstr "Presentación PPTX integrada"
+
+msgid "L'étudiant dépose son PPTX, il est converti en PDF et affiché slide par slide dans le navigateur — sans logiciel supplémentaire."
+msgstr "El estudiante sube su PPTX, se convierte en PDF y se muestra diapositiva por diapositiva en el navegador — sin software adicional."
+
+msgid "Déroulement"
+msgstr "Desarrollo"
+
+msgid "Comment ça marche ?"
+msgstr "¿Cómo funciona?"
+
+msgid "En 4 étapes simples, de la création de soutenance à la remise des notes."
+msgstr "En 4 sencillos pasos, desde la creación de la defensa hasta la entrega de notas."
+
+msgid "Le prof crée la soutenance"
+msgstr "El profesor crea la defensa"
+
+msgid "Définit les critères, la durée, la personnalité de l'IA et les consignes spécifiques."
+msgstr "Define los criterios, la duración, la personalidad de la IA y las instrucciones específicas."
+
+msgid "L'étudiant prépare"
+msgstr "El estudiante se prepara"
+
+msgid "Dépose son PPTX et son rapport PDF, visualise les informations de sa soutenance."
+msgstr "Sube su PPTX y su informe PDF, visualiza la información de su defensa."
+
+msgid "La soutenance se déroule"
+msgstr "La defensa tiene lugar"
+
+msgid "L'IA transcrit en direct, pose des questions et le prof suit tout en temps réel."
+msgstr "La IA transcribe en vivo, hace preguntas y el profesor sigue todo en tiempo real."
+
+msgid "Notes & rapport générés"
+msgstr "Notas e informe generados"
+
+msgid "L'IA évalue automatiquement, le prof valide et ajuste, le PDF est prêt."
+msgstr "La IA evalúa automáticamente, el profesor valida y ajusta, el PDF está listo."
+
+msgid "Accès"
+msgstr "Acceso"
+
+msgid "Un espace pour chaque rôle"
+msgstr "Un espacio para cada rol"
+
+msgid "Administrateur"
+msgstr "Administrador"
+
+msgid "Gère tous les comptes professeurs"
+msgstr "Gestiona todas las cuentas de profesores"
+
+msgid "Visualise les statistiques globales"
+msgstr "Visualiza las estadísticas globales"
+
+msgid "Accède à toutes les soutenances"
+msgstr "Accede a todas las defensas"
+
+msgid "Crée et supprime les comptes"
+msgstr "Crea y elimina cuentas"
+
+msgid "Professeur"
+msgstr "Profesor/a"
+
+msgid "S'inscrit librement sur la plateforme"
+msgstr "Se registra libremente en la plataforma"
+
+msgid "Crée et configure ses soutenances"
+msgstr "Crea y configura sus defensas"
+
+msgid "Importe ses étudiants par CSV"
+msgstr "Importa sus estudiantes por CSV"
+
+msgid "Suit les soutenances en direct"
+msgstr "Sigue las defensas en directo"
+
+msgid "Valide et exporte les notes PDF"
+msgstr "Valida y exporta las notas en PDF"
+
+msgid "Étudiant"
+msgstr "Estudiante"
+
+msgid "Rejoint une classe via code ou lien"
+msgstr "Se une a una clase mediante código o enlace"
+
+msgid "Voit toutes ses soutenances"
+msgstr "Ve todas sus defensas"
+
+msgid "Dépose sa présentation PPTX"
+msgstr "Sube su presentación PPTX"
+
+msgid "Passe sa soutenance en ligne"
+msgstr "Realiza su defensa en línea"
+
+msgid "Consulte ses notes et transcription"
+msgstr "Consulta sus notas y transcripción"
+
+msgid "Prêt à moderniser vos soutenances ?"
+msgstr "¿Listo para modernizar sus defensas?"
+
+msgid "Créez votre compte professeur gratuitement et lancez votre première soutenance en moins de 5 minutes."
+msgstr "Cree su cuenta de profesor gratuitamente y lance su primera defensa en menos de 5 minutos."
+
+msgid "Créer mon compte professeur"
+msgstr "Crear mi cuenta de profesor"
+
+msgid "Déjà un compte ? Se connecter"
+msgstr "¿Ya tiene cuenta? Iniciar sesión"
+
+msgid "Plateforme de notation intelligente des soutenances académiques"
+msgstr "Plataforma de calificación inteligente de defensas académicas"
+
+msgid "Propulsé par"
+msgstr "Desarrollado con"
+
+msgid "5 langues"
+msgstr "5 idiomas"
+
+msgid "Open source"
+msgstr "Código abierto"
+
+
+# ── Salle de soutenance ───────────────────────────────────────────────────────
+msgid "Conversion des slides en cours…"
+msgstr "Convirtiendo diapositivas…"
+
+msgid "Actualisation dans"
+msgstr "Actualización en"
+
+msgid "Aucune présentation disponible."
+msgstr "Ninguna presentación disponible."
+
+msgid "JURY IA"
+msgstr "JURADO IA"
+
+msgid "Bonjour,"
+msgstr "Hola,"
+
+msgid "Bienvenue à votre soutenance"
+msgstr "Bienvenido/a a su defensa"
+
+msgid "Votre présentation est prête. Quand vous êtes prêt(e), cliquez sur"
+msgstr "Su presentación está lista. Cuando esté listo/a, haga clic en"
+
+msgid "Démarrer"
+msgstr "Comenzar"
+
+msgid "Micro ON"
+msgstr "Micro ON"
+
+msgid "Micro OFF"
+msgstr "Micro OFF"
+
+msgid "Fin présentation"
+msgstr "Fin de presentación"
+
+msgid "Terminer"
+msgstr "Terminar"
+
+msgid "Question de l'IA"
+msgstr "Pregunta de la IA"
+
+msgid "Micro actif — parlez, votre réponse s'écrit automatiquement"
+msgstr "Micrófono activo — hable, su respuesta se escribe automáticamente"
+
+msgid "Dictée vocale non disponible sur ce navigateur — tapez votre réponse."
+msgstr "Dictado por voz no disponible en este navegador — escriba su respuesta."
+
+msgid "Parlez (micro actif) ou tapez votre réponse ici…"
+msgstr "Hable (micrófono activo) o escriba su respuesta aquí…"
+
+msgid "Passer"
+msgstr "Saltar"
+
+msgid "Valider ma réponse"
+msgstr "Validar mi respuesta"
+
+msgid "Question"
+msgstr "Pregunta"
+
+msgid "L'IA lit la question…"
+msgstr "La IA está leyendo la pregunta…"
+
+msgid "Parlez votre réponse (micro actif) ou tapez, puis cliquez sur Valider."
+msgstr "Diga su respuesta (micrófono activo) o escriba, luego haga clic en Validar."
+
+msgid "Évaluation en cours…"
+msgstr "Evaluación en curso…"
+
+msgid "Réponse vide. Passer cette question ?"
+msgstr "Respuesta vacía. ¿Saltar esta pregunta?"
+
+msgid "La soutenance est en cours. Quitter maintenant perdra l'enregistrement."
+msgstr "La defensa está en curso. Salir ahora perderá la grabación."

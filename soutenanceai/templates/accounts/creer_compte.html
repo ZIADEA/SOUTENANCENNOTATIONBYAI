@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{{ titre }}{% endblock %}
+{% block content %}
+<h1>{{ titre }}</h1>
+
+<div class="card" style="max-width: 600px;">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-help">{{ field.help_text }}</div>{% endif %}
+                {% for error in field.errors %}<div class="msg msg-error">{{ error }}</div>{% endfor %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn">{% trans "Créer le compte" %}</button>
+        <a href="{% if role == 'professeur' %}{% url 'accounts:liste_professeurs' %}{% else %}{% url 'accounts:liste_etudiants' %}{% endif %}"
+           class="btn btn-secondary">{% trans "Annuler" %}</a>
+    </form>
+</div>
+{% endblock %}

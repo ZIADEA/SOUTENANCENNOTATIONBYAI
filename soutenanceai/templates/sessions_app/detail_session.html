@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{{ session.titre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Tri colonnes planning ────────────────────────────────── */
+#tbl-planning-detail thead th.sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+#tbl-planning-detail thead th.sortable:hover {
+    background: rgba(79,70,229,.07);
+}
+#tbl-planning-detail thead th.sortable .sort-ico { font-size:10px; color:var(--text-muted); }
+#tbl-planning-detail thead th.sort-asc  .sort-ico,
+#tbl-planning-detail thead th.sort-desc .sort-ico { color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <span>
+        {% if session.classe %}
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:2px;display:flex;align-items:center;gap:5px;">
+            <i data-lucide="book-open" class="icon-xs"></i>
+            <a href="{% url 'sessions_app:detail_classe' session.classe.id %}" style="color:var(--text-muted);">{{ session.classe.nom }}</a>
+        </div>
+        {% endif %}
+        {{ session.titre }}
+    </span>
+    <span style="display:flex;gap:6px;flex-wrap:wrap;">
+        <a href="{% url 'sessions_app:planifier_passages' session.id %}" class="btn btn-sm"
+           style="display:inline-flex;align-items:center;gap:4px;">
+            <i data-lucide="calendar" class="icon-sm"></i>
+            {% trans "Planifier" %}
+        </a>
+        <a href="{% url 'sessions_app:editer_session' session.id %}" class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:4px;">
+            <i data-lucide="edit-2" class="icon-sm"></i>
+            {% trans "Éditer" %}
+        </a>
+        <form method="post" action="{% url 'sessions_app:supprimer_session' session.id %}" style="display:inline"
+              onsubmit="return confirm('{% trans "Supprimer cette soutenance et tous ses passages ?" %}')">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-danger" style="display:inline-flex;align-items:center;gap:4px;">
+                <i data-lucide="trash-2" class="icon-sm"></i>
+                {% trans "Supprimer" %}
+            </button>
+        </form>
+        {% if session.classe %}
+        <a href="{% url 'sessions_app:detail_classe' session.classe.id %}" class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:4px;">
+            <i data-lucide="arrow-left" class="icon-sm"></i>
+        </a>
+        {% endif %}
+    </span>
+</h1>
+
+<div class="card">
+    <p><strong>{% trans "Description" %} :</strong> {{ session.description|default:"(aucune)" }}</p>
+    <p><strong>{% trans "Langue" %} :</strong> {{ session.get_langue_display }}
+       &nbsp;·&nbsp; <strong>{% trans "Durée" %} :</strong> {{ session.duree_presentation }} min + {{ session.duree_questions }} {% trans "min de questions" %}
+    </p>
+    <p style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
+        <span style="display:inline-flex;align-items:center;gap:5px;">
+            <i data-lucide="message-circle" class="icon-xs" style="color:var(--primary);"></i>
+            <strong>{% trans "Questionnement" %} :</strong>
+            <span class="badge badge-en_cours">{{ session.get_style_questionnement_display }}</span>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:5px;">
+            <i data-lucide="star" class="icon-xs" style="color:var(--warning);"></i>
+            <strong>{% trans "Notation" %} :</strong>
+            <span class="badge badge-termine">{{ session.get_style_notation_display }}</span>
+        </span>
+        {% if session.ajustement_auto_stress %}
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);">
+            <i data-lucide="shield-check" class="icon-xs" style="color:var(--success);"></i>
+            {% trans "Ajustement auto stress actif" %}
+        </span>
+        {% endif %}
+    </p>
+    <p><strong>{% trans "Mode notation groupe" %} :</strong> {{ session.get_mode_notation_groupe_display }}</p>
+    <p><strong>{% trans "Critères" %} :</strong>
+        {% for c in criteres %}<span class="badge badge-en_cours" style="margin:2px;">{{ c.nom }} ×{{ c.coefficient }}</span>{% endfor %}
+    </p>
+    <p style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="display:inline-flex;align-items:center;gap:5px;">
+            <i data-lucide="users" class="icon-sm" style="color:var(--primary);"></i>
+            {% if session.classe %}
+            <strong>{{ session.classe.inscrits.count }}</strong>
+            {% else %}
+            <strong>{{ session.inscrits.count }}</strong>
+            {% endif %}
+            &nbsp;{% trans "inscrit(s)" %}
+        </span>
+        {% if session.classe %}
+        <span style="display:inline-flex;align-items:center;gap:5px;font-family:monospace;background:var(--bg-card,#f0f4ff);border:1px solid var(--border);border-radius:6px;padding:2px 10px;font-size:13px;letter-spacing:2px;">
+            <i data-lucide="key" class="icon-xs" style="color:var(--primary);"></i>
+            {{ session.classe.code_acces }}
+            <span style="font-size:10px;color:var(--text-muted);font-family:sans-serif;letter-spacing:0;">{% trans "code classe" %}</span>
+        </span>
+        {% else %}
+        <span style="display:inline-flex;align-items:center;gap:5px;font-family:monospace;background:var(--bg-card,#f0f4ff);border:1px solid var(--border);border-radius:6px;padding:2px 10px;font-size:13px;letter-spacing:2px;">
+            <i data-lucide="key" class="icon-xs" style="color:var(--primary);"></i>
+            {{ session.code_acces }}
+        </span>
+        {% endif %}
+    </p>
+</div>
+
+<h2 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    {% trans "Planning des passages" %}
+    <span style="display:flex;gap:6px;flex-wrap:wrap;">
+        <a href="{% url 'sessions_app:planifier_passages' session.id %}" class="btn btn-sm"
+           style="display:inline-flex;align-items:center;gap:4px;">
+            <i data-lucide="plus" class="icon-sm"></i>
+            {% trans "Planifier" %}
+        </a>
+        {% if passages %}
+        <a href="{% url 'sessions_app:exporter_planning_xlsx' session.id %}" class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:4px;">
+            <i data-lucide="download" class="icon-sm"></i>
+            {% trans "Export planning" %}
+        </a>
+        <a href="{% url 'sessions_app:notes_session' session.id %}" class="btn btn-sm"
+           style="display:inline-flex;align-items:center;gap:4px;background:var(--success);border-color:var(--success);">
+            <i data-lucide="bar-chart-2" class="icon-sm"></i>
+            {% trans "Voir les notes" %}
+        </a>
+        <a href="{% url 'sessions_app:exporter_notes_xlsx' session.id %}" class="btn btn-sm btn-secondary"
+           style="display:inline-flex;align-items:center;gap:4px;">
+            <i data-lucide="file-spreadsheet" class="icon-sm"></i>
+            {% trans "Export notes XLSX" %}
+        </a>
+        {% endif %}
+    </span>
+</h2>
+
+<div class="card">
+    {% if passages %}
+    <table id="tbl-planning-detail">
+        <thead><tr>
+            <th class="sortable sort-asc" data-col="0"># <span class="sort-ico">&#9650;</span></th>
+            <th class="sortable" data-col="1">{% trans "Étudiant(s)" %} <span class="sort-ico">&#8597;</span></th>
+            <th class="sortable" data-col="2">{% trans "Type" %} <span class="sort-ico">&#8597;</span></th>
+            <th class="sortable" data-col="3">{% trans "Heure prévue" %} <span class="sort-ico">&#8597;</span></th>
+            <th class="sortable" data-col="4">{% trans "Statut" %} <span class="sort-ico">&#8597;</span></th>
+            <th>{% trans "Actions" %}</th>
+        </tr></thead>
+        <tbody>
+        {% for p in passages %}
+            <tr>
+                <td>{{ p.ordre_passage }}</td>
+                <td>{{ p.noms_etudiants }}</td>
+                <td>{{ p.get_type_groupe_display }}</td>
+                <td>{{ p.heure_prevue|date:"d/m/Y H:i" }}</td>
+                <td><span class="badge badge-{{ p.statut }}">{{ p.get_statut_display }}</span></td>
+                <td>
+                    <a href="{% url 'sessions_app:suivi_live' p.id %}" class="btn btn-sm">Live</a>
+                    <a href="{% url 'notation:notes_passage' p.id %}" class="btn btn-sm btn-secondary">{% trans "Notes" %}</a>
+                    <a href="{% url 'sessions_app:editer_passage' p.id %}" class="btn btn-sm btn-secondary">{% trans "Éditer" %}</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--text-muted)">{% trans "Aucun passage planifié." %}</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const TBL_ID = 'tbl-planning-detail';
+    let sortCol = 0, sortAsc = true;
+
+    function trierTableau(col) {
+        const tbl   = document.getElementById(TBL_ID);
+        if (!tbl) return;
+        const tbody = tbl.querySelector('tbody');
+        const rows  = Array.from(tbody.querySelectorAll('tr'));
+        if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = true; }
+
+        rows.sort(function (a, b) {
+            const va = a.cells[col] ? a.cells[col].textContent.trim() : '';
+            const vb = b.cells[col] ? b.cells[col].textContent.trim() : '';
+            /* colonne numerique (#) */
+            if (col === 0) {
+                const na = parseInt(va, 10), nb = parseInt(vb, 10);
+                if (!isNaN(na) && !isNaN(nb)) return sortAsc ? na - nb : nb - na;
+            }
+            /* colonne date (d/m/Y H:i) */
+            if (col === 3) {
+                const pa = va.match(/(\d+)\/(\d+)\/(\d+)\s+(\d+):(\d+)/);
+                const pb = vb.match(/(\d+)\/(\d+)\/(\d+)\s+(\d+):(\d+)/);
+                if (pa && pb) {
+                    const da = new Date(pa[3], pa[2]-1, pa[1], pa[4], pa[5]);
+                    const db = new Date(pb[3], pb[2]-1, pb[1], pb[4], pb[5]);
+                    return sortAsc ? da - db : db - da;
+                }
+            }
+            return sortAsc ? va.localeCompare(vb, 'fr') : vb.localeCompare(va, 'fr');
+        });
+        rows.forEach(function (r) { tbody.appendChild(r); });
+
+        /* Mise a jour des icones */
+        tbl.querySelectorAll('thead th.sortable').forEach(function (th) {
+            const ico = th.querySelector('.sort-ico');
+            if (!ico) return;
+            const c = parseInt(th.getAttribute('data-col'), 10);
+            th.classList.remove('sort-asc', 'sort-desc');
+            if (c === sortCol) {
+                th.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+                ico.innerHTML = sortAsc ? '&#9650;' : '&#9660;';
+            } else {
+                ico.innerHTML = '&#8597;';
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const tbl = document.getElementById(TBL_ID);
+        if (!tbl) return;
+        tbl.querySelectorAll('thead th.sortable').forEach(function (th) {
+            th.addEventListener('click', function () {
+                trierTableau(parseInt(th.getAttribute('data-col'), 10));
+            });
+        });
+        /* Tri initial par numero de passage */
+        trierTableau(0);
+    });
+})();
+</script>
+{% endblock %}

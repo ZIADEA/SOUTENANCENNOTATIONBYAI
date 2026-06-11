@@ -1,0 +1,225 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <script>(function(){var t=localStorage.getItem('soutenanceai-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription Professeur — SoutenanceAI</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <style>
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); min-height: 100vh; }
+
+        .inscription-wrapper {
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .inscription-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 48px 44px;
+            width: 100%; max-width: 520px;
+            box-shadow: 0 25px 60px rgba(0,0,0,.35);
+        }
+
+        .card-header { text-align: center; margin-bottom: 36px; }
+        .card-header .brand {
+            font-size: 22px; font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-dark), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            display: block; margin-bottom: 6px;
+        }
+        .card-header h1 { font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+        .card-header p { font-size: 14px; color: #64748b; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+        .form-grid .form-group { margin-bottom: 18px; }
+        .form-grid .form-group.full { grid-column: 1 / -1; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block; font-size: 13px; font-weight: 600; color: #374151;
+            margin-bottom: 5px;
+        }
+        .form-group .form-input {
+            width: 100%; padding: 10px 14px; border-radius: 8px;
+            border: 1.5px solid #e2e8f0; font-size: 14px;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .form-group .form-input:focus {
+            outline: none; border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+        }
+        .form-help { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+        .msg-error { font-size: 12px; color: var(--danger); margin-top: 4px; }
+
+        .btn-submit {
+            width: 100%; padding: 13px; border-radius: 10px; border: none; cursor: pointer;
+            font-size: 15px; font-weight: 700; color: #fff;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            box-shadow: 0 4px 15px rgba(99,102,241,.35);
+            transition: all .25s; margin-top: 8px;
+        }
+        .btn-submit:hover { opacity: .88; transform: translateY(-1px); }
+
+        .divider {
+            text-align: center; margin: 20px 0; color: #94a3b8; font-size: 13px;
+            position: relative;
+        }
+        .divider::before, .divider::after {
+            content: ''; position: absolute; top: 50%; width: 40%; height: 1px;
+            background: #e2e8f0;
+        }
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        .login-link {
+            text-align: center; font-size: 13px; color: #64748b;
+        }
+        .login-link a { color: var(--primary); font-weight: 600; }
+
+        .back-link {
+            display: block; text-align: center; margin-bottom: 20px;
+            font-size: 13px; color: rgba(255,255,255,.5);
+            transition: color .2s;
+        }
+        .back-link:hover { color: rgba(255,255,255,.85); }
+
+        /* Dark mode overrides */
+        [data-theme="dark"] .inscription-card { background: #1e293b; }
+        [data-theme="dark"] .inscription-card .card-header h1 { color: #f1f5f9; }
+        [data-theme="dark"] .inscription-card .card-header p  { color: #94a3b8; }
+        [data-theme="dark"] .inscription-card .form-group label { color: #cbd5e1; }
+        [data-theme="dark"] .inscription-card .form-input { background: #0f172a; border-color: #475569; color: #f1f5f9; }
+        [data-theme="dark"] .inscription-card .form-input:focus { border-color: var(--primary); }
+        [data-theme="dark"] .divider { color: #64748b; }
+        [data-theme="dark"] .divider::before,
+        [data-theme="dark"] .divider::after { background: #334155; }
+        [data-theme="dark"] .login-link { color: #94a3b8; }
+
+        .theme-toggle { position: absolute; top: 16px; right: 16px; }
+    </style>
+</head>
+<body>
+<a href="/" class="back-link">← Retour à l'accueil</a>
+
+<div class="inscription-wrapper">
+    <div class="inscription-card" style="position:relative;">
+        <button onclick="toggleTheme()" class="theme-toggle" title="{% trans 'Changer le thème' %}">
+            <i data-lucide="sun"  id="theme-icon-sun"  style="width:13px;height:13px;stroke-width:2.5;display:inline-block;vertical-align:-1px;"></i>
+            <i data-lucide="moon" id="theme-icon-moon" style="width:13px;height:13px;stroke-width:2.5;display:none;vertical-align:-1px;"></i>
+        </button>
+
+        <div class="card-header">
+            <span class="brand">SoutenanceAI</span>
+            <h1>Créer un compte professeur</h1>
+            <p>Gratuit · Accès immédiat · Aucune validation requise</p>
+        </div>
+
+        {% if messages %}
+            {% for m in messages %}<div class="msg msg-{{ m.tags }}">{{ m }}</div>{% endfor %}
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="form-grid">
+                {# Prénom #}
+                <div class="form-group">
+                    <label for="{{ form.first_name.id_for_label }}">Prénom <span style="color:var(--danger)">*</span></label>
+                    {{ form.first_name }}
+                    {% for e in form.first_name.errors %}<div class="msg-error">{{ e }}</div>{% endfor %}
+                </div>
+
+                {# Nom #}
+                <div class="form-group">
+                    <label for="{{ form.last_name.id_for_label }}">Nom <span style="color:var(--danger)">*</span></label>
+                    {{ form.last_name }}
+                    {% for e in form.last_name.errors %}<div class="msg-error">{{ e }}</div>{% endfor %}
+                </div>
+
+                {# Email #}
+                <div class="form-group full">
+                    <label for="{{ form.email.id_for_label }}">Email institutionnel <span style="color:var(--danger)">*</span></label>
+                    {{ form.email }}
+                    {% for e in form.email.errors %}<div class="msg-error">{{ e }}</div>{% endfor %}
+                </div>
+
+                {# Username #}
+                <div class="form-group full">
+                    <label for="{{ form.username.id_for_label }}">Identifiant de connexion <span style="color:var(--danger)">*</span></label>
+                    {{ form.username }}
+                    {% if form.username.help_text %}<div class="form-help">{{ form.username.help_text }}</div>{% endif %}
+                    {% for e in form.username.errors %}<div class="msg-error">{{ e }}</div>{% endfor %}
+                </div>
+
+                {# Sexe #}
+                <div class="form-group full">
+                    <label>Vous êtes <span style="color:var(--danger)">*</span></label>
+                    <div style="display:flex;gap:24px;margin-top:6px;">
+                        {% for widget in form.sexe %}
+                        <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;">
+                            {{ widget.tag }}
+                            <span>{{ widget.choice_label }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% for e in form.sexe.errors %}<div class="msg-error">{{ e }}</div>{% endfor %}
+                </div>
+
+                {# Password 1 #}
+                <div class="form-group">
+                    <label for="{{ form.password1.id_for_label }}">Mot de passe <span style="color:var(--danger)">*</span></label>
+                    {{ form.password1 }}
+                    {% for e in form.password1.errors %}<div class="msg-error">{{ e }}</div>{% endfor %}
+                </div>
+
+                {# Password 2 #}
+                <div class="form-group">
+                    <label for="{{ form.password2.id_for_label }}">Confirmer</label>
+                    {{ form.password2 }}
+                    {% for e in form.password2.errors %}<div class="msg-error">{{ e }}</div>{% endfor %}
+                </div>
+            </div>
+
+            {# Non-field errors #}
+            {% for e in form.non_field_errors %}
+                <div class="msg msg-error" style="margin-bottom:12px;">{{ e }}</div>
+            {% endfor %}
+
+            <button type="submit" class="btn-submit" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;">
+                <i data-lucide="zap" style="width:18px;height:18px;stroke-width:2;"></i> Créer mon compte et commencer
+            </button>
+        </form>
+
+        <div class="divider">ou</div>
+        <div class="login-link">
+            Déjà un compte ? <a href="{% url 'accounts:login' %}">Se connecter</a>
+        </div>
+
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+<script>
+function toggleTheme(){
+    var h=document.documentElement,isDark=h.getAttribute('data-theme')==='dark';
+    var next=isDark?'light':'dark';
+    h.setAttribute('data-theme',next);
+    localStorage.setItem('soutenanceai-theme',next);
+    _syncThemeIcon(next);
+}
+function _syncThemeIcon(theme){
+    var s=document.getElementById('theme-icon-sun'),m=document.getElementById('theme-icon-moon');
+    if(!s||!m)return;
+    s.style.display=theme==='dark'?'inline-block':'none';
+    m.style.display=theme==='dark'?'none':'inline-block';
+}
+document.addEventListener('DOMContentLoaded',function(){
+    _syncThemeIcon(document.documentElement.getAttribute('data-theme')||'light');
+});
+</script>
+</body>
+</html>

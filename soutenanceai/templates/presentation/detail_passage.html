@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Détail soutenance" %}{% endblock %}
+{% block content %}
+<h1>{{ session.titre }}</h1>
+<p style="color:var(--text-muted)">{% trans "Heure prévue" %} : {{ passage.heure_prevue|date:"d/m/Y H:i" }} ·
+    <span class="badge badge-{{ passage.statut }}">{{ passage.get_statut_display }}</span></p>
+
+<div class="card">
+    {% if passage.statut == 'en_attente' %}
+        <p>{% trans "Votre soutenance n'a pas encore démarré." %}</p>
+        <a href="{% url 'presentation:upload' passage.id %}" class="btn">{% trans "Préparer ma soutenance" %}</a>
+    {% elif passage.statut == 'en_cours' or passage.statut == 'questions' %}
+        <p>{% trans "Votre soutenance est en cours." %}</p>
+        <a href="{% url 'presentation:salle' passage.id %}" class="btn">{% trans "Rejoindre la salle" %}</a>
+    {% else %}
+        <p>{% trans "Votre soutenance est terminée. La notation IA est" %} {% if passage.statut == 'note' %}{% trans "disponible" %}{% else %}{% trans "en cours" %}{% endif %}.</p>
+        {% if passage.enregistrement_video %}
+            <p><a href="{{ passage.enregistrement_video.url }}" class="btn btn-secondary" target="_blank"><i data-lucide="video" class="icon-sm"></i> {% trans "Voir l'enregistrement" %}</a></p>
+        {% endif %}
+    {% endif %}
+</div>
+
+{% if passage.transcription %}
+<div class="card">
+    <h2 style="margin-top:0">{% trans "Transcription de votre présentation" %}</h2>
+    <div style="background: var(--bg); padding: 12px; border-radius: 8px; max-height: 300px; overflow-y: auto; font-size: 13px;">
+        {{ passage.transcription|linebreaksbr }}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

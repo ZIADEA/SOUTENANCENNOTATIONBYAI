@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Mot de passe modifié{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;text-align:center;">
+    <div style="margin-bottom:16px;color:var(--success);"><i data-lucide="check-circle" style="width:52px;height:52px;stroke-width:1.5;"></i></div>
+    <h1 style="color:var(--success,var(--success));margin-top:0;">Mot de passe modifié !</h1>
+    <p style="color:var(--text-muted);">Votre mot de passe a bien été mis à jour.<br>
+    Utilisez-le lors de votre prochaine connexion.</p>
+    <a href="{% url 'accounts:dashboard_redirect' %}" class="btn" style="margin-top:8px;">
+        Retour au tableau de bord
+    </a>
+</div>
+{% endblock %}

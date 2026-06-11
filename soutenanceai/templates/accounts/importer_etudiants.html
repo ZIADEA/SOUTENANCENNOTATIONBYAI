@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}Import CSV étudiants{% endblock %}
+{% block content %}
+<h1 style="display:flex;justify-content:space-between;align-items:center;">
+    <i data-lucide="upload" class="icon-md"></i> Importer des étudiants (CSV)
+    <a href="{% url 'accounts:liste_etudiants' %}" class="btn btn-sm btn-secondary">&#8592; Retour</a>
+</h1>
+
+{# ── INSTRUCTIONS ── #}
+<div class="card" style="max-width:700px;background:#f0f9ff;border-left:4px solid var(--primary);">
+    <h3 style="margin-top:0;">Format du fichier CSV</h3>
+    <p style="font-size:14px;margin:4px 0;">Première ligne = en-têtes, colonnes requises :</p>
+    <pre style="background:#e0f2fe;padding:10px;border-radius:6px;font-size:13px;overflow-x:auto;">prenom,nom,email
+Alice,Dupont,alice.dupont@univ.fr
+Bob,Leroy,bob.leroy@univ.fr
+Éléonore,Béatrix,e.beatrix@univ.fr</pre>
+    <ul style="font-size:13px;color:var(--text-muted);margin-top:8px;">
+        <li>Séparateur <code>,</code> ou <code>;</code> (Excel FR) détecté automatiquement</li>
+        <li>Encodage UTF-8 ou UTF-8 BOM (export Excel natif)</li>
+        <li>Les accents dans les prénoms/noms sont normalisés pour le nom d'utilisateur</li>
+        <li>Les emails déjà utilisés sont ignorés sans erreur</li>
+    </ul>
+</div>
+
+{# ── FORMULAIRE D'UPLOAD ── #}
+<div class="card" style="max-width:700px;">
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-help">{{ field.help_text }}</div>{% endif %}
+                {% for error in field.errors %}<div class="msg msg-error">{{ error }}</div>{% endfor %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn"><i data-lucide="upload" class="icon-sm"></i> Importer les étudiants</button>
+    </form>
+</div>
+
+{# ── RÉSULTATS (après soumission) ── #}
+{% if resultats is not None %}
+<div class="card">
+    <h2 style="margin-top:0;display:flex;justify-content:space-between;align-items:center;">
+        Résultats de l'import
+        {% if request.session.csv_import_crees %}
+        <a href="{% url 'accounts:telecharger_credentials_csv' %}" class="btn btn-sm"
+           style="background:var(--success);color:#fff;">
+            <i data-lucide="download" class="icon-xs"></i> Télécharger les identifiants (.csv)
+        </a>
+        {% endif %}
+    </h2>
+    <p style="font-size:13px;color:var(--text-muted);">
+        <i data-lucide="alert-triangle" class="icon-xs" style="color:var(--warning);"></i> Les mots de passe sont visibles ci-dessous <strong>une seule fois</strong>.
+        Téléchargez le CSV avant de quitter cette page.
+    </p>
+    <div style="overflow-x:auto;">
+    <table>
+        <thead><tr>
+            <th>Ligne</th>
+            <th>Prénom</th>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Statut</th>
+            <th>Username</th>
+            <th>Mot de passe provisoire</th>
+            <th>Détail</th>
+        </tr></thead>
+        <tbody>
+        {% for r in resultats %}
+            <tr style="{% if r.statut == 'cree' %}background:#f0fdf4;
+                       {% elif r.statut == 'erreur' %}background:#fef2f2;
+                       {% else %}background:#fffbeb;{% endif %}">
+                <td style="text-align:center;color:var(--text-muted);">{{ r.ligne }}</td>
+                <td>{{ r.prenom }}</td>
+                <td>{{ r.nom }}</td>
+                <td style="font-size:12px;">{{ r.email|default:"—" }}</td>
+                <td>
+                    {% if r.statut == 'cree' %}
+                        <span style="color:var(--success);font-weight:600;display:inline-flex;align-items:center;gap:3px;"><i data-lucide="check-circle" class="icon-xs"></i> Créé</span>
+                    {% elif r.statut == 'ignore' %}
+                        <span style="color:var(--warning);font-weight:600;display:inline-flex;align-items:center;gap:3px;"><i data-lucide="minus-circle" class="icon-xs"></i> Ignoré</span>
+                    {% else %}
+                        <span style="color:var(--danger);font-weight:600;display:inline-flex;align-items:center;gap:3px;"><i data-lucide="x-circle" class="icon-xs"></i> Erreur</span>
+                    {% endif %}
+                </td>
+                <td><code style="font-size:12px;">{{ r.username|default:"—" }}</code></td>
+                <td>
+                    {% if r.password %}
+                        <code style="font-size:12px;background:#fef9c3;padding:2px 6px;border-radius:4px;">{{ r.password }}</code>
+                    {% else %}—{% endif %}
+                </td>
+                <td style="color:var(--text-muted);font-size:12px;">{{ r.detail|default:"" }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

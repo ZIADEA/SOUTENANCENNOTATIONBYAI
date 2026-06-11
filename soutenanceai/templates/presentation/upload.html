@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Déposer vos fichiers" %}{% endblock %}
+{% block content %}
+<h1>{% trans "Préparer ma soutenance" %}</h1>
+<p style="color:var(--text-muted)">{% trans "Soutenance" %} : <strong>{{ passage.session.titre }}</strong></p>
+
+<div class="card" style="max-width: 700px;">
+    <p>{% trans "Avant de démarrer, déposez votre présentation PPTX" %}
+        {% if passage.session.rapport_obligatoire %}
+            <strong>{% trans "et votre rapport PDF (obligatoire)" %}</strong>
+        {% else %}
+            {% trans "et, optionnellement, votre rapport PDF" %}
+        {% endif %}.
+    </p>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <div class="form-group">
+            <label>{% trans "Présentation PPTX" %}</label>
+            {{ form.fichier_pptx }}
+            {% if passage.fichier_pptx %}<div class="form-help">{% trans "Déjà déposé" %} : {{ passage.fichier_pptx.name }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+            <label>{% trans "Rapport PDF" %} {% if passage.session.rapport_obligatoire %}({% trans "obligatoire" %}){% endif %}</label>
+            {{ form.fichier_rapport }}
+            {% if passage.fichier_rapport %}<div class="form-help">{% trans "Déjà déposé" %} : {{ passage.fichier_rapport.name }}</div>{% endif %}
+        </div>
+        {% if passage.session.demo_video_requise %}
+        <div class="form-group" style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
+            <label style="display:flex;align-items:center;gap:6px;">
+                <i data-lucide="video" class="icon-sm" style="color:var(--primary);"></i>
+                {% trans "Vidéo de démonstration" %}
+                <span style="font-size:11px;color:var(--text-muted);font-weight:normal;">(requise)</span>
+            </label>
+            {% if passage.session.demo_video_instructions %}
+            <div class="form-help" style="margin-bottom:6px;padding:8px 10px;background:rgba(99,102,241,0.07);border-radius:6px;border-left:3px solid var(--primary);">
+                <i data-lucide="info" class="icon-xs" style="color:var(--primary);"></i>
+                {{ passage.session.demo_video_instructions }}
+            </div>
+            {% endif %}
+            {{ form.fichier_demo_video }}
+            {% if passage.fichier_demo_video %}
+            <div class="form-help">
+                <i data-lucide="check-circle" class="icon-xs" style="color:var(--success);"></i>
+                {% trans "Déjà déposé" %} : {{ passage.fichier_demo_video.name }}
+            </div>
+            {% endif %}
+            <div class="form-help">{% trans "Formats acceptés : mp4, webm, mov — taille max 100 Mo" %}</div>
+        </div>
+        {% endif %}
+
+        {% if passage.session.depot_github_requis %}
+        <div class="form-group" style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
+            <label style="display:flex;align-items:center;gap:6px;">
+                <i data-lucide="github" class="icon-sm" style="color:var(--primary);"></i>
+                {% trans "Dépôt GitHub" %}
+                <span style="font-size:11px;color:var(--text-muted);font-weight:normal;">(requis)</span>
+            </label>
+            {% if passage.session.criteres_github %}
+            <div class="form-help" style="margin-bottom:6px;padding:8px 10px;background:rgba(99,102,241,0.07);border-radius:6px;border-left:3px solid var(--primary);">
+                <i data-lucide="info" class="icon-xs" style="color:var(--primary);"></i>
+                {{ passage.session.criteres_github }}
+            </div>
+            {% endif %}
+            {{ form.url_depot_github }}
+            {% if passage.url_depot_github %}
+            <div class="form-help">
+                <i data-lucide="check-circle" class="icon-xs" style="color:var(--success);"></i>
+                {% trans "Déjà renseigné" %} : {{ passage.url_depot_github }}
+            </div>
+            {% endif %}
+            <div class="form-help" style="color:var(--warning);">
+                <i data-lucide="alert-triangle" class="icon-xs" style="color:var(--warning);"></i>
+                {% trans "Assurez-vous que votre dépôt est PUBLIC avant de soumettre." %}
+            </div>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn">{% trans "Téléverser & continuer" %}</button>
+        <a href="{% url 'presentation:dashboard_etudiant' %}" class="btn btn-secondary">{% trans "Retour" %}</a>
+    </form>
+</div>
+
+<div class="card" style="max-width:700px;background:#fef3c7;border:1px solid #fcd34d;color:#92400e;">
+    <h3 style="margin-top:0;color:#92400e;display:flex;align-items:center;gap:6px;">
+        <i data-lucide="alert-triangle" class="icon-sm" style="color:var(--warning);"></i>
+        {% trans "À savoir avant de démarrer" %}
+    </h3>
+    <ul style="color:#92400e;margin:0;padding-left:20px;">
+        <li>{% blocktrans with duree=passage.session.duree_presentation %}Vous aurez <strong>{{ duree }} minutes</strong> de présentation.{% endblocktrans %}</li>
+        <li>{% blocktrans with duree=passage.session.duree_questions %}Suivront <strong>{{ duree }} minutes</strong> de questions IA.{% endblocktrans %}</li>
+        <li>{% trans "Votre micro et votre caméra seront enregistrés en continu." %}</li>
+        <li>{% trans "La langue attendue est" %} : <strong>{{ passage.session.get_langue_display }}</strong>.</li>
+    </ul>
+</div>
+{% endblock %}

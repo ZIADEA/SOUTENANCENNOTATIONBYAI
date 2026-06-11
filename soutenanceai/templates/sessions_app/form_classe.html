@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% if classe %}{% trans "Modifier" %} {{ classe.nom }}{% else %}{% trans "Nouvelle classe" %}{% endif %}{% endblock %}
+{% block content %}
+<h1 style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
+    <span style="display:flex;align-items:center;gap:8px;">
+        <i data-lucide="{% if classe %}edit{% else %}plus-circle{% endif %}" class="icon-md"></i>
+        {% if classe %}{% trans "Modifier la classe" %}{% else %}{% trans "Créer une nouvelle classe" %}{% endif %}
+    </span>
+    {% if classe %}
+    <a href="{% url 'sessions_app:detail_classe' classe.id %}" class="btn btn-sm btn-secondary"
+       style="display:inline-flex;align-items:center;gap:5px;">
+        <i data-lucide="arrow-left" class="icon-sm"></i>{% trans "Retour" %}
+    </a>
+    {% else %}
+    <a href="{% url 'sessions_app:dashboard_professeur' %}" class="btn btn-sm btn-secondary"
+       style="display:inline-flex;align-items:center;gap:5px;">
+        <i data-lucide="arrow-left" class="icon-sm"></i>{% trans "Retour" %}
+    </a>
+    {% endif %}
+</h1>
+
+<div class="card" style="max-width:560px;">
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="{{ form.nom.id_for_label }}" style="display:flex;align-items:center;gap:5px;">
+                <i data-lucide="book-open" class="icon-sm"></i>
+                {{ form.nom.label }} *
+            </label>
+            {{ form.nom }}
+            {% if form.nom.errors %}<div style="color:var(--danger);font-size:12px;margin-top:3px;">{{ form.nom.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}" style="display:flex;align-items:center;gap:5px;">
+                <i data-lucide="align-left" class="icon-sm"></i>
+                {{ form.description.label }}
+                <span style="color:var(--text-muted);font-size:12px;">({% trans "optionnel" %})</span>
+            </label>
+            {{ form.description }}
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:8px;">
+            <button type="submit" class="btn" style="display:inline-flex;align-items:center;gap:6px;">
+                <i data-lucide="save" class="icon-sm"></i>
+                {% if classe %}{% trans "Enregistrer" %}{% else %}{% trans "Créer la classe" %}{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

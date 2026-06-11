@@ -1,0 +1,154 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_BIDI %}dir="rtl"{% else %}dir="ltr"{% endif %}>
+<head>
+    <script>(function(){var t=localStorage.getItem('soutenanceai-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SoutenanceAI{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <style>
+        /* Lucide icon sizing helpers */
+        [data-lucide] { display: inline-block; vertical-align: -3px; flex-shrink: 0; }
+        .icon-xs  { width: 13px; height: 13px; stroke-width: 2.5; }
+        .icon-sm  { width: 15px; height: 15px; stroke-width: 2.25; }
+        .icon     { width: 17px; height: 17px; stroke-width: 2; }
+        .icon-md  { width: 20px; height: 20px; stroke-width: 2; }
+        .icon-lg  { width: 26px; height: 26px; stroke-width: 1.75; }
+        .icon-xl  { width: 36px; height: 36px; stroke-width: 1.5; }
+        .icon-2xl { width: 48px; height: 48px; stroke-width: 1.5; }
+    </style>
+    {% if LANGUAGE_BIDI %}
+    <style>
+        body { direction: rtl; text-align: right; }
+        .topbar, .nav { flex-direction: row-reverse; }
+        .nav { gap: 12px; }
+        table { direction: rtl; }
+        .form-group label { display: block; text-align: right; }
+        .card { text-align: right; }
+        h1, h2, h3 { text-align: right; }
+    </style>
+    {% endif %}
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+{% if user.is_authenticated %}
+<header class="topbar">
+    <div class="brand">
+        <a href="{% url 'accounts:dashboard_redirect' %}">SoutenanceAI</a>
+    </div>
+    <nav class="nav">
+        {% if user.is_superadmin %}
+            <a href="{% url 'accounts:dashboard_superadmin' %}">{% trans "Admin" %}</a>
+            <a href="{% url 'accounts:liste_professeurs' %}">{% trans "Professeurs" %}</a>
+            <a href="{% url 'accounts:liste_etudiants' %}">{% trans "Étudiants" %}</a>
+        {% elif user.is_professeur %}
+            <a href="{% url 'sessions_app:dashboard_professeur' %}">{% trans "Mes classes" %}</a>
+            <a href="{% url 'accounts:liste_etudiants' %}">{% trans "Mes étudiants" %}</a>
+            <a href="{% url 'sessions_app:creer_classe' %}" class="btn-sm">+ {% trans "Nouvelle classe" %}</a>
+        {% elif user.is_etudiant %}
+            <a href="{% url 'presentation:dashboard_etudiant' %}">{% trans "Mes soutenances" %}</a>
+        {% endif %}
+        <span class="user-tag">{{ user.get_full_name|default:user.username }} · <em>{{ user.get_role_display }}</em></span>
+        <button id="theme-toggle" onclick="toggleTheme()"
+                class="theme-toggle"
+                title="{% trans "Changer le thème" %}">
+            <i data-lucide="sun"  class="icon-sm" id="theme-icon-sun"></i>
+            <i data-lucide="moon" class="icon-sm" id="theme-icon-moon" style="display:none;"></i>
+        </button>
+        <a href="{% url 'accounts:changer_mot_de_passe' %}" class="btn-sm btn-secondary"
+           style="font-size:12px;display:inline-flex;align-items:center;gap:4px;" title="{% trans "Changer mon mot de passe" %}">
+            <i data-lucide="lock" class="icon-sm"></i>
+        </a>
+
+        {# ── Language switcher ── #}
+        <div class="lang-switcher" style="position:relative;display:inline-block;">
+            <button class="btn-sm btn-secondary" onclick="this.nextElementSibling.classList.toggle('open')"
+                    style="cursor:pointer;padding:4px 10px;font-size:12px;display:inline-flex;align-items:center;gap:5px;">
+                <i data-lucide="globe" class="icon-sm"></i>
+                {% get_current_language as CURRENT_LANG %}
+                {% if CURRENT_LANG == 'fr' %}Français
+                {% elif CURRENT_LANG == 'en' %}English
+                {% elif CURRENT_LANG == 'ar' %}عربية
+                {% elif CURRENT_LANG == 'es' %}Español
+                {% elif CURRENT_LANG == 'de' %}Deutsch
+                {% else %}{{ CURRENT_LANG }}
+                {% endif %}
+            </button>
+            <div class="lang-dropdown" style="display:none;position:absolute;right:0;top:110%;background:var(--surface,#fff);border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.12);min-width:160px;z-index:999;">
+                {% get_available_languages as AVAILABLE_LANGS %}
+                {% get_language_info_list for AVAILABLE_LANGS as LANG_INFOS %}
+                {% for lang in LANG_INFOS %}
+                <form method="post" action="{% url 'set_language' %}" style="margin:0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="language" value="{{ lang.code }}">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit"
+                            style="display:block;width:100%;padding:8px 14px;background:none;border:none;text-align:left;cursor:pointer;font-size:13px;{% if lang.code == CURRENT_LANG %}font-weight:700;background:var(--bg,#f0f4ff);{% endif %}"
+                            onmouseover="this.style.background='var(--bg,#f0f4ff)'"
+                            onmouseout="this.style.background='{% if lang.code == CURRENT_LANG %}var(--bg,#f0f4ff){% else %}none{% endif %}'">
+                        {{ lang.name_local }}
+                    </button>
+                </form>
+                {% endfor %}
+            </div>
+        </div>
+        <script>
+            // Close lang dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                const sw = document.querySelector('.lang-switcher');
+                if (sw && !sw.contains(e.target)) {
+                    const dd = sw.querySelector('.lang-dropdown');
+                    if (dd) dd.classList.remove('open');
+                }
+            });
+            // Toggle open class → display
+            document.addEventListener('DOMContentLoaded', function() {
+                const dd = document.querySelector('.lang-dropdown');
+                if (!dd) return;
+                const obs = new MutationObserver(() => {
+                    dd.style.display = dd.classList.contains('open') ? 'block' : 'none';
+                });
+                obs.observe(dd, {attributes: true, attributeFilter: ['class']});
+            });
+        </script>
+
+        <a href="{% url 'accounts:logout' %}" class="btn-logout">{% trans "Déconnexion" %}</a>
+    </nav>
+</header>
+{% endif %}
+
+<main class="container">
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="msg msg-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+
+{% block extra_js %}{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+<script>
+function toggleTheme(){
+    var h=document.documentElement,isDark=h.getAttribute('data-theme')==='dark';
+    var next=isDark?'light':'dark';
+    h.setAttribute('data-theme',next);
+    localStorage.setItem('soutenanceai-theme',next);
+    _syncThemeIcon(next);
+}
+function _syncThemeIcon(theme){
+    var s=document.getElementById('theme-icon-sun'),m=document.getElementById('theme-icon-moon');
+    if(!s||!m)return;
+    s.style.display=theme==='dark'?'inline-block':'none';
+    m.style.display=theme==='dark'?'none':'inline-block';
+}
+document.addEventListener('DOMContentLoaded',function(){
+    _syncThemeIcon(document.documentElement.getAttribute('data-theme')||'light');
+});
+</script>
+</body>
+</html>

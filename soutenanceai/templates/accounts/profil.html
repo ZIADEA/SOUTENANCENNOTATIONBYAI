@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Mon profil" %}{% endblock %}
+{% block content %}
+
+<h1 style="display:flex;align-items:center;gap:10px;">
+    <i data-lucide="user-circle" class="icon"></i>
+    {% trans "Mon profil" %}
+</h1>
+
+<div class="card" style="max-width:520px;">
+    <h2 style="margin-top:0;display:flex;align-items:center;gap:8px;">
+        <i data-lucide="camera" class="icon-sm" style="color:var(--primary);"></i>
+        {% trans "Photo de profil" %}
+    </h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px;">
+        {% trans "Cette photo est utilisée pour vous identifier automatiquement pendant votre soutenance (reconnaissance faciale côté navigateur). Utilisez une photo nette de face, fond neutre de préférence." %}
+    </p>
+
+    {% if request.user.photo_profil %}
+    <div style="margin-bottom:18px;display:flex;align-items:center;gap:16px;">
+        <img src="{{ request.user.photo_profil.url }}"
+             alt="{% trans 'Photo actuelle' %}"
+             style="width:96px;height:96px;object-fit:cover;border-radius:50%;
+                    border:3px solid var(--primary);box-shadow:0 2px 8px rgba(0,0,0,.15);">
+        <div>
+            <div style="font-weight:600;font-size:13px;margin-bottom:4px;">
+                <i data-lucide="check-circle" class="icon-xs" style="color:var(--success);"></i>
+                {% trans "Photo enregistrée" %}
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);">
+                {% trans "Vous pouvez en charger une nouvelle ci-dessous." %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div style="margin-bottom:18px;padding:14px 16px;border-radius:8px;
+                background:var(--bg-card,#f0f4ff);border:1px dashed var(--border);
+                display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-muted);">
+        <i data-lucide="alert-circle" class="icon-sm" style="color:var(--warning);flex-shrink:0;"></i>
+        {% trans "Aucune photo enregistrée — la reconnaissance faciale ne sera pas disponible pour vos soutenances." %}
+    </div>
+    {% endif %}
+
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="msg msg-{{ msg.tags }}" style="margin-bottom:12px;">{{ msg }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <div class="form-group">
+            <label style="font-weight:600;">{% trans "Choisir une nouvelle photo" %}</label>
+            {{ form.photo_profil }}
+            {% if form.photo_profil.help_text %}
+            <div class="form-help">{{ form.photo_profil.help_text }}</div>
+            {% endif %}
+            {% for e in form.photo_profil.errors %}
+            <div class="msg msg-error">{{ e }}</div>
+            {% endfor %}
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+            <button type="submit" class="btn" style="display:inline-flex;align-items:center;gap:6px;">
+                <i data-lucide="upload" class="icon-xs"></i>
+                {% trans "Enregistrer la photo" %}
+            </button>
+            <a href="{% url 'accounts:dashboard_redirect' %}" class="btn btn-secondary">
+                {% trans "Retour" %}
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

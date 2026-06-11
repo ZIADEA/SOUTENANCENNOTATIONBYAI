@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load extras i18n %}
+{% block title %}{% if session %}{% trans "Éditer" %}{% else %}{% trans "Nouvelle" %}{% endif %} {% trans "soutenance" %}{% endblock %}
+{% block content %}
+<h1 style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <span>{% if session %}{% blocktrans with titre=session.titre %}Éditer la soutenance « {{ titre }} »{% endblocktrans %}{% else %}{% trans "Nouvelle soutenance" %}{% if classe %} — {{ classe.nom }}{% endif %}{% endif %}</span>
+    {% if classe %}<a href="{% url 'sessions_app:detail_classe' classe.id %}" class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;gap:5px;"><i data-lucide="arrow-left" class="icon-sm"></i>{% trans "Retour à la classe" %}</a>
+    {% elif session and session.classe %}<a href="{% url 'sessions_app:detail_classe' session.classe.id %}" class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;gap:5px;"><i data-lucide="arrow-left" class="icon-sm"></i>{% trans "Retour à la classe" %}</a>
+    {% else %}<a href="{% url 'sessions_app:dashboard_professeur' %}" class="btn btn-sm btn-secondary" style="display:inline-flex;align-items:center;gap:5px;"><i data-lucide="arrow-left" class="icon-sm"></i>{% trans "Retour" %}</a>{% endif %}
+</h1>
+
+<form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="card">
+        <h2 style="margin-top:0">{% trans "Informations générales" %}</h2>
+        <div class="form-group">
+            <label>{% trans "Titre" %}</label>{{ form.titre }}
+            {% for e in form.titre.errors %}<div class="msg msg-error">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="form-group"><label>{% trans "Description" %}</label>{{ form.description }}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+            <div class="form-group"><label>{% trans "Langue" %}</label>{{ form.langue }}</div>
+            <div class="form-group"><label>{% trans "Durée présentation (min)" %}</label>{{ form.duree_presentation }}</div>
+            <div class="form-group"><label>{% trans "Durée questions (min)" %}</label>{{ form.duree_questions }}</div>
+        </div>
+        <div class="form-group"><label>{% trans "Nombre maximum de questions IA" %}</label>{{ form.nb_questions_max }}</div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-top:0">{% trans "Rapport écrit" %}</h2>
+        <div class="form-group" style="display:flex;gap:24px;align-items:center;">
+            <label style="display:flex;gap:8px;align-items:center;">
+                {{ form.rapport_obligatoire }} {% trans "Rapport obligatoire" %}
+            </label>
+            <div>{% trans "Coefficient du rapport" %} : {{ form.coefficient_rapport }}</div>
+        </div>
+    </div>
+
+    {# ── Démo vidéo ──────────────────────────────────────────────────────────── #}
+    <div class="card">
+        <h2 style="margin-top:0;display:flex;align-items:center;gap:8px;">
+            <i data-lucide="video" class="icon" style="color:var(--primary);"></i>
+            {% trans "Vidéo de démonstration (optionnelle)" %}
+        </h2>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:14px;">
+            {% trans "Activez cette option si les étudiants doivent déposer une vidéo démo (application, robot, interface…). L'IA analysera la vidéo et attribuera une note." %}
+        </p>
+        <div class="form-group" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
+            <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+                {{ form.demo_video_requise }} <strong>{% trans "Vidéo démo requise" %}</strong>
+            </label>
+            <div style="display:flex;align-items:center;gap:8px;">
+                {% trans "Coefficient" %} : {{ form.coefficient_demo_video }}
+            </div>
+        </div>
+        <div id="demo-video-options" style="display:none;margin-top:8px;">
+            <div class="form-group">
+                <label>{% trans "Consignes pour la démo" %}</label>
+                {{ form.demo_video_instructions }}
+                <div class="form-help">{% trans "Ex : Montrez votre robot éviter un obstacle (30 sec max)" %}</div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Dépôt GitHub ────────────────────────────────────────────────────────── #}
+    <div class="card">
+        <h2 style="margin-top:0;display:flex;align-items:center;gap:8px;">
+            <i data-lucide="github" class="icon" style="color:var(--primary);"></i>
+            {% trans "Dépôt GitHub (optionnel)" %}
+        </h2>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:14px;">
+            {% trans "Activez cette option si les étudiants doivent soumettre leur dépôt GitHub public. L'IA analysera le code, le README et l'historique des commits." %}
+        </p>
+        <div class="form-group" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
+            <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+                {{ form.depot_github_requis }} <strong>{% trans "Dépôt GitHub requis" %}</strong>
+            </label>
+            <div style="display:flex;align-items:center;gap:8px;">
+                {% trans "Coefficient" %} : {{ form.coefficient_github }}
+            </div>
+        </div>
+        <div id="github-options" style="display:none;margin-top:8px;">
+            <div class="form-group">
+                <label>{% trans "Critères d'évaluation du code" %}</label>
+                {{ form.criteres_github }}
+                <div class="form-help">{% trans "Ex : Code propre, README complet, tests unitaires, commits réguliers" %}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-top:0">{% trans "Personnalité de l'IA évaluatrice" %}</h2>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">
+            {% trans "Configurez indépendamment comment l'IA pose ses questions (pendant la soutenance) et comment elle note (biais sur les scores)." %}
+        </p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+            {# ── Axe 1 : questionnement ── #}
+            <div>
+                <label style="display:flex;align-items:center;gap:6px;font-weight:700;font-size:14px;margin-bottom:12px;">
+                    <i data-lucide="message-circle" class="icon-sm" style="color:var(--primary);"></i>
+                    {% trans "Style de questionnement" %}
+                </label>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
+                    {% trans "Ton et approche des questions posées pendant la soutenance." %}
+                </p>
+                <ul class="radio-list" style="margin:0;">
+                    {% for radio in form.style_questionnement %}<li>{{ radio }}</li>{% endfor %}
+                </ul>
+            </div>
+
+            {# ── Axe 2 : notation ── #}
+            <div>
+                <label style="display:flex;align-items:center;gap:6px;font-weight:700;font-size:14px;margin-bottom:12px;">
+                    <i data-lucide="star" class="icon-sm" style="color:var(--warning);"></i>
+                    {% trans "Style de notation" %}
+                </label>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
+                    {% trans "Biais de sévérité / générosité appliqué aux scores (orientation douce, non bloquante)." %}
+                </p>
+                <ul class="radio-list" style="margin:0;">
+                    {% for radio in form.style_notation %}<li>{{ radio }}</li>{% endfor %}
+                </ul>
+            </div>
+
+        </div>
+
+        {# ── Option ajustement auto ── #}
+        <div style="margin-top:18px;padding:12px 16px;background:var(--bg-card,#f0f4ff);border-radius:8px;border:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;">
+            {{ form.ajustement_auto_stress }}
+            <div>
+                <label for="{{ form.ajustement_auto_stress.id_for_label }}" style="font-weight:600;font-size:13px;cursor:pointer;">
+                    {% trans "Ajustement automatique si stress détecté" %}
+                </label>
+                <p style="font-size:12px;color:var(--text-muted);margin-top:3px;">
+                    {% trans "Si activé et que la transcription révèle un étudiant stressé, l'IA bascule automatiquement vers Mentor (questionnement) et Indulgent (notation), pour ne pas pénaliser l'humain." %}
+                </p>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top:18px;">
+            <label>{% trans "Consignes libres" %}</label>{{ form.consignes_ia }}
+            <div class="form-help">{% trans "Donnez à l'IA des indications spécifiques sur ce qu'il faut évaluer, le public cible, etc." %}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-top:0">{% trans "Critères de notation" %}</h2>
+        <p style="color:var(--text-muted);font-size:13px;">{% trans "Cochez les critères à utiliser et ajustez leur coefficient." %}</p>
+        <div class="criteres-grid">
+            {% for nom, desc in criteres_predefinis %}
+                <div class="critere-row">
+                    <input type="checkbox" name="critere_predef_{{ nom }}" id="critere_predef_{{ nom }}"
+                        {% if nom in noms_predef_coches %}checked{% endif %}>
+                    <label for="critere_predef_{{ nom }}" title="{{ desc }}">
+                        <strong>{{ nom }}</strong><br>
+                        <span style="font-size:12px;color:var(--text-muted)">{{ desc }}</span>
+                    </label>
+                    <input type="number" name="coef_predef_{{ nom }}" class="form-input coef-input"
+                        value="{{ coefs_existants|get_item:nom|default:'1' }}"
+                        step="0.1" min="0" placeholder="{% trans "Coef." %}">
+                </div>
+            {% endfor %}
+        </div>
+
+        <h3>{% trans "Critères personnalisés" %}</h3>
+        <div id="criteres-perso">
+            {% for c in criteres_perso %}
+                <div class="critere-row">
+                    <span>&#9998;</span>
+                    <input type="text" name="critere_perso_{{ forloop.counter0 }}" value="{{ c.nom }}" class="form-input">
+                    <input type="number" name="coef_perso_{{ forloop.counter0 }}" value="{{ c.coefficient }}" step="0.1" min="0" class="form-input coef-input">
+                </div>
+            {% endfor %}
+        </div>
+        <button type="button" class="btn btn-sm btn-secondary" onclick="ajouterCriterePerso()">+ {% trans "Ajouter un critère perso" %}</button>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-top:0">{% trans "Mode de notation pour les groupes" %}</h2>
+        <ul class="radio-list">
+            {% for radio in form.mode_notation_groupe %}<li>{{ radio }}</li>{% endfor %}
+        </ul>
+        <p style="font-size:13px;color:var(--text-muted)">{% blocktrans %}En mode <strong>mixte</strong>, la note finale = coef_groupe × note_collective + coef_individuel × note_individuelle.{% endblocktrans %}</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group"><label>{% trans "Coefficient groupe (mixte)" %}</label>{{ form.coefficient_groupe }}</div>
+            <div class="form-group"><label>{% trans "Coefficient individuel (mixte)" %}</label>{{ form.coefficient_individuel }}</div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn">{% if session %}{% trans "Mettre à jour" %}{% else %}{% trans "Créer la soutenance" %}{% endif %}</button>
+    <a href="{% url 'sessions_app:dashboard_professeur' %}" class="btn btn-secondary">{% trans "Annuler" %}</a>
+</form>
+
+<script>
+let persoCount = {{ criteres_perso|length }};
+function ajouterCriterePerso() {
+    const div = document.createElement('div');
+    div.className = 'critere-row';
+    div.innerHTML = `<span>&#9998;</span>
+        <input type="text" name="critere_perso_${persoCount}" placeholder="{% trans "Nom du critère" %}" class="form-input">
+        <input type="number" name="coef_perso_${persoCount}" value="1" step="0.1" min="0" class="form-input coef-input">`;
+    document.getElementById('criteres-perso').appendChild(div);
+    persoCount++;
+}
+
+// ── Contrainte : "Rapport écrit" désactivé si rapport_obligatoire non coché ──
+(function () {
+    const cbRapport    = document.getElementById('id_rapport_obligatoire');
+    const cbCritere    = document.querySelector('[name="critere_predef_Rapport écrit"]');
+    const coefCritere  = document.querySelector('[name="coef_predef_Rapport écrit"]');
+
+    if (!cbRapport || !cbCritere) return;
+
+    function syncRapportEcrit() {
+        const actif = cbRapport.checked;
+        const row   = cbCritere.closest('.critere-row');
+
+        cbCritere.disabled   = !actif;
+        if (coefCritere) coefCritere.disabled = !actif;
+        row.style.opacity    = actif ? '1' : '0.35';
+        row.style.cursor     = actif ? '' : 'not-allowed';
+        row.title            = actif ? '' : '{% trans "Activez « Rapport obligatoire » pour pouvoir noter ce critère." %}';
+
+        if (!actif) {
+            cbCritere.checked = false;  // force-décocher
+        }
+    }
+
+    cbRapport.addEventListener('change', syncRapportEcrit);
+    syncRapportEcrit();  // état initial au chargement
+})();
+
+// ── Afficher/masquer options Démo vidéo & GitHub selon checkbox ──
+(function () {
+    function bindToggle(checkboxId, panelId) {
+        const cb = document.getElementById(checkboxId);
+        const panel = document.getElementById(panelId);
+        if (!cb || !panel) return;
+        function sync() { panel.style.display = cb.checked ? 'block' : 'none'; }
+        cb.addEventListener('change', sync);
+        sync();
+    }
+    bindToggle('id_demo_video_requise', 'demo-video-options');
+    bindToggle('id_depot_github_requis', 'github-options');
+})();
+</script>
+{% endblock %}

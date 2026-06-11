@@ -1,0 +1,3 @@
+EMOJI RESTANTS:
+templates\presentation\salle.html:95: <h2>🤖 Question de l'IA</h2>
+Total fichiers scannes: 20

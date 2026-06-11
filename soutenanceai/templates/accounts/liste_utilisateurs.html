@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{{ titre }}{% endblock %}
+{% block content %}
+<h1 style="display:flex; justify-content:space-between; align-items:center;">
+    {{ titre }}
+    {% if role == 'professeur' %}
+        <a href="{% url 'accounts:creer_professeur' %}" class="btn btn-sm">+ {% trans "Nouveau professeur" %}</a>
+    {% else %}
+        <div style="display:flex;gap:8px;">
+            <a href="{% url 'accounts:creer_etudiant' %}" class="btn btn-sm">+ {% trans "Nouvel étudiant" %}</a>
+            <a href="{% url 'accounts:importer_etudiants_csv' %}" class="btn btn-sm btn-secondary"><i data-lucide="upload" class="icon-xs"></i> {% trans "Import CSV" %}</a>
+        </div>
+    {% endif %}
+</h1>
+
+<div class="card">
+    <table>
+        <thead><tr>
+            <th>{% trans "Identifiant" %}</th>
+            <th>{% trans "Nom complet" %}</th>
+            <th>{% trans "Email" %}</th>
+            <th>{% trans "Créé le" %}</th>
+            <th>{% trans "Actions" %}</th>
+        </tr></thead>
+        <tbody>
+        {% for u in utilisateurs %}
+            <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.get_full_name|default:"—" }}</td>
+                <td>{{ u.email|default:"—" }}</td>
+                <td>{{ u.date_joined|date:"d/m/Y" }}</td>
+                <td style="white-space:nowrap;">
+                    {# Réinitialiser le mot de passe #}
+                    <form method="post"
+                          action="{% url 'accounts:reinitialiser_mot_de_passe' u.id %}"
+                          onsubmit="return confirm('{% trans "Réinitialiser le mot de passe de" %} {{ u.get_full_name|default:u.username }} ?');"
+                          style="display:inline;">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-secondary" type="submit"><i data-lucide="key" class="icon-xs"></i> {% trans "Réinitialiser mdp" %}</button>
+                    </form>
+                    {# Supprimer le compte #}
+                    <form method="post"
+                          action="{% url 'accounts:supprimer_utilisateur' u.id %}"
+                          onsubmit="return confirm('{% trans "Supprimer ce compte ?" %}');"
+                          style="display:inline;">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-danger" type="submit">{% trans "Supprimer" %}</button>
+                    </form>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5" style="color:var(--text-muted)">{% trans "Aucun compte." %}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Dashboard Superadmin" %}{% endblock %}
+{% block content %}
+<h1>{% trans "Dashboard administrateur" %}</h1>
+
+<div class="stats-grid">
+    <div class="stat-card"><div class="value">{{ stats.nb_sessions }}</div><div class="label">{% trans "Soutenances" %}</div></div>
+    <div class="stat-card"><div class="value">{{ stats.nb_profs }}</div><div class="label">{% trans "Professeurs" %}</div></div>
+    <div class="stat-card"><div class="value">{{ stats.nb_etudiants }}</div><div class="label">{% trans "Étudiants" %}</div></div>
+    <div class="stat-card"><div class="value">{{ stats.nb_passages }}</div><div class="label">{% trans "Passages planifiés" %}</div></div>
+    <div class="stat-card"><div class="value">{{ stats.nb_passages_termines }}</div><div class="label">{% trans "Passages terminés" %}</div></div>
+    <div class="stat-card"><div class="value">{{ stats.moyenne_notes|default:"—" }}</div><div class="label">{% trans "Moyenne générale" %}</div></div>
+</div>
+
+<div class="card">
+    <h2 style="margin-top:0; display:flex; justify-content:space-between;">
+        {% trans "Professeurs récents" %}
+        <a href="{% url 'accounts:creer_professeur' %}" class="btn btn-sm">+ {% trans "Nouveau professeur" %}</a>
+    </h2>
+    <table>
+        <thead><tr>
+            <th>{% trans "Identifiant" %}</th>
+            <th>{% trans "Nom" %}</th>
+            <th>{% trans "Email" %}</th>
+            <th>{% trans "Créé le" %}</th>
+        </tr></thead>
+        <tbody>
+        {% for p in profs_recents %}
+            <tr>
+                <td>{{ p.username }}</td>
+                <td>{{ p.get_full_name|default:"—" }}</td>
+                <td>{{ p.email|default:"—" }}</td>
+                <td>{{ p.date_joined|date:"d/m/Y" }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4" style="color:var(--text-muted)">{% trans "Aucun professeur." %}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
