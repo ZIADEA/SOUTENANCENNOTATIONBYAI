@@ -236,6 +236,46 @@ Cette question se décompose en sous-problèmes techniques précis :
         contrôle d'accès par rôle sur chaque vue et chaque WebSocket.
 \end{enumerate}
 
+\section{Travaux connexes et positionnement}
+
+L'évaluation automatisée de productions académiques est un champ de recherche
+ancien et actif, dont SoutenanceAI croise trois lignées.
+
+\paragraph{Notation automatique de l'écrit.} L'idée remonte au \emph{Project
+Essay Grade} de Page (1966), qui montrait qu'une régression sur des indices de
+surface approximait déjà les notes humaines. Le système \emph{e-rater}
+d'Educational Testing Service (Attali et Burstein, 2006) a industrialisé
+l'approche : il co-note à grande échelle des essais standardisés (GRE, TOEFL),
+avec l'humain en arbitrage --- précisément le schéma « l'IA propose, l'humain
+décide » que reprend SoutenanceAI pour l'oral.
+
+\paragraph{Évaluation automatique de l'oral.} \emph{SpeechRater} (Zechner
+et al., 2009), également chez ETS, note la production orale spontanée de
+candidats au TOEFL à partir de la sortie d'une reconnaissance vocale :
+fluidité, prononciation, vocabulaire. Plus près de notre objet, les travaux
+sur l'évaluation \emph{multimodale} de la prise de parole en public (Chen
+et al., 2014 ; Wörtwein et al., 2015) combinent prosodie, regard et gestuelle
+pour prédire des scores d'éloquence --- validant le principe, repris ici, que
+les signaux non verbaux portent une information évaluative complémentaire du
+contenu.
+
+\paragraph{LLM-juge.} Plus récemment, l'usage de grands modèles de langage
+comme évaluateurs (\emph{LLM-as-a-judge}) a été étudié systématiquement par
+Zheng et al. (2023) : sur MT-Bench, l'accord entre GPT-4 et des juges humains
+atteint celui mesuré \emph{entre} juges humains, tout en exhibant des biais
+connus (position, verbosité, auto-préférence). Ces résultats fondent à la fois
+la crédibilité de notre pipeline de notation et la nécessité du garde-fou
+humain et de la validation empirique entreprise au chapitre 5. Enfin, la
+transcription s'appuie sur Whisper (Radford et al., 2023), dont la robustesse
+multilingue conditionne notre support de cinq langues de soutenance.
+
+\paragraph{Positionnement.} À notre connaissance, ces briques n'avaient pas
+été assemblées en un outil opérationnel \emph{de bout en bout} pour la
+soutenance académique : gestion des classes et des passages, salle
+interactive, questions générées et posées vocalement, notation multicritère
+justifiée et validée par l'enseignant. C'est ce vide applicatif --- plus que
+théorique --- que comble SoutenanceAI.
+
 \section{Objectifs du projet}
 
 \begin{itemize}
@@ -836,7 +876,11 @@ latence et la charge.
 \section{Django et le pattern MVT}
 \label{sec:mvt}
 
-Django implémente une variante du patron MVC appelée \textbf{MVT}
+Le projet utilise \textbf{Django 4.2.16}, version LTS (\emph{Long Term
+Support}) choisie pour sa stabilité et son support de sécurité étendu ---
+un choix assumé face aux versions plus récentes, cohérent avec un produit
+destiné à fonctionner plusieurs années en environnement académique. Django
+implémente une variante du patron MVC appelée \textbf{MVT}
 (\emph{Model-View-Template}). La correspondance est la suivante :
 
 \begin{table}[H]
@@ -1062,50 +1106,81 @@ variables CSS, landing page marketing dédiée.
 
 \begin{figure}[H]
 \centering
-\resizebox{0.99\textwidth}{!}{%
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
-  bloc/.style={rectangle, rounded corners, draw=indigodark, thick,
-               fill=grisclair, font=\small\bfseries, align=center,
-               minimum height=1.0cm, inner xsep=8pt},
-  ext/.style={rectangle, rounded corners, draw=violet, thick, fill=violet!8,
-              font=\small\bfseries, align=center, minimum height=1.0cm,
-              inner xsep=8pt},
+  bloc/.style={rectangle, rounded corners=3pt, draw=indigodark, thick,
+               fill=white, font=\small\bfseries, align=center,
+               minimum height=1.15cm, text width=3.9cm, inner sep=5pt},
+  ext/.style={rectangle, rounded corners=3pt, draw=violet, thick,
+              fill=violet!8, font=\small\bfseries, align=center,
+              minimum height=1.15cm, text width=3.3cm, inner sep=5pt},
   lien/.style={{Stealth}-{Stealth}, thick, draw=grisfonce},
   lienu/.style={-{Stealth}, thick, draw=grisfonce},
-  note/.style={font=\scriptsize, color=grisfonce},
+  note/.style={font=\scriptsize, color=grisfonce, fill=white, inner sep=1pt},
+  zone/.style={rectangle, rounded corners=6pt, draw=grisfonce!60, dashed,
+               thick, inner sep=10pt},
+  zonelabel/.style={font=\small\bfseries\itshape, color=grisfonce,
+                    anchor=south west},
 ]
-  % Clients
-  \node[bloc] (etu) at (0,4.2) {Navigateur étudiant\\PDF.js, face-api.js,\\Web Speech, MediaRecorder};
-  \node[bloc] (prof) at (0,1.2) {Navigateur professeur\\suivi live};
+  % ════ Couche clients (navigateurs) ════
+  \node[bloc] (etu)  at (0,5.4) {Navigateur étudiant\\
+        \footnotesize PDF.js, face-api.js,\\ \footnotesize Web Speech, MediaRecorder};
+  \node[bloc] (prof) at (0,1.4) {Navigateur professeur\\
+        \footnotesize suivi live temps réel};
 
-  % Serveur
-  \node[bloc, fill=indigo!14, minimum width=4.6cm] (daphne) at (5.8,2.7) {Daphne (ASGI)\\ProtocolTypeRouter};
-  \node[bloc] (views) at (10.6,4.4) {Vues Django (HTTP)\\accounts / sessions\_app /\\notation / presentation};
-  \node[bloc] (cons) at (10.6,1.0) {Consumers Channels\\LivePassage / AudioStream};
-  \node[bloc] (pipe) at (15.2,4.4) {Pipeline notation\\agents + orchestrateur};
-  \node[bloc] (bdd) at (15.2,1.0) {Base de données\\SQLite / PostgreSQL};
+  % ════ Couche serveur (Django / ASGI) ════
+  \node[bloc, fill=indigo!14] (daphne) at (5.6,3.4)  {Daphne (ASGI)\\
+        \footnotesize ProtocolTypeRouter};
+  \node[bloc] (views)  at (11.2,5.4) {Vues Django (HTTP)\\
+        \footnotesize accounts, sessions\_app,\\ \footnotesize notation, presentation};
+  \node[bloc] (cons)   at (11.2,1.4) {Consumers Channels\\
+        \footnotesize LivePassage,\\ \footnotesize AudioStream};
+  \node[bloc] (pipe)   at (16.6,5.4) {Pipeline de notation\\
+        \footnotesize agents + orchestrateur};
+  \node[bloc] (bdd)    at (16.6,1.4) {Base de données\\
+        \footnotesize SQLite / PostgreSQL};
 
-  % Externes
-  \node[ext] (groq) at (20.0,2.4) {Groq\\Whisper large-v3};
-  \node[ext] (claude) at (20.0,4.6) {Anthropic\\Claude};
-  \node[ext] (smtp) at (20.0,0.4) {SMTP Gmail\\rappels, notifications};
+  % ════ Couche services externes ════
+  \node[ext] (claude) at (22.0,5.4) {Anthropic\\ \footnotesize Claude};
+  \node[ext] (groq)   at (22.0,3.4) {Groq\\ \footnotesize Whisper large-v3};
+  \node[ext] (smtp)   at (22.0,1.4) {SMTP Gmail\\ \footnotesize rappels, notifications};
 
-  \draw[lien] (etu.east) -- node[note, above]{HTTP + WS} (daphne.west|-etu.east);
-  \draw[lien] (prof.east) -- node[note, below]{WS live} (daphne.west|-prof.east);
-  \draw[lien] (daphne) -- (views.west);
-  \draw[lien] (daphne) -- (cons.west);
-  \draw[lienu] (views) -- (pipe);
-  \draw[lien] (views.south) -- (bdd.north west);
-  \draw[lien] (cons) -- (bdd);
-  \draw[lien, draw=grisfonce!60, dashed] (cons.north) -- node[note, right]{channel layer} (views.south);
-  \draw[lienu] (cons.east) -- node[note, above, pos=0.7]{chunks 30 s} (groq.west);
-  \draw[lienu] (pipe.east) -- (claude.west);
-  \draw[lienu] (views.east) -- ($(smtp.west)+(0,0.15)$);
+  % ════ Zones en arrière-plan ════
+  \begin{scope}[on background layer]
+    \node[zone, fill=grisclair!60, fit=(etu)(prof)] (zclients) {};
+    \node[zone, fill=indigo!4, fit=(daphne)(views)(cons)(pipe)(bdd)] (zserveur) {};
+    \node[zone, fill=violet!4, fit=(claude)(groq)(smtp)] (zext) {};
+  \end{scope}
+  \node[zonelabel] at (zclients.north west) {Clients};
+  \node[zonelabel] at (zserveur.north west) {Serveur SoutenanceAI};
+  \node[zonelabel] at (zext.north west) {Services externes};
+
+  % ════ Flux ════
+  \draw[lien]  (etu.east)  -- node[note, above]{HTTP + WebSocket} (daphne.north west);
+  \draw[lien]  (prof.east) -- node[note, below]{WebSocket live} (daphne.south west);
+  \draw[lien]  (daphne.north east) -- (views.west);
+  \draw[lien]  (daphne.south east) -- (cons.west);
+  \draw[lienu] (views.east) -- (pipe.west);
+  \draw[lien]  (views.south) -- node[note, right, pos=0.6]{ORM} (cons.north -| views.south) ;
+  \draw[lien]  (cons.east)  -- (bdd.west);
+  \draw[lienu] (pipe.south) -- (bdd.north);
+  \draw[lienu] (cons.north east) .. controls (14.0,3.4) ..
+               node[note, above, pos=0.35]{chunks audio 30 s} (groq.west);
+  \draw[lienu] (pipe.east)  -- node[note, above]{contexte JSON} (claude.west);
+  \draw[lienu] (views.north) .. controls (14.0,7.2) and (19.6,7.0) ..
+               node[note, above]{emails} (smtp.north);
 \end{tikzpicture}%
 }
-\caption{Architecture générale : clients, serveur ASGI, services externes}
+\caption{Architecture générale en trois couches : clients, serveur ASGI,
+services externes}
 \label{fig:archi}
 \end{figure}
+
+Le serveur expose deux protocoles derrière un même processus Daphne : le HTTP
+classique (vues Django, pattern MVT) et le WebSocket (consumers Channels).
+Le \emph{channel layer} relie les deux mondes : la flèche « ORM » entre vues
+et consumers symbolise aussi les diffusions de groupe émises par le pipeline
+et reçues par les WebSockets du professeur.
 
 % ============================================================================
 \chapter{Réalisation}
@@ -1402,6 +1477,92 @@ canal live), envoie un chunk binaire avec Whisper mocké, et vérifie que le
 professeur reçoit l'événement \texttt{transcription\_chunk} --- soit le
 parcours complet des messages 9 à 12 de la figure~\ref{fig:seq1}.
 
+\section{Couverture de code}
+
+La couverture, mesurée avec \texttt{pytest-cov}, s'établit à \textbf{56\,\%}
+des 2\,945 instructions du projet. Ce chiffre global masque une répartition
+volontairement inégale, que le tableau suivant rend explicite :
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lrl}
+\toprule
+\textbf{Module} & \textbf{Couverture} & \textbf{Commentaire} \\
+\midrule
+\texttt{accounts/decorators.py} & 100\,\% & contrôle d'accès : critique \\
+\texttt{accounts/models.py}, \texttt{notation/models.py} & 100\,\% & modèles métier \\
+\texttt{sessions\_app/models.py} & 99\,\% & modèles métier \\
+\texttt{notation/views.py} & 100\,\% & validation des notes \\
+\texttt{presentation/views.py} & 89\,\% & salle et APIs étudiant \\
+\texttt{notation/consumers.py} & 87\,\% & WebSockets \\
+\texttt{accounts/forms.py}, \texttt{sessions\_app/forms.py} & 78--82\,\% & validation des entrées \\
+\texttt{notation/agents.py} & 65\,\% & agents IA (mockés) \\
+\texttt{sessions\_app/views.py} & 32\,\% & inclut exports XLSX et imports \\
+\texttt{notation/rapports.py}, \texttt{importation.py} & 16--17\,\% & génération PDF, parsing fichiers \\
+\bottomrule
+\end{tabular}
+\caption{Couverture de code par module (totale : 56\,\%, 258 tests)}
+\end{table}
+
+La stratégie assumée : couvrir d'abord ce qui protège (contrôle d'accès,
+modèles, consumers) et ce qui décide (validation des notes), avant les
+utilitaires de confort (exports Excel, parsing d'imports, mise en page PDF)
+dont les défaillances sont visibles et sans risque pour les données.
+
+\section{Validation empirique préliminaire des styles de notation}
+\label{sec:validation}
+
+Le double axe de personnalité n'aurait aucune valeur si les styles
+produisaient les mêmes notes. Un protocole de validation préliminaire a donc
+été exécuté sur l'axe \emph{notation} : une transcription \textbf{fixe}
+(présentation de qualité moyenne : structure correcte, chiffres précis,
+hésitations modérées, limites annoncées), un style de questionnement fixe
+(Mentor), l'ajustement anti-stress \textbf{désactivé}, et trois critères
+pondérés constants. Chaque style de notation est appelé \textbf{trois fois} ;
+on mesure la moyenne pondérée des notes par critère.
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Style de notation} & \textbf{Barème annoncé} & \textbf{Moyenne /20 ($n=3$)} & \textbf{Écart-type} \\
+\midrule
+Le Généreux    & $\approx$ 15--18 & \textbf{15{,}50} & 0{,}00 \\
+Le Comptable   & (précision)      & \textbf{15{,}38} & 0{,}23 \\
+L'Indulgent    & $\approx$ 13--16 & \textbf{14{,}78} & 0{,}49 \\
+Le Juste       & $\approx$ 12--15 & \textbf{14{,}72} & 0{,}46 \\
+L'Avare        & $\approx$ 10--13 & \textbf{11{,}86} & 0{,}51 \\
+Le Sévère      & $\approx$ 8--12  & \textbf{11{,}17} & 1{,}00 \\
+Le Terroriste  & $\leq$ 10        & \textbf{7{,}25}  & 0{,}14 \\
+\bottomrule
+\end{tabular}
+\caption{Notes moyennes par style de notation, transcription et critères
+constants (21 appels réels à l'API Claude, script
+\texttt{\_validation\_styles.py} versionné dans le dépôt)}
+\label{tab:validation}
+\end{table}
+
+Trois enseignements :
+\begin{enumerate}
+  \item \textbf{l'ordre observé est strictement conforme aux barèmes
+        annoncés} : Généreux $>$ Indulgent $>$ Juste $>$ Avare $>$ Sévère $>$
+        Terroriste, avec un écart de \textbf{8{,}25 points} entre les
+        extrêmes sur une même prestation --- les system prompts pilotent donc
+        réellement la sévérité ;
+  \item \textbf{la répétabilité est bonne} : écart-type maximal de 1{,}00
+        point (Sévère), nul pour Généreux --- la note n'est pas un tirage
+        aléatoire ;
+  \item le Comptable, qui prescrit la précision décimale et non la sévérité,
+        note au niveau du haut du panel : cohérent avec sa définition, mais
+        c'est un point de vigilance pour les professeurs qui l'associeraient
+        à de la dureté.
+\end{enumerate}
+
+Ces mesures restent \emph{préliminaires} : un seul échantillon de
+transcription, l'axe questionnement non balayé, pas d'analyse statistique
+inférentielle. Le protocole complet (corpus de transcriptions $\times$ 49
+combinaisons $\times$ répétitions, analyse de variance) reste en perspective.
+
 \section{Sécurité}
 
 \begin{itemize}
@@ -1471,15 +1632,15 @@ l'état actuel du prototype.
         prosodie) ne participent pas encore à cette décision alors qu'elles
         sont déjà collectées --- c'est une incohérence interne du système,
         connue et documentée.
-  \item \textbf{Les 49 combinaisons de personnalité ne sont pas validées
-        empiriquement.} Les tests garantissent que chaque style injecte bien
-        son prompt (vérifié par mock), mais aucune donnée ne prouve à ce jour
-        que « Terroriste » note significativement plus bas que « Généreux » à
-        prestation égale, ni que l'écart est stable d'un appel à l'autre. Un
-        protocole existe (corpus de transcriptions fixes $\times$ 49
-        combinaisons $\times$ $n$ répétitions, analyse de variance) mais n'a
-        pas été exécuté, faute de budget d'API --- c'est la première
-        perspective de la section suivante.
+  \item \textbf{La validation empirique des personnalités reste partielle.}
+        L'axe \emph{notation} a été validé préliminairement
+        (section~\ref{sec:validation} : ordre strictement conforme aux
+        barèmes, écart de 8{,}25 points entre extrêmes, écart-type $\leq 1$),
+        mais sur une seule transcription ; l'axe \emph{questionnement}, les
+        interactions entre les deux axes et la stabilité inter-prestations ne
+        sont pas mesurés. Le protocole complet (corpus $\times$ 49
+        combinaisons $\times$ répétitions, analyse de variance) reste à
+        exécuter.
   \item \textbf{La conversion PPTX $\to$ PDF n'a pas été mesurée en charge.}
         LibreOffice headless traite un fichier en 5 à 15 secondes sur la
         machine de développement, séquentiellement. Vingt étudiants qui
@@ -1516,12 +1677,40 @@ humain --- qui constitue, à notre sens, la véritable contribution de
 SoutenanceAI.
 
 % ============================================================================
-\chapter*{Webographie}
-\addcontentsline{toc}{chapter}{Webographie}
+\chapter*{Bibliographie et webographie}
+\addcontentsline{toc}{chapter}{Bibliographie et webographie}
 % ============================================================================
 
+\section*{Références académiques}
+
 \begin{itemize}
-  \item Documentation Django 4.2 --- \url{https://docs.djangoproject.com/fr/4.2/}
+  \item Page, E.~B. (1966). \emph{The imminence of grading essays by
+        computer}. Phi Delta Kappan, 47(5), 238--243.
+  \item Attali, Y., Burstein, J. (2006). \emph{Automated essay scoring with
+        e-rater v.2}. Journal of Technology, Learning and Assessment, 4(3).
+  \item Zechner, K., Higgins, D., Xi, X., Williamson, D.~M. (2009).
+        \emph{Automatic scoring of non-native spontaneous speech in tests of
+        spoken English}. Speech Communication, 51(10), 883--895.
+  \item Chen, L., Feng, G., Joe, J., Leong, C.~W., Kitchen, C., Lee, C.~M.
+        (2014). \emph{Towards Automated Assessment of Public Speaking Skills
+        Using Multimodal Cues}. Proceedings of ICMI~2014.
+  \item Wörtwein, T., Chollet, M., Schauerte, B., Morency, L.-P.,
+        Stiefelhagen, R., Scherer, S. (2015). \emph{Multimodal Public Speaking
+        Performance Assessment}. Proceedings of ICMI~2015.
+  \item Radford, A., Kim, J.~W., Xu, T., Brockman, G., McLeavey, C.,
+        Sutskever, I. (2023). \emph{Robust Speech Recognition via Large-Scale
+        Weak Supervision} (Whisper). Proceedings of ICML~2023.
+  \item Zheng, L., Chiang, W.-L., Sheng, Y., et al. (2023). \emph{Judging
+        LLM-as-a-Judge with MT-Bench and Chatbot Arena}. Proceedings of
+        NeurIPS~2023.
+\end{itemize}
+
+\section*{Documentation technique}
+
+\begin{itemize}
+  \item Documentation Django 4.2 LTS (version 4.2.16 utilisée par le projet,
+        support étendu jusqu'en avril 2026) ---
+        \url{https://docs.djangoproject.com/fr/4.2/}
   \item Django Channels --- \url{https://channels.readthedocs.io/}
   \item API Anthropic (Claude) --- \url{https://docs.anthropic.com/}
   \item API Groq (Whisper) --- \url{https://console.groq.com/docs/}
@@ -1587,6 +1776,21 @@ principaux.
   \fbox{\includegraphics[width=0.92\textwidth]{captures/salle.png}}
   \caption{Salle de soutenance : slides (PDF.js), webcam étudiant, avatar du
   jury IA, timer et contrôles}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.80\textwidth]{captures/notes-validation.png}}
+  \caption{Validation des notes par le professeur : pour chaque critère, note
+  IA, justificatif citant la prestation, note finale ajustable et commentaire
+  --- moyenne pondérée recalculée avec détail du calcul (objectif O3)}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.92\textwidth]{captures/notes-session.png}}
+  \caption{Vue d'ensemble des notes d'une soutenance, avec export Excel et
+  rapport PDF par passage}
 \end{figure}
 
 \end{document}

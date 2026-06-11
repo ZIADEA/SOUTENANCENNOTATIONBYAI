@@ -1,0 +1,65 @@
+{
+  "genereux": {
+    "moyenne": 15.5,
+    "ecart_type": 0.0,
+    "notes": [
+      15.5,
+      15.5,
+      15.5
+    ]
+  },
+  "indulgent": {
+    "moyenne": 14.78,
+    "ecart_type": 0.49,
+    "notes": [
+      15.33,
+      14.58,
+      14.42
+    ]
+  },
+  "juste": {
+    "moyenne": 14.72,
+    "ecart_type": 0.46,
+    "notes": [
+      14.42,
+      14.5,
+      15.25
+    ]
+  },
+  "avare": {
+    "moyenne": 11.86,
+    "ecart_type": 0.51,
+    "notes": [
+      11.42,
+      11.75,
+      12.42
+    ]
+  },
+  "severe": {
+    "moyenne": 11.17,
+    "ecart_type": 1.0,
+    "notes": [
+      12.17,
+      10.17,
+      11.17
+    ]
+  },
+  "terroriste": {
+    "moyenne": 7.25,
+    "ecart_type": 0.14,
+    "notes": [
+      7.17,
+      7.17,
+      7.42
+    ]
+  },
+  "comptable": {
+    "moyenne": 15.38,
+    "ecart_type": 0.23,
+    "notes": [
+      15.25,
+      15.65,
+      15.25
+    ]
+  }
+}

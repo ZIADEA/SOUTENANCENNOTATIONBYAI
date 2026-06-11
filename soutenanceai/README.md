@@ -521,6 +521,26 @@ agrégées (contact visuel %, émotion dominante, débit de parole interprété,
 variation d'intonation), durée réelle vs prévue — et doit répondre en **JSON strict**
 avec une note et un justificatif **citant le texte** pour chaque critère.
 
+### Validation empirique des styles (mesures réelles)
+
+Protocole : transcription fixe, questionnement fixe (Mentor), anti-stress
+désactivé, 7 styles de notation × 3 répétitions (21 appels Claude réels —
+script `_validation_styles.py`) :
+
+| Style | Barème annoncé | Moyenne /20 (n=3) | σ |
+|---|---|---|---|
+| Généreux | ≈ 15–18 | **15,50** | 0,00 |
+| Comptable | (précision) | **15,38** | 0,23 |
+| Indulgent | ≈ 13–16 | **14,78** | 0,49 |
+| Juste | ≈ 12–15 | **14,72** | 0,46 |
+| Avare | ≈ 10–13 | **11,86** | 0,51 |
+| Sévère | ≈ 8–12 | **11,17** | 1,00 |
+| Terroriste | ≤ 10 | **7,25** | 0,14 |
+
+Ordre strictement conforme aux barèmes, écart de **8,25 points** entre
+extrêmes sur la même prestation, écart-type ≤ 1 : les system prompts pilotent
+réellement et de façon répétable la sévérité.
+
 ### Notation de groupe
 Trois modes : note **identique** pour le groupe, note **individuelle** par membre
 (transcriptions séparées par locuteur grâce à l'identification faciale), ou **mixte**
@@ -542,6 +562,10 @@ pondéré (`coef_groupe × note_collective + coef_individuel × note_individuell
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/ -q
 # 258 passed
+
+.\.venv\Scripts\python.exe -m pytest tests/ --cov=accounts --cov=sessions_app --cov=notation --cov=presentation
+# Couverture globale : 56 % — cœur métier : décorateurs/modèles 99-100 %,
+# notation/views 100 %, presentation/views 89 %, consumers WebSocket 87 %
 ```
 
 Couverture fonctionnelle : modèles (génération de codes, statuts), vues (contrôle d'accès
