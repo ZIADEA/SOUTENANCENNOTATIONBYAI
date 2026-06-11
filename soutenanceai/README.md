@@ -14,6 +14,20 @@ une notation multi-critères justifiée — que le professeur valide, ajuste et 
 
 ---
 
+## Aperçu
+
+| Salle de soutenance (étudiant) | Dashboard professeur |
+|---|---|
+| ![Salle](../captures/salle.png) | ![Dashboard prof](../captures/dashboard-prof.png) |
+
+| Planification des passages | Page d'accueil |
+|---|---|
+| ![Planifier](../captures/planifier.png) | ![Landing](../captures/landing.png) |
+
+*Plus de captures dans le dossier [`captures/`](../captures/).*
+
+---
+
 ## Sommaire
 
 1. [Fonctionnalités](#fonctionnalités)

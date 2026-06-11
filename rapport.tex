@@ -589,6 +589,56 @@ multiplicités.
         traçabilité de l'ajustement humain est conservée.
 \end{itemize}
 
+\subsection*{Justification des arbitrages de conception}
+
+Un schéma de données est une suite de compromis ; les principaux arbitrages du
+projet, avec les alternatives écartées, sont les suivants.
+
+\begin{description}[style=nextline]
+  \item[Relation N--N \texttt{PassageEtudiant} $\leftrightarrow$ \texttt{User},
+        sans table intermédiaire explicite.]
+        Une table d'association enrichie (de type \texttt{Participation}) n'a
+        de valeur que si la relation porte des attributs propres. Ici, les
+        données « par étudiant dans le passage » sont la transcription
+        individuelle et les notes : les premières vivent dans un JSON dédié,
+        les secondes dans \texttt{NoteIA.etudiant}. Le \texttt{ManyToManyField}
+        natif suffit donc, et garde l'API ORM simple
+        (\texttt{passage.etudiants.all()}). Si un jour la relation devait
+        porter un état (présence, retard…), une migration vers
+        \texttt{through=} resterait possible sans changer l'API.
+  \item[Transcriptions individuelles en JSON plutôt qu'en table dédiée.]
+        Les chunks transcrits arrivent toutes les 30 s sur le WebSocket :
+        une table dédiée imposerait une écriture indexée par chunk, pour des
+        données qui ne sont jamais interrogées finement --- elles sont lues
+        \emph{en bloc} une seule fois, au moment de la notation. Le champ
+        \texttt{JSONField} (clé = id étudiant, valeur = texte cumulé) offre
+        l'écriture append la moins coûteuse et évite une jointure de plus dans
+        le pipeline. Contrepartie assumée : pas de requête SQL sur le contenu
+        des transcriptions individuelles --- besoin qui n'existe pas
+        aujourd'hui.
+  \item[\texttt{QuestionPosee} sans relation vers \texttt{CritereNotation}.]
+        Les questions de l'IA sont générées à partir du \emph{contenu} de la
+        présentation, pas de la grille : les rattacher a priori à un critère
+        serait arbitraire. Le rattachement se fait en aval : la session Q\&R
+        intégrale est réinjectée dans le contexte de notation, et c'est l'IA
+        évaluatrice qui mobilise les réponses pour noter le critère
+        « Réponses aux questions » --- avec justification textuelle. On évite
+        ainsi une classification artificielle question $\to$ critère.
+  \item[Codes d'accès de 8 caractères plutôt qu'UUID dans les URL.]
+        Le code doit être dicté à l'oral ou écrit au tableau. Un alphabet
+        \{A--Z, 0--9\} sur 8 positions offre $36^8 \approx 2{,}8 \times
+        10^{12}$ combinaisons, tirées via le module \texttt{secrets}
+        (cryptographique) avec re-tirage en cas de collision : illisible à
+        deviner, trivial à partager.
+  \item[Notation de groupe : trois modes plutôt qu'un.]
+        Le mode unique « note identique » (le plus simple) a été écarté car il
+        pénalise les groupes hétérogènes. Le mode individuel pur exige de
+        savoir \emph{qui parle} --- d'où l'identification faciale. Le mode
+        mixte pondéré ($c_g \times$ note collective $+ c_i \times$ note
+        individuelle) couvre le cas pédagogique le plus fréquent ; les
+        coefficients sont des champs du modèle, pas des constantes.
+\end{description}
+
 \paragraph{Cycle de vie d'un passage.} Le champ \texttt{statut} suit un
 automate strict, piloté par les vues et diffusé en temps réel au professeur :
 
@@ -625,7 +675,12 @@ se produit entre le navigateur de l'étudiant, le serveur Django (vues HTTP
 \emph{et} consumers WebSocket), les services IA externes et le navigateur du
 professeur, depuis l'ouverture de la salle jusqu'à la publication des notes.
 
-\begin{figure}[p]
+La lecture s'organise en deux temps : la figure~\ref{fig:seq1} couvre la
+préparation et la présentation orale (transcription continue) ; la
+figure~\ref{fig:seq2} couvre la session de questions, le pipeline de notation
+et la validation.
+
+\begin{figure}[H]
 \centering
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
@@ -634,104 +689,128 @@ professeur, depuis l'ouverture de la salle jusqu'à la publication des notes.
                minimum height=0.9cm, inner xsep=6pt},
   msg/.style={-{Stealth}, thick, draw=grisfonce},
   retour/.style={-{Stealth}, thick, dashed, draw=grisfonce},
-  auto/.style={-{Stealth}, thick, draw=indigo},
-  lbl/.style={font=\scriptsize, fill=white, inner sep=1pt},
+  lbl/.style={font=\scriptsize, fill=white, inner sep=1.5pt},
   phase/.style={font=\footnotesize\bfseries\itshape, color=indigodark},
-  life/.style={dashed, draw=grisfonce!70},
 ]
-  % ── Participants (x positions) ──
-  \def\xa{0}     % Étudiant (navigateur / salle)
-  \def\xb{4.6}   % Django HTTP (vues)
-  \def\xc{9.0}   % Consumer WS audio
-  \def\xd{12.6}  % Whisper (Groq)
-  \def\xe{15.8}  % Claude (Anthropic)
-  \def\xf{19.2}  % Professeur (suivi live WS)
-
-  \node[part] (pa) at (\xa,0)  {Étudiant\\(salle, navigateur)};
-  \node[part] (pb) at (\xb,0)  {Serveur Django\\(vues HTTP)};
-  \node[part] (pc) at (\xc,0)  {AudioStream\\Consumer (WS)};
-  \node[part] (pd) at (\xd,0)  {Whisper\\(API Groq)};
-  \node[part] (pe) at (\xe,0)  {Claude\\(API Anthropic)};
-  \node[part] (pf) at (\xf,0)  {Professeur\\(suivi live, WS)};
+  % ── Participants ──
+  \node[part] (pa) at (0,0)    {Étudiant\\(salle, navigateur)};
+  \node[part] (pb) at (5.0,0)  {Serveur Django\\(vues HTTP)};
+  \node[part] (pc) at (9.6,0)  {AudioStream\\Consumer (WS)};
+  \node[part] (pd) at (13.4,0) {Whisper\\(API Groq)};
+  \node[part] (pf) at (17.2,0) {Professeur\\(suivi live, WS)};
 
   % ── Lignes de vie ──
-  \foreach \x in {\xa,\xb,\xc,\xd,\xe,\xf}
-    \draw[life] (\x,-0.5) -- (\x,-29.3);
+  \draw[dashed, gray] (0,-0.5)    -- (0,-13.2);
+  \draw[dashed, gray] (5.0,-0.5)  -- (5.0,-13.2);
+  \draw[dashed, gray] (9.6,-0.5)  -- (9.6,-13.2);
+  \draw[dashed, gray] (13.4,-0.5) -- (13.4,-13.2);
+  \draw[dashed, gray] (17.2,-0.5) -- (17.2,-13.2);
 
-  % ════════ PHASE 0 : préparation ════════
-  \node[phase, anchor=west] at (-1.6,-1.0) {Phase 0 --- Préparation};
-  \draw[grisfonce!40] (-1.6,-1.3) -- (20.4,-1.3);
+  % ── Phase 0 ──
+  \node[phase, anchor=west] at (-1.4,-1.0) {Phase 0 --- Préparation};
+  \draw[gray!50] (-1.4,-1.25) -- (18.4,-1.25);
+  \draw[msg]    (0,-1.8) -- node[lbl]{1. GET /presentation/passage/id/salle/} (5.0,-1.8);
+  \draw[retour] (5.0,-2.4) -- node[lbl]{2. HTML salle + slides PDF (PDF.js)} (0,-2.4);
+  \draw[msg]    (0,-3.0) -- node[lbl, pos=0.45]{3. connexion WebSocket ws/passage/id/audio/} (9.6,-3.0);
+  \draw[retour] (9.6,-3.6) -- node[lbl]{4. audio\_ready} (0,-3.6);
+  \draw[msg]    (9.6,-4.2) -- node[lbl]{5. etudiant\_connecte (broadcast)} (17.2,-4.2);
 
-  \draw[msg] (\xa,-1.8) -- node[lbl]{1. GET /presentation/passage/id/salle/} (\xb,-1.8);
-  \draw[retour] (\xb,-2.4) -- node[lbl]{2. HTML salle + slides PDF (PDF.js)} (\xa,-2.4);
-  \draw[msg] (\xa,-3.0) -- node[lbl, pos=0.45]{3. Connexion WS /ws/passage/id/audio/} (\xc,-3.0);
-  \draw[retour] (\xc,-3.6) -- node[lbl]{4. audio\_ready} (\xa,-3.6);
-  \draw[msg] (\xc,-4.2) -- node[lbl, pos=0.55]{5. etudiant\_connecte (broadcast groupe)} (\xf,-4.2);
+  % ── Phase 1 ──
+  \node[phase, anchor=west] at (-1.4,-5.0) {Phase 1 --- Présentation orale};
+  \draw[gray!50] (-1.4,-5.25) -- (18.4,-5.25);
+  % auto-message TTS
+  \draw[msg, draw=indigo] (0,-5.8) -- ++(1.1,0) -- ++(0,-0.45) -- ++(-1.1,0);
+  \node[lbl, anchor=west] at (1.3,-6.0) {6. synthèse vocale : accueil (langue de la soutenance)};
+  \draw[msg]    (0,-6.9) -- node[lbl]{7. POST api/demarrer (statut = en\_cours)} (5.0,-6.9);
+  \draw[msg]    (5.0,-7.5) -- node[lbl, pos=0.55]{8. statut\_update (channel layer)} (17.2,-7.5);
 
-  % ════════ PHASE 1 : présentation ════════
-  \node[phase, anchor=west] at (-1.6,-5.0) {Phase 1 --- Présentation orale};
-  \draw[grisfonce!40] (-1.6,-5.3) -- (20.4,-5.3);
+  % boucle transcription
+  \draw[draw=indigo, thick, rounded corners] (-0.9,-8.1) rectangle (18.2,-12.0);
+  \node[font=\scriptsize\bfseries, fill=indigo!12, draw=indigo, inner sep=2pt,
+        anchor=west] at (-0.9,-8.1) {loop --- toutes les 30 s};
+  \draw[msg]    (0,-8.9) -- node[lbl]{9. chunk audio binaire (webm/opus)} (9.6,-8.9);
+  \draw[msg]    (9.6,-9.5) -- node[lbl]{10. transcription(chunk, langue)} (13.4,-9.5);
+  \draw[retour] (13.4,-10.1) -- node[lbl]{11. texte} (9.6,-10.1);
+  \draw[msg]    (9.6,-10.7) -- node[lbl]{12. transcription\_chunk (live)} (17.2,-10.7);
+  \draw[retour] (9.6,-11.4) -- node[lbl]{13. ack + persistance BDD (globale et par étudiant)} (0,-11.4);
 
-  \draw[auto] (\xa,-5.9) .. controls (\xa-1.3,-6.15) .. node[lbl, pos=0.5, xshift=-34pt]{6. TTS : accueil vocal} (\xa,-6.4);
-  \draw[msg] (\xa,-6.9) -- node[lbl]{7. POST api/demarrer (statut = en\_cours)} (\xb,-6.9);
-  \draw[msg] (\xb,-7.5) -- node[lbl, pos=0.62]{8. statut\_update (via channel layer)} (\xf,-7.5);
-
-  % Boucle transcription
-  \draw[draw=indigo, thick, rounded corners]
-        (-1.0,-8.1) rectangle (20.0,-11.6);
-  \node[font=\scriptsize\bfseries, fill=indigo!12, draw=indigo, inner sep=2pt]
-        at (0.6,-8.1) {loop : toutes les 30 s};
-  \draw[msg] (\xa,-8.8) -- node[lbl]{9. chunk audio binaire (webm/opus)} (\xc,-8.8);
-  \draw[msg] (\xc,-9.4) -- node[lbl]{10. transcription(chunk, langue)} (\xd,-9.4);
-  \draw[retour] (\xd,-10.0) -- node[lbl]{11. texte} (\xc,-10.0);
-  \draw[msg] (\xc,-10.6) -- node[lbl, pos=0.55]{12. transcription\_chunk (live)} (\xf,-10.6);
-  \draw[retour] (\xc,-11.2) -- node[lbl]{13. ack + sauvegarde BDD} (\xa,-11.2);
-
-  \draw[msg] (\xa,-12.2) -- node[lbl]{14. POST api/posture (regard, expressions, prosodie)} (\xb,-12.2);
-
-  % ════════ PHASE 2 : questions ════════
-  \node[phase, anchor=west] at (-1.6,-13.0) {Phase 2 --- Questions / réponses};
-  \draw[grisfonce!40] (-1.6,-13.3) -- (20.4,-13.3);
-
-  \draw[msg] (\xa,-13.9) -- node[lbl]{15. POST api/terminer-presentation} (\xb,-13.9);
-  \draw[msg] (\xb,-14.5) -- node[lbl, pos=0.5]{16. generer\_questions(transcription, slides, rapport, style)} (\xe,-14.5);
-  \draw[retour] (\xe,-15.1) -- node[lbl]{17. N questions (JSON)} (\xb,-15.1);
-  \draw[retour] (\xb,-15.7) -- node[lbl]{18. questions ; statut = questions} (\xa,-15.7);
-
-  % Boucle Q&R
-  \draw[draw=indigo, thick, rounded corners]
-        (-1.0,-16.3) rectangle (20.0,-21.4);
-  \node[font=\scriptsize\bfseries, fill=indigo!12, draw=indigo, inner sep=2pt]
-        at (0.85,-16.3) {loop : pour chaque question};
-  \draw[auto] (\xa,-16.9) .. controls (\xa-1.3,-17.15) .. node[lbl, pos=0.5, xshift=-40pt]{19. TTS : lecture question} (\xa,-17.4);
-  \draw[auto] (\xa,-17.9) .. controls (\xa-1.3,-18.15) .. node[lbl, pos=0.5, xshift=-42pt]{20. STT : réponse dictée} (\xa,-18.4);
-  \draw[msg] (\xa,-18.9) -- node[lbl]{21. POST api/repondre (question, réponse)} (\xb,-18.9);
-  \draw[msg] (\xb,-19.5) -- node[lbl, pos=0.5]{22. evaluer\_reponse(question, réponse, style)} (\xe,-19.5);
-  \draw[retour] (\xe,-20.1) -- node[lbl]{23. note + commentaire (JSON)} (\xb,-20.1);
-  \draw[retour] (\xb,-20.7) -- node[lbl]{24. évaluation ; QuestionPosee en BDD} (\xa,-20.7);
-
-  % ════════ PHASE 3 : notation ════════
-  \node[phase, anchor=west] at (-1.6,-22.2) {Phase 3 --- Pipeline de notation};
-  \draw[grisfonce!40] (-1.6,-22.5) -- (20.4,-22.5);
-
-  \draw[msg] (\xa,-23.1) -- node[lbl]{25. POST api/terminer-passage + upload vidéo} (\xb,-23.1);
-  \draw[auto] (\xb,-23.7) .. controls (\xb+1.4,-23.95) .. node[lbl, pos=0.5, xshift=66pt]{26. contexte : slides + rapport + posture + Q\&R} (\xb,-24.2);
-  \draw[auto] (\xb,-24.7) .. controls (\xb+1.4,-24.95) .. node[lbl, pos=0.5, xshift=64pt]{27. Orchestrateur : détection stress, ajustement} (\xb,-25.2);
-  \draw[msg] (\xb,-25.8) -- node[lbl, pos=0.5]{28. noter(ContexteNotation) --- styles ajustés} (\xe,-25.8);
-  \draw[retour] (\xe,-26.4) -- node[lbl]{29. JSON : note/20 + justificatif par critère + synthèse} (\xb,-26.4);
-  \draw[msg] (\xb,-27.0) -- node[lbl, pos=0.6]{30. note\_update (temps réel) ; statut = note} (\xf,-27.0);
-  \draw[auto] (\xb,-27.5) .. controls (\xb+1.4,-27.75) .. node[lbl, pos=0.5, xshift=62pt]{31. NoteIA en BDD ; email prof si session finie} (\xb,-28.0);
-
-  % ════════ PHASE 4 ════════
-  \node[phase, anchor=west] at (-1.6,-28.6) {Phase 4 --- Validation par le professeur};
-  \draw[grisfonce!40] (-1.6,-28.9) -- (20.4,-28.9);
-  \node[font=\scriptsize, anchor=west] at (10.2,-29.15)
-       {32. Consultation, ajustement des notes, export Excel, rapport PDF.};
+  \draw[msg] (0,-12.7) -- node[lbl]{14. POST api/posture (regard, expressions, prosodie --- toutes les 30 s)} (5.0,-12.7);
 \end{tikzpicture}%
 }
-\caption{Diagramme de séquence complet d'une soutenance, de l'ouverture de la
-salle à la publication des notes}
-\label{fig:sequence}
+\caption{Diagramme de séquence (1/2) : préparation et présentation orale avec
+transcription continue}
+\label{fig:seq1}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  part/.style={rectangle, draw=indigodark, thick, fill=indigo!12,
+               font=\footnotesize\bfseries, align=center,
+               minimum height=0.9cm, inner xsep=6pt},
+  msg/.style={-{Stealth}, thick, draw=grisfonce},
+  retour/.style={-{Stealth}, thick, dashed, draw=grisfonce},
+  lbl/.style={font=\scriptsize, fill=white, inner sep=1.5pt},
+  phase/.style={font=\footnotesize\bfseries\itshape, color=indigodark},
+]
+  % ── Participants ──
+  \node[part] (pa) at (0,0)    {Étudiant\\(salle, navigateur)};
+  \node[part] (pb) at (5.6,0)  {Serveur Django\\(vues + pipeline)};
+  \node[part] (pe) at (11.4,0) {Claude\\(API Anthropic)};
+  \node[part] (pf) at (16.2,0) {Professeur\\(suivi live, WS)};
+
+  % ── Lignes de vie ──
+  \draw[dashed, gray] (0,-0.5)    -- (0,-16.4);
+  \draw[dashed, gray] (5.6,-0.5)  -- (5.6,-16.4);
+  \draw[dashed, gray] (11.4,-0.5) -- (11.4,-16.4);
+  \draw[dashed, gray] (16.2,-0.5) -- (16.2,-16.4);
+
+  % ── Phase 2 ──
+  \node[phase, anchor=west] at (-1.4,-1.0) {Phase 2 --- Questions / réponses};
+  \draw[gray!50] (-1.4,-1.25) -- (17.4,-1.25);
+  \draw[msg]    (0,-1.8) -- node[lbl]{15. POST api/terminer-presentation} (5.6,-1.8);
+  \draw[msg]    (5.6,-2.4) -- node[lbl]{16. generer\_questions(transcription, slides, rapport, style)} (11.4,-2.4);
+  \draw[retour] (11.4,-3.0) -- node[lbl]{17. N questions (JSON)} (5.6,-3.0);
+  \draw[retour] (5.6,-3.6) -- node[lbl]{18. questions ; statut = questions} (0,-3.6);
+
+  % boucle Q&R
+  \draw[draw=indigo, thick, rounded corners] (-0.9,-4.2) rectangle (17.2,-9.4);
+  \node[font=\scriptsize\bfseries, fill=indigo!12, draw=indigo, inner sep=2pt,
+        anchor=west] at (-0.9,-4.2) {loop --- pour chaque question};
+  \draw[msg, draw=indigo] (0,-4.9) -- ++(1.1,0) -- ++(0,-0.4) -- ++(-1.1,0);
+  \node[lbl, anchor=west] at (1.3,-5.1) {19. synthèse vocale : lecture de la question};
+  \draw[msg, draw=indigo] (0,-5.7) -- ++(1.1,0) -- ++(0,-0.4) -- ++(-1.1,0);
+  \node[lbl, anchor=west] at (1.3,-5.9) {20. dictée vocale : réponse de l'étudiant (ou clavier)};
+  \draw[msg]    (0,-6.6) -- node[lbl]{21. POST api/repondre (question, réponse)} (5.6,-6.6);
+  \draw[msg]    (5.6,-7.2) -- node[lbl]{22. evaluer\_reponse(question, réponse, style)} (11.4,-7.2);
+  \draw[retour] (11.4,-7.8) -- node[lbl]{23. note + commentaire (JSON)} (5.6,-7.8);
+  \draw[retour] (5.6,-8.6) -- node[lbl]{24. évaluation ; QuestionPosee en BDD} (0,-8.6);
+
+  % ── Phase 3 ──
+  \node[phase, anchor=west] at (-1.4,-10.1) {Phase 3 --- Pipeline de notation};
+  \draw[gray!50] (-1.4,-10.35) -- (17.4,-10.35);
+  \draw[msg] (0,-10.9) -- node[lbl]{25. POST api/terminer-passage + upload vidéo} (5.6,-10.9);
+  \draw[msg, draw=indigo] (5.6,-11.4) -- ++(1.1,0) -- ++(0,-0.4) -- ++(-1.1,0);
+  \node[lbl, anchor=west] at (6.9,-11.6) {26. contexte : slides + rapport + posture + Q\&R + durées};
+  \draw[msg, draw=indigo] (5.6,-12.2) -- ++(1.1,0) -- ++(0,-0.4) -- ++(-1.1,0);
+  \node[lbl, anchor=west] at (6.9,-12.4) {27. Orchestrateur : détection stress, ajustement des styles};
+  \draw[msg]    (5.6,-13.2) -- node[lbl]{28. noter(ContexteNotation)} (11.4,-13.2);
+  \draw[retour] (11.4,-13.8) -- node[lbl]{29. JSON : note/20 + justificatif par critère + synthèse} (5.6,-13.8);
+  \draw[msg]    (5.6,-14.4) -- node[lbl, pos=0.55]{30. note\_update temps réel ; statut = note} (16.2,-14.4);
+  \draw[msg, draw=indigo] (5.6,-14.9) -- ++(1.1,0) -- ++(0,-0.4) -- ++(-1.1,0);
+  \node[lbl, anchor=west] at (6.9,-15.1) {31. NoteIA en BDD ; email au professeur si session terminée};
+
+  % ── Phase 4 ──
+  \node[phase, anchor=west] at (-1.4,-15.9) {Phase 4 --- Validation};
+  \draw[gray!50] (-1.4,-16.1) -- (17.4,-16.1);
+  \node[font=\scriptsize, anchor=west] at (8.2,-16.35)
+       {32. ajustement des notes, export Excel, rapport PDF};
+\end{tikzpicture}%
+}
+\caption{Diagramme de séquence (2/2) : questions/réponses, pipeline de
+notation et validation}
+\label{fig:seq2}
 \end{figure}
 
 \paragraph{Lecture du diagramme.} Trois canaux coexistent :
@@ -798,27 +877,25 @@ Le projet est découpé en \textbf{quatre applications} à responsabilité uniqu
 \section{ORM, migrations et intégrité}
 
 Toutes les tables sont décrites en Python ; les 9 migrations versionnées
-garantissent la reproductibilité du schéma. Exemple représentatif --- le
-modèle utilisateur à rôles :
+garantissent la reproductibilité du schéma (un \texttt{User} étendu de
+\texttt{AbstractUser} avec un champ \texttt{role}, et les six modèles métier
+de la figure~\ref{fig:classes}). Plutôt que de reproduire un modèle
+classique, montrons un mécanisme propre au projet : la \textbf{résolution de
+la transcription par étudiant} dans un passage de groupe. Chaque étudiant
+présente depuis son propre appareil ; l'identification faciale attribue les
+chunks transcrits au bon locuteur, stockés dans un champ JSON
+\texttt{transcriptions\_par\_etudiant}, avec repli sur la transcription
+globale :
 
-\begin{lstlisting}[language=Python, caption={Extrait de \texttt{accounts/models.py}}]
-class User(AbstractUser):
-    ROLE_SUPERADMIN = 'superadmin'
-    ROLE_PROFESSEUR = 'professeur'
-    ROLE_ETUDIANT   = 'etudiant'
-
-    role = models.CharField(max_length=15, choices=ROLE_CHOICES,
-                            default=ROLE_ETUDIANT)
-    sexe = models.CharField(max_length=1, choices=[('H','Homme'),('F','Femme')],
-                            blank=True, default='')
-    photo_profil = models.ImageField(upload_to='profils/', blank=True)
-    cree_par = models.ForeignKey('self', null=True, blank=True,
-                                 on_delete=models.SET_NULL,
-                                 related_name='comptes_crees')
-
-    @property
-    def is_professeur(self):
-        return self.role == self.ROLE_PROFESSEUR
+\begin{lstlisting}[language=Python, caption={Résolution de la transcription individuelle (\texttt{notation/pipeline.py})}]
+def _resoudre_transcription(passage: PassageEtudiant, etudiant) -> str:
+    """Transcription individuelle si l'étudiant a présenté depuis
+    son propre appareil, sinon transcription globale du passage."""
+    trans_indiv = (passage.transcriptions_par_etudiant or {}) \
+                      .get(str(etudiant.id))
+    if trans_indiv:
+        return trans_indiv          # notation individuelle possible
+    return passage.transcription    # repli : transcription commune
 \end{lstlisting}
 
 L'isolation entre professeurs est obtenue par une discipline systématique dans
@@ -851,10 +928,45 @@ classique et \texttt{ws://} vers deux consumers :
         (global + par étudiant identifié) et le diffuse au groupe.
 \end{itemize}
 
+Le cœur du second consumer illustre la mécanique complète : réception d'une
+trame binaire, transcription asynchrone, persistance et double diffusion
+(groupe + accusé direct) :
+
+\begin{lstlisting}[language=Python, caption={Réception d'un chunk audio (\texttt{notation/consumers.py}, abrégé)}]
+class AudioStreamConsumer(AsyncWebsocketConsumer):
+
+    async def receive(self, text_data=None, bytes_data=None):
+        if text_data:                      # trame JSON (ex: face_event)
+            return await self._handle_text(text_data)
+        if not bytes_data:
+            return
+        self.chunk_counter += 1
+        n = self.chunk_counter
+        chemin = await self._sauver_chunk(self.passage_id, n, bytes_data)
+        texte = await self._transcrire(chemin, self.langue)   # Whisper/Groq
+        if not texte:
+            return await self.send(json.dumps(
+                {'type': 'audio_ack', 'chunk': n, 'transcrit': False}))
+        # Persistance : transcription globale + individuelle (locuteur identifié)
+        await self._append_transcription(self.passage_id, texte)
+        await self._append_transcription_etudiant(
+            self.passage_id, self.user_id, texte)
+        # Diffusion temps réel au groupe (le professeur la reçoit en live)
+        await self.channel_layer.group_send(self.group_name, {
+            'type': 'transcription_chunk',
+            'payload': {'texte': texte, 'chunk': n,
+                        'user_id': self.user_id, 'nom': self.user_nom},
+        })
+        await self.send(json.dumps(
+            {'type': 'audio_ack', 'chunk': n, 'transcrit': True}))
+\end{lstlisting}
+
 La diffusion s'appuie sur le \emph{channel layer} (en mémoire en développement,
 Redis en production via \texttt{REDIS\_URL}) : un événement émis par le
 pipeline de notation côté HTTP est instantanément reçu par tous les WebSockets
-du groupe \texttt{passage\_<id>}.
+du groupe \texttt{passage\_<id>}. Les accès BDD depuis le contexte asynchrone
+passent par \texttt{database\_sync\_to\_async}, contrainte structurante de
+Channels que le projet respecte systématiquement.
 
 \section{La couche IA}
 
@@ -1123,6 +1235,49 @@ déroule les étapes suivantes :
         sont notés.
 \end{enumerate}
 
+L'extrait suivant montre la colonne vertébrale du pipeline : la collecte du
+contexte multimodal puis la boucle de notation par étudiant --- c'est ici que
+convergent toutes les sources de données du projet :
+
+\begin{lstlisting}[language=Python, caption={Cœur du pipeline (\texttt{notation/pipeline.py}, abrégé)}]
+def noter_passage(passage: PassageEtudiant) -> dict:
+    session = passage.session
+    contenu_slides  = extraire_texte_pptx(passage.fichier_pptx.path)
+    contenu_rapport = extraire_texte_pdf(passage.fichier_rapport.path)
+
+    # Agrégats comportementaux (face-api.js + Web Audio, calculés en série)
+    posture = resumer_posture(passage.donnees_posture.get('serie', []))
+    posture = enrichir_posture_avec_prosody(
+        posture, passage.donnees_posture.get('prosody', {}))
+
+    # Durée réelle et débit de parole (mots/min) déduits des horodatages
+    duree_reelle = (passage.date_fin - passage.date_debut).total_seconds() / 60
+    posture['debit_mots_par_min'] = round(
+        len(passage.transcription.split()) / duree_reelle, 1)
+
+    # Session Q&R intégrale, réinjectée dans le contexte d'évaluation
+    questions_reponses = [
+        {'question': q.question, 'reponse': q.reponse_etudiant or ''}
+        for q in QuestionPosee.objects.filter(passage=passage, auteur='ia')
+    ]
+
+    orchestrateur = Orchestrateur(
+        style_questionnement=session.style_questionnement,
+        style_notation=session.style_notation,
+        ajustement_auto=session.ajustement_auto_stress,
+    )
+    for etudiant in passage.etudiants.all():
+        ctx = ContexteNotation(
+            transcription=_resoudre_transcription(passage, etudiant),
+            contenu_slides=contenu_slides, contenu_rapport=contenu_rapport,
+            criteres=criteres_data, donnees_posture=posture,
+            questions_reponses=questions_reponses,
+            duree_prevue_min=session.duree_presentation,
+            duree_reelle_min=duree_reelle, ...)
+        resultat = orchestrateur.noter(ctx)      # appel Claude, JSON strict
+        _sauver_notes(passage, etudiant, resultat, criteres)
+\end{lstlisting}
+
 \section{Suivi live et validation par le professeur}
 
 La page de suivi live affiche en colonnes la transcription qui défile, le
@@ -1179,13 +1334,73 @@ externes :
 \caption{Cartographie de la suite de tests}
 \end{table}
 
-\begin{lstlisting}[language=Python, caption={Exemple : isolation entre professeurs}]
+Trois exemples illustrent les trois niveaux de difficulté de la suite.
+D'abord le test de sécurité le plus rentable du projet --- l'isolation entre
+professeurs, qui matérialise un risque métier réel :
+
+\begin{lstlisting}[language=Python, caption={Niveau 1 : isolation entre professeurs}]
 def test_prof_cannot_see_other_profs_session(self, client_prof, prof_user2, db):
     s2 = Session.objects.create(professeur=prof_user2, titre='Pas la mienne',
                                 langue='fr', duree_presentation=10)
     resp = client_prof.get(reverse('sessions_app:detail_session', args=[s2.pk]))
     assert resp.status_code == 404
 \end{lstlisting}
+
+Ensuite, le test des agents IA \emph{sans aucune clé API} : le client
+Anthropic est remplacé par un mock dont on contrôle la réponse, ce qui permet
+de vérifier le parsing JSON, la propagation des styles dans le system prompt
+et la robustesse aux réponses malformées :
+
+\begin{lstlisting}[language=Python, caption={Niveau 2 : mock de l'API Claude (\texttt{tests/test\_agents.py})}]
+@patch('notation.agents.get_client')
+def test_noter_styles_used_in_system_prompt(self, mock_get_client):
+    mock_client = MagicMock()
+    mock_client.messages.create.return_value = _make_claude_response(
+        json.dumps({'notes': [], 'synthese': '', 'ton_detecte': 'calme'}))
+    mock_get_client.return_value = mock_client
+
+    agent = AgentNotation('perfectionniste', 'severe')
+    agent.noter(_make_context())
+
+    # Le system prompt envoyé à Claude combine bien les DEUX axes choisis
+    system_used = mock_client.messages.create.call_args[1]['system']
+    assert QUESTIONNEMENT_PROMPTS['perfectionniste'][:20] in system_used
+    assert NOTATION_PROMPTS['severe'][:20] in system_used
+\end{lstlisting}
+
+Enfin, le niveau le plus technique : tester un \textbf{consumer WebSocket
+asynchrone}. Le consumer est monté dans un \texttt{URLRouter} de test (pour
+peupler \texttt{scope['url\_route']} comme en production), l'utilisateur est
+injecté dans le scope, et l'on vérifie le refus d'accès avec le bon code de
+fermeture :
+
+\begin{lstlisting}[language=Python, caption={Niveau 3 : consumer WebSocket asynchrone (\texttt{tests/test\_consumers.py})}]
+def make_ws_app_with_user(consumer_class, user=None):
+    router = URLRouter([re_path(
+        r'^ws/passage/(?P<passage_id>\d+)/(?:audio/)?$',
+        consumer_class.as_asgi())])
+    async def auth_inject(scope, receive, send):
+        if user is not None:
+            scope['user'] = user
+        await router(scope, receive, send)
+    return auth_inject
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_unauthorized_user_closes_4003(self, passage_obj, prof_user2):
+    """Un professeur étranger au passage est rejeté (code 4003)."""
+    app = ws_app(LivePassageConsumer, user=prof_user2)
+    communicator = WebsocketCommunicator(app, f'/ws/passage/{passage_obj.pk}/')
+    connected, code = await communicator.connect()
+    assert not connected
+    assert code == 4003
+\end{lstlisting}
+
+La suite couvre également la diffusion de bout en bout : un test connecte
+\emph{deux} communicateurs (étudiant sur le canal audio, professeur sur le
+canal live), envoie un chunk binaire avec Whisper mocké, et vérifie que le
+professeur reçoit l'événement \texttt{transcription\_chunk} --- soit le
+parcours complet des messages 9 à 12 de la figure~\ref{fig:seq1}.
 
 \section{Sécurité}
 
@@ -1233,6 +1448,54 @@ professeur (O1), salle immersive côté étudiant (O2), notation justifiée et
 ajustable (O3), cinq langues avec RTL (O4), qualité vérifiable --- 258 tests,
 contrôle d'accès systématique, secrets externalisés (O5).
 
+\section*{Bilan critique : ce que le projet ne fait pas (encore) bien}
+
+Un bilan honnête impose de nommer les limites et les compromis assumés en
+l'état actuel du prototype.
+
+\begin{itemize}
+  \item \textbf{Le pipeline de notation est synchrone et bloquant.} L'appel à
+        Claude (contexte volumineux) prend de l'ordre de 30 à 60 secondes
+        pendant lesquelles la requête HTTP reste ouverte. Acceptable pour un
+        passage isolé, inacceptable en charge : c'est la dette technique
+        n\up{o}~1, identifiée dès la conception (d'où l'isolation du pipeline
+        dans un module sans dépendance aux vues, prêt à être déplacé derrière
+        Celery sans réécriture).
+  \item \textbf{La détection de stress est une heuristique simpliste.} Elle
+        compte la densité d'une liste \emph{fixe et codée en dur} de marqueurs
+        d'hésitation (« euh », « heu », « je ne sais pas », points de
+        suspension…) rapportée au nombre de mots, avec deux seuils (2~\% et
+        5~\%). Elle n'est ni configurable par le professeur, ni validée
+        linguistiquement, ni adaptée aux cinq langues (les marqueurs sont
+        francophones). Les mesures comportementales (expressions faciales,
+        prosodie) ne participent pas encore à cette décision alors qu'elles
+        sont déjà collectées --- c'est une incohérence interne du système,
+        connue et documentée.
+  \item \textbf{Les 49 combinaisons de personnalité ne sont pas validées
+        empiriquement.} Les tests garantissent que chaque style injecte bien
+        son prompt (vérifié par mock), mais aucune donnée ne prouve à ce jour
+        que « Terroriste » note significativement plus bas que « Généreux » à
+        prestation égale, ni que l'écart est stable d'un appel à l'autre. Un
+        protocole existe (corpus de transcriptions fixes $\times$ 49
+        combinaisons $\times$ $n$ répétitions, analyse de variance) mais n'a
+        pas été exécuté, faute de budget d'API --- c'est la première
+        perspective de la section suivante.
+  \item \textbf{La conversion PPTX $\to$ PDF n'a pas été mesurée en charge.}
+        LibreOffice headless traite un fichier en 5 à 15 secondes sur la
+        machine de développement, séquentiellement. Vingt étudiants qui
+        déposent simultanément créeraient une file d'attente significative ;
+        la parade actuelle (page de salle qui se rafraîchit pendant la
+        conversion) masque la latence mais ne la réduit pas.
+  \item \textbf{Le channel layer en mémoire interdit le multi-processus.} En
+        l'état, un seul worker Daphne peut servir les WebSockets ; la bascule
+        Redis est prévue par configuration mais n'a pas été éprouvée.
+  \item \textbf{Aucun test d'interface de bout en bout.} Les 258 tests
+        couvrent modèles, vues, agents, pipeline et consumers, mais pas le
+        JavaScript de la salle (PDF.js, Web Speech, face-api.js), testé
+        uniquement à la main. Un crash de la dictée vocale côté navigateur ne
+        serait détecté par aucun test automatisé.
+\end{itemize}
+
 Le projet ouvre des perspectives claires :
 \begin{itemize}
   \item passage du pipeline de notation derrière \textbf{Celery + Redis} pour
@@ -1270,5 +1533,60 @@ SoutenanceAI.
   \item Lucide Icons --- \url{https://lucide.dev/}
   \item Web Speech API (MDN) --- \url{https://developer.mozilla.org/fr/docs/Web/API/Web_Speech_API}
 \end{itemize}
+
+% ============================================================================
+\chapter*{Annexe : captures d'écran de l'application}
+\addcontentsline{toc}{chapter}{Annexe : captures d'écran}
+% ============================================================================
+
+Les captures suivantes sont prises sur l'application en fonctionnement
+(données de démonstration). Elles illustrent le parcours des deux acteurs
+principaux.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.92\textwidth]{captures/landing.png}}
+  \caption{Page d'accueil publique : parcours professeur et étudiant, code de
+  classe, sélecteur de langue et thème}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.92\textwidth]{captures/inscription.png}}
+  \caption{Auto-inscription professeur (formulaire avec validation)}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.92\textwidth]{captures/dashboard-prof.png}}
+  \caption{Dashboard professeur : classes avec code d'accès, nombre
+  d'inscrits et soutenances}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.92\textwidth]{captures/detail-classe.png}}
+  \caption{Détail d'une classe : étudiants inscrits et soutenances}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.92\textwidth]{captures/planifier.png}}
+  \caption{Planification des passages : inscrits, création manuelle,
+  auto-planification et planning exportable}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.92\textwidth]{captures/dashboard-etudiant.png}}
+  \caption{Dashboard étudiant : classes, soutenances et état du passage}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.92\textwidth]{captures/salle.png}}
+  \caption{Salle de soutenance : slides (PDF.js), webcam étudiant, avatar du
+  jury IA, timer et contrôles}
+\end{figure}
 
 \end{document}
