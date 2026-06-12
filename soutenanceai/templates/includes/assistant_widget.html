@@ -1,8 +1,10 @@
 {% load i18n %}
-{# ── Assistant IA contextuel — widget flottant bas-gauche ─────────────────────
-   Include autonome : styles et script embarqués pour fonctionner sur toutes
-   les pages, y compris les standalone (landing, login...). Exclu de la salle
-   de soutenance. Ouverture auto via ?assistant=open (captures d'écran). #}
+{% comment %}
+Assistant IA contextuel — widget flottant bas-gauche.
+Include autonome : styles et script embarqués pour fonctionner sur toutes
+les pages, y compris les standalone (landing, login...). Exclu de la salle
+de soutenance. Ouverture auto via ?assistant=open (captures d'écran).
+{% endcomment %}
 <style>
 #ai-fab {
     position: fixed; bottom: 18px; left: 18px; z-index: 900;
