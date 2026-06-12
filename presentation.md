@@ -42,8 +42,15 @@ automatiser la mécanique sans retirer la décision au professeur. »
   **salle de soutenance interactive** → notation IA par critère → validation prof → exports PDF/Excel
 - Transcription en direct, questions posées **à voix haute**, analyse du
   comportement (regard, expressions, voix), notes justifiées
+- Et sur toutes les pages, un **assistant IA contextuel** : chacun peut poser
+  n'importe quelle question sur l'application — le prof peut même demander la
+  note d'un de ses étudiants, chacun limité à ses propres données
 
 **Visuel :** capture `captures/salle.png` (la salle : slides + webcam + jury IA).
+
+**Tu dis (1 phrase sur l'assistant, sans s'attarder) :** « Un assistant IA est
+intégré partout dans l'application : visiteur, étudiant ou professeur, chacun
+peut l'interroger sur le fonctionnement — ou sur ses propres données. »
 
 ---
 

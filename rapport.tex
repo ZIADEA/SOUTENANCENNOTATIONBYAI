@@ -150,7 +150,7 @@ Prototyping} : architecture \textbf{MVT} de Django, ORM et migrations,
 formulaires et validation, authentification multi-rôles, internationalisation
 (5 langues dont l'arabe en RTL), ainsi que des extensions avancées : WebSockets
 avec Django Channels (ASGI), pipeline d'agents IA configurables sur deux axes de
-personnalité, et une suite de \textbf{258 tests automatisés}.
+personnalité, et une suite de \textbf{270 tests automatisés}.
 
 \medskip
 \noindent\textbf{Mots-clés :} Django, MVT, WebSocket, Channels, IA générative,
@@ -304,7 +304,7 @@ prolonge :
 \toprule
 \textbf{Notion du cours} & \textbf{Mise en œuvre dans SoutenanceAI} \\
 \midrule
-Architecture MVC / MVT & 4 applications Django découpées par domaine ; séparation stricte modèles / vues / templates (§\ref{sec:mvt}) \\
+Architecture MVC / MVT & 5 applications Django découpées par domaine ; séparation stricte modèles / vues / templates (§\ref{sec:mvt}) \\
 ORM et migrations & 7 modèles métier, relations 1-N et N-N, propriétés calculées, 9 migrations versionnées \\
 URLs et vues & Routage par \texttt{include()} par application, vues fonctionnelles décorées \\
 Templates & Héritage (\texttt{base.html}), tags i18n, filtres personnalisés (\texttt{templatetags/extras.py}) \\
@@ -314,7 +314,7 @@ Fichiers statiques / médias & Upload PPTX/PDF/vidéo, conversion serveur, servi
 Internationalisation & 5 langues, \texttt{LocaleMiddleware}, RTL, compilation polib \\
 \emph{Extension} : ASGI & Django Channels, deux consumers WebSocket, Daphne \\
 \emph{Extension} : IA & SDK Anthropic et Groq, agents configurables, pipeline de notation \\
-\emph{Extension} : tests & pytest-django, pytest-asyncio --- 258 tests \\
+\emph{Extension} : tests & pytest-django, pytest-asyncio --- 270 tests \\
 \bottomrule
 \end{tabular}
 \caption{Correspondance entre le contenu du module et le projet}
@@ -361,6 +361,7 @@ BF-10 & Étudiant & Recevoir un rappel email 10 minutes avant son passage \\
 BF-11 & Étudiant & Consulter notes, synthèse, transcription et enregistrement \\
 BF-12 & Superadmin & Gérer les comptes professeurs et visualiser les statistiques \\
 BF-13 & Système & Transcrire l'audio par tranches de 30 s ; analyser le comportement ; noter chaque critère sur 20 avec justification \\
+BF-14 & Tous & Interroger un \textbf{assistant IA contextuel} présent sur toutes les pages (hors salle) : fonctionnement de l'application pour les visiteurs, données personnelles (passages, notes, paramètres) pour les utilisateurs connectés, chacun limité à ses propres données \\
 \bottomrule
 \end{tabular}
 \caption{Besoins fonctionnels principaux}
@@ -903,7 +904,7 @@ routeur d'URL résout la requête vers une \emph{vue}, qui orchestre modèles et
 templates. Cette inversion est au cœur de la productivité de Django : le
 développeur n'écrit que la logique métier.
 
-Le projet est découpé en \textbf{quatre applications} à responsabilité unique :
+Le projet est découpé en \textbf{cinq applications} à responsabilité unique :
 
 \begin{description}[style=nextline]
   \item[\texttt{accounts}] Utilisateur personnalisé, authentification,
@@ -917,6 +918,8 @@ Le projet est découpé en \textbf{quatre applications} à responsabilité uniqu
         rapports PDF.
   \item[\texttt{presentation}] Expérience étudiant : dashboard, dépôt de
         fichiers, salle de soutenance et ses APIs.
+  \item[\texttt{assistant}] Assistant IA contextuel : base de connaissances de
+        l'application, construction du contexte selon le rôle, endpoint de chat.
 \end{description}
 
 \section{ORM, migrations et intégrité}
@@ -1201,10 +1204,11 @@ soutenanceai/
 |-- notation/                    # NoteIA, agents, pipeline, services,
 |   |                            # consumers WS, rapports PDF
 |-- presentation/                # dashboard etudiant, upload, salle, APIs
+|-- assistant/                   # assistant IA contextuel (chat par role)
 |-- templates/                   # base.html, landing, pages par app
 |-- static/css|js|img            # main.css (variables, themes), avatars
 |-- locale/{en,ar,es,de}/        # traductions (fr = source)
-`-- tests/                       # 258 tests pytest
+`-- tests/                       # 270 tests pytest
 \end{lstlisting}
 
 \section{Authentification et parcours d'inscription}
@@ -1383,13 +1387,66 @@ variable d'environnement) :
         passage est noté.
 \end{itemize}
 
+\section{L'assistant IA contextuel}
+
+Un \textbf{assistant conversationnel} est intégré à toutes les pages de
+l'application (à l'exception de la salle de soutenance, pour ne pas distraire
+le candidat) sous la forme d'un widget flottant. N'importe quel utilisateur
+peut lui poser n'importe quelle question sur l'application --- son
+fonctionnement, sa conception, son auteur --- et obtenir une réponse dans sa
+langue.
+
+Son originalité tient au \textbf{contexte injecté selon le rôle} : le system
+prompt combine une base de connaissances statique (le fonctionnement complet
+décrit dans ce rapport) et une section de données construite dynamiquement
+pour l'utilisateur courant :
+
+\begin{itemize}
+  \item un \textbf{visiteur} de la page d'accueil obtient le fonctionnement
+        général, les technologies et l'auteur du projet ;
+  \item un \textbf{étudiant} peut interroger ses classes, ses passages
+        (heures, statuts) et ses notes ;
+  \item un \textbf{professeur} peut demander les paramètres de ses
+        soutenances, l'effet d'un réglage (« si j'active l'anti-stress, que se
+        passera-t-il ? ») et \emph{la note d'un de ses étudiants}, détaillée
+        par critère ;
+  \item le \textbf{superadmin} dispose des statistiques globales.
+\end{itemize}
+
+L'isolation des données est garantie par construction : le contexte est
+dérivé exclusivement des objets dont \texttt{request.user} est propriétaire,
+exactement comme dans les vues classiques --- et vérifié par les tests
+(un professeur ne voit jamais la classe d'un autre dans son contexte) :
+
+\begin{lstlisting}[language=Python, caption={Sélection du contexte par rôle (\texttt{assistant/context.py})}]
+def construire_contexte(user) -> str:
+    """Retourne la section « Données de l'utilisateur » selon le rôle."""
+    if not user.is_authenticated:
+        return ('Tu parles à un VISITEUR non connecté (page publique). '
+                "Tu ne disposes d'aucune donnée personnelle : réponds sur "
+                "le fonctionnement général de l'application...")
+    if user.is_superadmin:
+        return contexte_superadmin(user)   # statistiques globales
+    if user.is_professeur:
+        return contexte_professeur(user)   # SES classes, paramètres, notes
+    return contexte_etudiant(user)         # SES passages et notes
+\end{lstlisting}
+
+Côté implémentation : une cinquième application Django (\texttt{assistant}),
+un endpoint \texttt{POST /assistant/chat/} protégé par CSRF, l'historique de
+conversation conservé côté client (sessionStorage, douze derniers messages)
+et borné côté serveur, et un widget autonome (styles et script embarqués)
+inclus par un simple \texttt{\{\% include \%\}} dans les gabarits --- y
+compris les pages publiques. Le widget respecte le thème clair/sombre, le
+sens RTL en arabe, et ses libellés sont traduits dans les cinq langues.
+
 % ============================================================================
 \chapter{Tests, sécurité et qualité}
 % ============================================================================
 
 \section{Stratégie de tests}
 
-La suite compte \textbf{258 tests} (pytest, pytest-django, pytest-asyncio),
+La suite compte \textbf{270 tests} (pytest, pytest-django, pytest-asyncio),
 exécutables sans aucune clé API grâce au mocking systématique des services
 externes :
 
@@ -1405,6 +1462,7 @@ externes :
 \texttt{test\_pipeline} & Notes persistées par critère, moyenne pondérée, durée réelle \\
 \texttt{test\_consumers} & Connexions WS acceptées/refusées (4001, 4003), diffusion de la transcription au groupe, robustesse aux trames invalides \\
 \texttt{test\_services} & Transcription mockée, extraction PPTX/PDF réelles sur fichiers générés, agrégats de posture \\
+\texttt{test\_assistant} & Endpoint de chat (visiteur anonyme, validations, indisponibilité sans clé), contextes par rôle, \textbf{isolation des données entre professeurs} dans le contexte injecté \\
 \bottomrule
 \end{tabular}
 \caption{Cartographie de la suite de tests}
@@ -1480,8 +1538,8 @@ parcours complet des messages 9 à 12 de la figure~\ref{fig:seq1}.
 
 \section{Couverture de code}
 
-La couverture, mesurée avec \texttt{pytest-cov}, s'établit à \textbf{56\,\%}
-des 2\,945 instructions du projet. Ce chiffre global masque une répartition
+La couverture, mesurée avec \texttt{pytest-cov}, s'établit à \textbf{57\,\%}
+des 3\,083 instructions du projet. Ce chiffre global masque une répartition
 volontairement inégale, que le tableau suivant rend explicite :
 
 \begin{table}[H]
@@ -1496,13 +1554,14 @@ volontairement inégale, que le tableau suivant rend explicite :
 \texttt{notation/views.py} & 100\,\% & validation des notes \\
 \texttt{presentation/views.py} & 89\,\% & salle et APIs étudiant \\
 \texttt{notation/consumers.py} & 87\,\% & WebSockets \\
+\texttt{assistant/} (views, contextes) & 87--93\,\% & assistant IA contextuel \\
 \texttt{accounts/forms.py}, \texttt{sessions\_app/forms.py} & 78--82\,\% & validation des entrées \\
 \texttt{notation/agents.py} & 65\,\% & agents IA (mockés) \\
 \texttt{sessions\_app/views.py} & 32\,\% & inclut exports XLSX et imports \\
 \texttt{notation/rapports.py}, \texttt{importation.py} & 16--17\,\% & génération PDF, parsing fichiers \\
 \bottomrule
 \end{tabular}
-\caption{Couverture de code par module (totale : 56\,\%, 258 tests)}
+\caption{Couverture de code par module (totale : 57\,\%, 270 tests)}
 \end{table}
 
 La stratégie assumée : couvrir d'abord ce qui protège (contrôle d'accès,
@@ -1607,7 +1666,7 @@ d'une suite de tests substantielle.
 
 Les objectifs fixés au chapitre 1 sont atteints : gestion complète côté
 professeur (O1), salle immersive côté étudiant (O2), notation justifiée et
-ajustable (O3), cinq langues avec RTL (O4), qualité vérifiable --- 258 tests,
+ajustable (O3), cinq langues avec RTL (O4), qualité vérifiable --- 270 tests,
 contrôle d'accès systématique, secrets externalisés (O5).
 
 \section*{Bilan critique : ce que le projet ne fait pas (encore) bien}
@@ -1651,7 +1710,7 @@ l'état actuel du prototype.
   \item \textbf{Le channel layer en mémoire interdit le multi-processus.} En
         l'état, un seul worker Daphne peut servir les WebSockets ; la bascule
         Redis est prévue par configuration mais n'a pas été éprouvée.
-  \item \textbf{Aucun test d'interface de bout en bout.} Les 258 tests
+  \item \textbf{Aucun test d'interface de bout en bout.} Les 270 tests
         couvrent modèles, vues, agents, pipeline et consumers, mais pas le
         JavaScript de la salle (PDF.js, Web Speech, face-api.js), testé
         uniquement à la main. Un crash de la dictée vocale côté navigateur ne
@@ -1738,6 +1797,14 @@ principaux.
   \fbox{\includegraphics[width=0.92\textwidth]{captures/landing.png}}
   \caption{Page d'accueil publique : parcours professeur et étudiant, code de
   classe, sélecteur de langue et thème}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\includegraphics[width=0.92\textwidth]{captures/assistant.png}}
+  \caption{Assistant IA contextuel ouvert sur la page d'accueil (widget
+  flottant, présent sur toutes les pages hors salle) — le contexte de réponse
+  s'adapte au rôle : visiteur, étudiant, professeur ou superadmin}
 \end{figure}
 
 \begin{figure}[H]

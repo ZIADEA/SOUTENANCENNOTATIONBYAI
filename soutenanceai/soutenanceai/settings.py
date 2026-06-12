@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'sessions_app',
     'notation',
     'presentation',
+    'assistant',
 ]
 
 MIDDLEWARE = [

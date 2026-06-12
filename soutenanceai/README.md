@@ -105,6 +105,14 @@ une notation multi-critères justifiée — que le professeur valide, ajuste et 
 - Gestion des comptes professeurs, statistiques globales, accès à toutes les soutenances.
 
 ### Transverse
+- **Assistant IA contextuel sur toutes les pages** (sauf la salle) : un widget de
+  chat flottant permet de poser n'importe quelle question sur l'application.
+  Le contexte s'adapte au rôle : un **visiteur** obtient le fonctionnement
+  général et l'auteur du projet ; un **étudiant** peut interroger ses propres
+  passages et notes ; un **professeur** peut demander les paramètres de ses
+  soutenances, l'effet d'un réglage (« si j'active l'anti-stress, que se
+  passe-t-il ? ») et même **la note d'un de ses étudiants** — chacun n'accède
+  qu'à ses propres données.
 - **5 langues d'interface** : français, anglais, **arabe (RTL complet)**, espagnol, allemand —
   changement de langue sur toutes les pages, y compris la landing page et la salle.
 - **Thème clair / sombre** persistant avec script anti-flash.
@@ -123,11 +131,12 @@ une notation multi-critères justifiée — que le professeur valide, ajuste et 
 | IA — notation & questions | Anthropic **Claude** (modèle configurable via `.env`) |
 | IA — transcription | **Whisper large-v3** hébergé sur Groq (API) |
 | IA — comportement | **face-api.js** (expressions, reconnaissance) + Web Audio API (prosodie) — 100 % côté navigateur |
+| Assistant intégré | Widget de chat contextuel par rôle (endpoint Django + Claude) |
 | Fichiers | python-pptx, PyMuPDF, Pillow, conversion PPTX→PDF (LibreOffice ou PowerPoint COM) |
 | Rapports | ReportLab (PDF), openpyxl (Excel) |
 | Frontend | Templates Django + CSS/JS vanilla, PDF.js, Lucide icons |
 | i18n | Django i18n + polib (compilation .mo sans GNU gettext) |
-| Tests | pytest, pytest-django, pytest-asyncio — **258 tests** |
+| Tests | pytest, pytest-django, pytest-asyncio — **270 tests** |
 
 ---
 
@@ -230,12 +239,14 @@ soutenanceai/
 │   │                          # services (Whisper, PPTX, PDF, posture), rapports PDF,
 │   │                          # consumers WebSocket (live + audio)
 ├── presentation/              # Dashboard étudiant, upload fichiers, salle de soutenance,
+├── assistant/                 # Assistant IA contextuel : connaissance de l'app
+│                              # + contexte par rôle (visiteur/étudiant/prof/admin)
 │                              # APIs de salle (démarrer, terminer, répondre, posture…)
 ├── templates/                 # Templates Django (base.html + landing + pages)
 ├── static/css|js|img         # main.css (variables, thèmes), avatars jury
 ├── locale/{en,ar,es,de}/      # Traductions (fr = langue source)
 ├── fixtures/
-└── tests/                     # 258 tests pytest (modèles, vues, agents, pipeline,
+└── tests/                     # 270 tests pytest (assistant, modèles, vues, agents, pipeline,
                                # consumers WebSocket, services, emails)
 ```
 
@@ -561,7 +572,7 @@ pondéré (`coef_groupe × note_collective + coef_individuel × note_individuell
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/ -q
-# 258 passed
+# 270 passed
 
 .\.venv\Scripts\python.exe -m pytest tests/ --cov=accounts --cov=sessions_app --cov=notation --cov=presentation
 # Couverture globale : 56 % — cœur métier : décorateurs/modèles 99-100 %,

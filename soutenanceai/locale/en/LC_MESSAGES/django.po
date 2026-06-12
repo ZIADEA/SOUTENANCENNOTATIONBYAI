@@ -825,3 +825,26 @@ msgstr "Empty answer. Skip this question?"
 
 msgid "La soutenance est en cours. Quitter maintenant perdra l'enregistrement."
 msgstr "The defense is in progress. Leaving now will lose the recording."
+
+
+# ── Assistant IA ──────────────────────────────────────────────────────────────
+msgid "Assistant SoutenanceAI"
+msgstr "SoutenanceAI Assistant"
+
+msgid "Fermer"
+msgstr "Close"
+
+msgid "Posez votre question sur l’application…"
+msgstr "Ask your question about the application…"
+
+msgid "Envoyer"
+msgstr "Send"
+
+msgid "Bonjour ! Je suis l’assistant SoutenanceAI. Posez-moi n’importe quelle question sur l’application : fonctionnement, notation, paramétrage…"
+msgstr "Hello! I am the SoutenanceAI assistant. Ask me anything about the application: how it works, grading, settings…"
+
+msgid "L’assistant réfléchit…"
+msgstr "The assistant is thinking…"
+
+msgid "Désolé, une erreur est survenue. Réessayez dans un instant."
+msgstr "Sorry, an error occurred. Please try again in a moment."

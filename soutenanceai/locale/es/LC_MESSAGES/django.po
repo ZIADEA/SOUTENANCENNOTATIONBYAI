@@ -775,3 +775,26 @@ msgstr "Respuesta vacía. ¿Saltar esta pregunta?"
 
 msgid "La soutenance est en cours. Quitter maintenant perdra l'enregistrement."
 msgstr "La defensa está en curso. Salir ahora perderá la grabación."
+
+
+# ── Assistant IA ──────────────────────────────────────────────────────────────
+msgid "Assistant SoutenanceAI"
+msgstr "Asistente SoutenanceAI"
+
+msgid "Fermer"
+msgstr "Cerrar"
+
+msgid "Posez votre question sur l’application…"
+msgstr "Haga su pregunta sobre la aplicación…"
+
+msgid "Envoyer"
+msgstr "Enviar"
+
+msgid "Bonjour ! Je suis l’assistant SoutenanceAI. Posez-moi n’importe quelle question sur l’application : fonctionnement, notation, paramétrage…"
+msgstr "¡Hola! Soy el asistente de SoutenanceAI. Pregúnteme lo que quiera sobre la aplicación: funcionamiento, calificación, configuración…"
+
+msgid "L’assistant réfléchit…"
+msgstr "El asistente está pensando…"
+
+msgid "Désolé, une erreur est survenue. Réessayez dans un instant."
+msgstr "Lo sentimos, se produjo un error. Inténtelo de nuevo en un momento."

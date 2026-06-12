@@ -17,6 +17,7 @@ urlpatterns = [
     path('classes/rejoindre/<str:code>/', sessions_views.rejoindre_classe, name='rejoindre_classe'),
     path('notation/', include('notation.urls')),
     path('presentation/', include('presentation.urls')),
+    path('assistant/', include('assistant.urls')),
 ]
 
 if settings.DEBUG:

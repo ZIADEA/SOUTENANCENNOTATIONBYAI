@@ -1253,3 +1253,26 @@ msgstr "إجابة فارغة. تخطي هذا السؤال؟"
 
 msgid "La soutenance est en cours. Quitter maintenant perdra l'enregistrement."
 msgstr "المناقشة جارية. المغادرة الآن ستفقد التسجيل."
+
+
+# ── Assistant IA ──────────────────────────────────────────────────────────────
+msgid "Assistant SoutenanceAI"
+msgstr "مساعد SoutenanceAI"
+
+msgid "Fermer"
+msgstr "إغلاق"
+
+msgid "Posez votre question sur l’application…"
+msgstr "اطرح سؤالك حول التطبيق…"
+
+msgid "Envoyer"
+msgstr "إرسال"
+
+msgid "Bonjour ! Je suis l’assistant SoutenanceAI. Posez-moi n’importe quelle question sur l’application : fonctionnement, notation, paramétrage…"
+msgstr "مرحباً! أنا مساعد SoutenanceAI. اسألني أي سؤال عن التطبيق: طريقة العمل، التقييم، الإعدادات…"
+
+msgid "L’assistant réfléchit…"
+msgstr "المساعد يفكر…"
+
+msgid "Désolé, une erreur est survenue. Réessayez dans un instant."
+msgstr "عذراً، حدث خطأ. حاول مرة أخرى بعد قليل."
