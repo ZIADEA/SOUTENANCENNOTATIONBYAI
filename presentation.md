@@ -63,9 +63,10 @@ réel ; l'analyse faciale reste côté navigateur — confidentialité par conce
 
 ---
 
-## Slide 5 — Architecture (1 min)
+## Slide 5 — Architecture : le pattern MVT + le temps réel (1 min)
 
-**Contenu :** le schéma 3 couches :
+**Contenu :** un seul schéma, deux niveaux — l'architecture système (3 couches)
+ET le pattern **MVT** détaillé à l'intérieur du serveur Django :
 
 ```mermaid
 flowchart LR
@@ -73,31 +74,38 @@ flowchart LR
         E["Navigateur étudiant<br>PDF.js · face-api.js · Web Speech"]
         P["Navigateur professeur<br>suivi live"]
     end
-    subgraph "Serveur SoutenanceAI"
-        D["Daphne (ASGI)"]
-        V["Vues Django (HTTP)"]
-        C["Consumers Channels (WebSocket)"]
-        PL["Pipeline de notation"]
+    subgraph "Serveur SoutenanceAI — Daphne (ASGI)"
+        direction LR
+        subgraph "Django : pattern MVT"
+            direction TB
+            T["Templates<br>(présentation, i18n)"]
+            V["Views + URLconf<br>(logique, contrôle d'accès)"]
+            M["Models (ORM)<br>User · Classe · Session ·<br>Passage · NoteIA"]
+            T --- V --- M
+        end
+        C["Consumers Channels<br>(WebSocket temps réel)"]
+        PL["Pipeline de notation IA"]
         DB[("SQLite / PostgreSQL")]
+        M --> DB
+        V --> PL
+        C --> DB
     end
     subgraph "Services externes"
         CL["Claude"]
         W["Whisper (Groq)"]
     end
-    E <-->|HTTP + WS| D
-    P <-->|WS live| D
-    D --> V
-    D --> C
-    V --> PL
-    V --> DB
-    C --> DB
+    E <-->|HTTP| V
+    E <-->|WebSocket| C
+    P <-->|WebSocket live| C
     C -->|chunks 30 s| W
     PL -->|contexte JSON| CL
 ```
 
-**Tu dis :** « Un seul processus Daphne sert deux protocoles : le HTTP classique du
-pattern MVT, et le WebSocket pour le direct. Le channel layer relie les deux —
-c'est ce qui permet au professeur de voir la transcription en temps réel. »
+**Tu dis :** « À l'intérieur du serveur, c'est le pattern **MVT** du cours : les
+Templates pour la présentation, les Views pour la logique et le contrôle d'accès,
+les Models pour l'ORM — 4 applications Django découpées par domaine. À côté du
+MVT, les **consumers Channels** ajoutent le canal WebSocket : c'est ce qui permet
+au professeur de voir la transcription en temps réel. »
 
 ---
 
