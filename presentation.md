@@ -110,7 +110,7 @@ flowchart LR
 
 **Tu dis :** « À l'intérieur du serveur, c'est le pattern **MVT** du cours : les
 Templates pour la présentation, les Views pour la logique et le contrôle d'accès,
-les Models pour l'ORM — 4 applications Django découpées par domaine. À côté du
+les Models pour l'ORM — 5 applications Django découpées par domaine. À côté du
 MVT, les **consumers Channels** ajoutent le canal WebSocket : c'est ce qui permet
 au professeur de voir la transcription en temps réel. »
 
@@ -203,29 +203,35 @@ sequenceDiagram
    7 styles de questionnement × 7 barèmes de notation = 49 jurys possibles,
    chaque style étant un *system prompt* distinct envoyé à Claude.
 3. **La preuve que le paramètre agit vraiment** — protocole : *même prestation,
-   même grille, seul le style de notation change, 3 répétitions par style*
-   (21 appels réels) :
+   même grille, questionnement figé (Mentor), seul le style de notation varie* —
+   **les 7 styles de notation × 3 répétitions = 21 appels réels** :
 
-| Style choisi par le prof | Barème annoncé | Note obtenue /20 | σ |
+| Style de notation choisi | Barème annoncé | Note obtenue /20 | σ |
 |---|---|---|---|
 | Généreux | ≈ 15–18 | **15,50** | 0,00 |
+| Comptable | (précision) | **15,38** | 0,23 |
+| Indulgent | ≈ 13–16 | **14,78** | 0,49 |
 | Juste | ≈ 12–15 | **14,72** | 0,46 |
+| Avare | ≈ 10–13 | **11,86** | 0,51 |
 | Sévère | ≈ 8–12 | **11,17** | 1,00 |
 | Terroriste | ≤ 10 | **7,25** | 0,14 |
 
-**Tu dis :** « Question légitime : quand le prof choisit "Sévère", est-ce que ça
-change vraiment quelque chose, ou c'est cosmétique ? On l'a mesuré : même
-prestation, on ne fait varier QUE le style — l'écart atteint **8 points** entre
-les extrêmes, et chaque style retombe dans son barème annoncé avec un écart-type
-≤ 1. Le paramètre du professeur pilote donc réellement la note. Et tout le projet
-est vérifiable : **258 tests automatisés**. »
+**Tu dis :** « Le jury a deux axes : le ton des questions et la sévérité du
+barème — 7 × 7, donc 49 jurys possibles. Question légitime : quand le prof
+choisit "Sévère", est-ce que ça change vraiment quelque chose, ou c'est
+cosmétique ? On l'a mesuré sur l'axe qui fait la note : même prestation, même
+grille, on ne fait varier QUE le style de notation — les 7 styles, 3 fois
+chacun. L'écart atteint **8 points** entre les extrêmes, chaque style retombe
+dans son barème annoncé, écart-type ≤ 1. Le paramètre du professeur pilote donc
+réellement la note. Et tout le projet est vérifiable : **270 tests
+automatisés**. »
 
 ---
 
 ## Slide 8 — Conclusion (45 s)
 
 **Contenu :**
-- Application **complète et fonctionnelle** : 5 langues (RTL arabe), 258 tests,
+- Application **complète et fonctionnelle** : 5 langues (RTL arabe), 270 tests,
   isolation des données, secrets hors du code
 - Au-delà du CRUD : **HTTP + WebSocket + IA + multimédia** dans un même projet Django
 - *Automatiser la mécanique pour rendre du temps au jugement humain*
