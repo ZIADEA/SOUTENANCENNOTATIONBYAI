@@ -116,57 +116,75 @@ au professeur de voir la transcription en temps réel. »
 
 ---
 
-## Slide 6 — ⭐ Fonctionnement complet : du paramétrage à la note finale (2 min — LA slide)
+## Slide 6 — ⭐ Fonctionnement complet : diagramme de séquence (2 min — LA slide)
 
-> La slide que le prof attend, juste avant la démo. Flowchart en 3 temps
-> (AVANT / PENDANT / APRÈS) — il couvre TOUT : le paramétrage par le prof,
-> les mesures comportementales, les agents, et le calcul de la note finale.
+> La slide que le prof attend, juste avant la démo. Diagramme de séquence en
+> 4 phases, **technologies annotées sur les messages**, et tout y est : le
+> paramétrage du prof, les mesures comportementales, l'orchestrateur, l'agent
+> et le calcul de la note finale.
 
 ```mermaid
-flowchart TB
-    subgraph AVANT["1 · AVANT — le professeur paramètre la soutenance"]
-        direction LR
-        A1["Critères de notation<br>prédéfinis + personnalisés<br>chacun avec son COEFFICIENT"]
-        A2["Personnalité du jury IA<br>style de questionnement (7 choix)<br>× style de notation (7 choix)<br>+ garde-fou anti-stress (on/off)"]
-        A3["Durées · langue (5) ·<br>exigences : rapport PDF,<br>démo vidéo, dépôt GitHub"]
+sequenceDiagram
+    autonumber
+    actor P as Professeur
+    participant S as Serveur Django<br>(MVT + Channels)
+    actor E as Étudiant (salle)
+    participant W as Whisper<br>(Groq)
+    participant C as Claude<br>(Anthropic)
+
+    rect rgb(243, 244, 246)
+    note over P,C: Phase 0 — Paramétrage par le professeur
+    P->>S: configure la soutenance : critères + COEFFICIENTS,<br>jury IA (questionnement 7 × notation 7), anti-stress,<br>durées, langue, exigences (rapport, démo, GitHub)
+    P->>S: planifie les passages (manuel ou auto)
     end
 
-    subgraph PENDANT["2 · PENDANT — l'étudiant présente dans la salle"]
-        direction LR
-        B1["Micro → Whisper<br>transcription continue<br>(WebSocket, 30 s)"]
-        B2["Webcam + micro → navigateur<br>contact visuel · 7 expressions ·<br>débit de parole · silences"]
-        B3["Questions générées du<br>contenu réel, lues à voix haute<br>→ réponses à la voix, évaluées"]
+    rect rgb(238, 242, 255)
+    note over P,C: Phase 1 — Présentation
+    E->>S: Démarrer — accueil vocal de l'IA (Web Speech API)
+    loop toutes les 30 s
+        E->>S: chunk audio (WebSocket · Django Channels)
+        S->>W: transcription(chunk, langue) — whisper-large-v3
+        W-->>S: texte
+        S-->>P: transcription EN DIRECT (channel layer)
+    end
+    E->>S: mesures comportementales (face-api.js + Web Audio) :<br>contact visuel · 7 expressions · débit · silences
     end
 
-    subgraph APRES["3 · APRÈS — la notation"]
-        direction TB
-        C1["CONTEXTE COMPLET<br>transcription + slides + rapport<br>+ Q&R + mesures comportementales"]
-        C2{"Orchestrateur :<br>stress détecté ?"}
-        C3["Agent IA = les 2 styles choisis<br>note CHAQUE critère /20<br>avec justificatif citant la prestation<br>(les critères comportementaux utilisent les mesures)"]
-        C4["NOTE GLOBALE =<br>Σ (note critère × coefficient) / Σ coefficients<br>(+ notes démo vidéo et GitHub si exigées)"]
-        C5["Le professeur VALIDE :<br>note_ia conservée ≠ note_finale ajustable<br>→ exports Excel + rapport PDF"]
-        C1 --> C2
-        C2 -- "oui → styles adoucis<br>(Mentor / Indulgent)" --> C3
-        C2 -- "non → styles du prof" --> C3
-        C3 --> C4 --> C5
+    rect rgb(254, 252, 232)
+    note over P,C: Phase 2 — Questions
+    E->>S: Fin de présentation
+    S->>C: générer N questions (transcription + slides + rapport)
+    C-->>S: questions (JSON)
+    S-->>E: lecture à voix haute (Web Speech) → réponse dictée, évaluée
     end
 
-    AVANT --> PENDANT --> APRES
+    rect rgb(253, 242, 248)
+    note over P,C: Phase 3 — Notation
+    E->>S: Terminer
+    S->>S: CONTEXTE COMPLET : slides (python-pptx) + rapport (PyMuPDF)<br>+ Q&R + comportement + durée réelle
+    S->>S: Orchestrateur : stress ? → styles adoucis (Mentor/Indulgent)
+    S->>C: noter — agent = les 2 styles choisis par le prof
+    C-->>S: note /20 + justificatif PAR CRITÈRE<br>(les critères comportementaux utilisent les mesures)
+    S->>S: NOTE GLOBALE = Σ(note × coef) / Σ coef
+    S-->>P: notes en temps réel → note_finale ajustable,<br>exports Excel (openpyxl) + rapport PDF (ReportLab)
+    end
 ```
 
-**Tu dis, en suivant les 3 blocs :**
-1. « Tout part du professeur : il définit **sa grille** — des critères pondérés par
-   coefficients — et **la personnalité de son jury IA** sur deux axes : le ton des
-   questions, et la sévérité du barème. »
-2. « Pendant la présentation, deux flux en parallèle : l'audio part vers Whisper
-   pour la transcription en direct, et le navigateur mesure le **comportement** —
-   contact visuel, expressions, débit, silences. Rien de tout ça ne se perd. »
-3. « À la fin, tout converge dans un contexte unique. L'orchestrateur vérifie le
-   stress, l'agent note **chaque critère sur 20 avec justification** — les critères
-   comportementaux comme "contact visuel" sont notés à partir des **mesures
-   réelles**. La note globale est la **moyenne pondérée par les coefficients du
-   prof**. Et la note de l'IA reste séparée de la note finale : le professeur a
-   toujours le dernier mot. »
+**Tu dis, en suivant les phases :**
+0. « Tout part du professeur : il définit **sa grille de critères pondérés** et
+   **la personnalité de son jury IA** — le ton des questions et la sévérité du
+   barème, 49 combinaisons possibles. »
+1. « Pendant la présentation, deux flux en parallèle : l'audio part par WebSocket
+   vers Whisper toutes les 30 secondes — le professeur voit la transcription **en
+   direct** — et le navigateur mesure le **comportement** : contact visuel,
+   expressions, débit. Rien ne se perd. »
+2. « À la fin, Claude génère des questions **tirées du contenu réel de
+   l'étudiant**, la salle les lit à voix haute, l'étudiant répond à la voix. »
+3. « Tout converge alors dans un contexte unique. L'orchestrateur vérifie le
+   stress, l'agent note **chaque critère sur 20 avec justification** — les
+   critères comportementaux à partir des **mesures réelles**. La note globale est
+   la **moyenne pondérée par les coefficients du prof**, et sa note finale reste
+   distincte de celle de l'IA : **le professeur a toujours le dernier mot**. »
 
 ---
 
