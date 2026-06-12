@@ -435,6 +435,7 @@ sequenceDiagram
 
     rect rgb(238, 242, 255)
     note over E,P: Phase 0 — Preparation
+    E->>D: depot PPTX + rapport (conversion PDF serveur — LibreOffice)
     E->>D: GET /presentation/passage/id/salle/
     D-->>E: HTML salle + slides PDF (PDF.js)
     E->>WS: connexion ws/passage/id/audio/

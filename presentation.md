@@ -136,6 +136,7 @@ sequenceDiagram
     note over P,C: Phase 0 — Paramétrage par le professeur
     P->>S: configure la soutenance : critères + COEFFICIENTS,<br>jury IA (questionnement 7 × notation 7), anti-stress,<br>durées, langue, exigences (rapport, démo, GitHub)
     P->>S: planifie les passages (manuel ou auto)
+    E->>S: dépose PPTX + rapport — conversion en PDF<br>côté serveur (LibreOffice), affiché en slides (PDF.js)
     end
 
     rect rgb(238, 242, 255)
@@ -173,7 +174,8 @@ sequenceDiagram
 **Tu dis, en suivant les phases :**
 0. « Tout part du professeur : il définit **sa grille de critères pondérés** et
    **la personnalité de son jury IA** — le ton des questions et la sévérité du
-   barème, 49 combinaisons possibles. »
+   barème, 49 combinaisons possibles. L'étudiant, lui, dépose son PPTX, converti
+   en slides côté serveur. »
 1. « Pendant la présentation, deux flux en parallèle : l'audio part par WebSocket
    vers Whisper toutes les 30 secondes — le professeur voit la transcription **en
    direct** — et le navigateur mesure le **comportement** : contact visuel,

@@ -742,41 +742,42 @@ et la validation.
   \node[part] (pf) at (17.2,0) {Professeur\\(suivi live, WS)};
 
   % ── Lignes de vie ──
-  \draw[dashed, gray] (0,-0.5)    -- (0,-13.2);
-  \draw[dashed, gray] (5.0,-0.5)  -- (5.0,-13.2);
-  \draw[dashed, gray] (9.6,-0.5)  -- (9.6,-13.2);
-  \draw[dashed, gray] (13.4,-0.5) -- (13.4,-13.2);
-  \draw[dashed, gray] (17.2,-0.5) -- (17.2,-13.2);
+  \draw[dashed, gray] (0,-0.5)    -- (0,-13.8);
+  \draw[dashed, gray] (5.0,-0.5)  -- (5.0,-13.8);
+  \draw[dashed, gray] (9.6,-0.5)  -- (9.6,-13.8);
+  \draw[dashed, gray] (13.4,-0.5) -- (13.4,-13.8);
+  \draw[dashed, gray] (17.2,-0.5) -- (17.2,-13.8);
 
   % ── Phase 0 ──
   \node[phase, anchor=west] at (-1.4,-1.0) {Phase 0 --- Préparation};
   \draw[gray!50] (-1.4,-1.25) -- (18.4,-1.25);
-  \draw[msg]    (0,-1.8) -- node[lbl]{1. GET /presentation/passage/id/salle/} (5.0,-1.8);
-  \draw[retour] (5.0,-2.4) -- node[lbl]{2. HTML salle + slides PDF (PDF.js)} (0,-2.4);
-  \draw[msg]    (0,-3.0) -- node[lbl, pos=0.45]{3. connexion WebSocket ws/passage/id/audio/} (9.6,-3.0);
-  \draw[retour] (9.6,-3.6) -- node[lbl]{4. audio\_ready} (0,-3.6);
-  \draw[msg]    (9.6,-4.2) -- node[lbl]{5. etudiant\_connecte (broadcast)} (17.2,-4.2);
+  \draw[msg]    (0,-1.8) -- node[lbl]{0. dépôt PPTX + rapport --- conversion en PDF côté serveur (LibreOffice)} (5.0,-1.8);
+  \draw[msg]    (0,-2.4) -- node[lbl]{1. GET /presentation/passage/id/salle/} (5.0,-2.4);
+  \draw[retour] (5.0,-3.0) -- node[lbl]{2. HTML salle + slides PDF (PDF.js)} (0,-3.0);
+  \draw[msg]    (0,-3.6) -- node[lbl, pos=0.45]{3. connexion WebSocket ws/passage/id/audio/} (9.6,-3.6);
+  \draw[retour] (9.6,-4.2) -- node[lbl]{4. audio\_ready} (0,-4.2);
+  \draw[msg]    (9.6,-4.8) -- node[lbl]{5. etudiant\_connecte (broadcast)} (17.2,-4.8);
 
   % ── Phase 1 ──
-  \node[phase, anchor=west] at (-1.4,-5.0) {Phase 1 --- Présentation orale};
-  \draw[gray!50] (-1.4,-5.25) -- (18.4,-5.25);
+  \node[phase, anchor=west] at (-1.4,-5.6) {Phase 1 --- Présentation orale};
+  \draw[gray!50] (-1.4,-5.85) -- (18.4,-5.85);
   % auto-message TTS
-  \draw[msg, draw=indigo] (0,-5.8) -- ++(1.1,0) -- ++(0,-0.45) -- ++(-1.1,0);
-  \node[lbl, anchor=west] at (1.3,-6.0) {6. synthèse vocale : accueil (langue de la soutenance)};
-  \draw[msg]    (0,-6.9) -- node[lbl]{7. POST api/demarrer (statut = en\_cours)} (5.0,-6.9);
-  \draw[msg]    (5.0,-7.5) -- node[lbl, pos=0.55]{8. statut\_update (channel layer)} (17.2,-7.5);
+  \draw[msg, draw=indigo] (0,-6.4) -- ++(1.1,0) -- ++(0,-0.45) -- ++(-1.1,0);
+  \node[lbl, anchor=west] at (1.3,-6.6) {6. synthèse vocale : accueil (langue de la soutenance)};
+  \draw[msg]    (0,-7.5) -- node[lbl]{7. POST api/demarrer (statut = en\_cours)} (5.0,-7.5);
+  \draw[msg]    (5.0,-8.1) -- node[lbl, pos=0.55]{8. statut\_update (channel layer)} (17.2,-8.1);
 
   % boucle transcription
-  \draw[draw=indigo, thick, rounded corners] (-0.9,-8.1) rectangle (18.2,-12.0);
+  \draw[draw=indigo, thick, rounded corners] (-0.9,-8.7) rectangle (18.2,-12.6);
   \node[font=\scriptsize\bfseries, fill=indigo!12, draw=indigo, inner sep=2pt,
-        anchor=west] at (-0.9,-8.1) {loop --- toutes les 30 s};
-  \draw[msg]    (0,-8.9) -- node[lbl]{9. chunk audio binaire (webm/opus)} (9.6,-8.9);
-  \draw[msg]    (9.6,-9.5) -- node[lbl]{10. transcription(chunk, langue)} (13.4,-9.5);
-  \draw[retour] (13.4,-10.1) -- node[lbl]{11. texte} (9.6,-10.1);
-  \draw[msg]    (9.6,-10.7) -- node[lbl]{12. transcription\_chunk (live)} (17.2,-10.7);
-  \draw[retour] (9.6,-11.4) -- node[lbl]{13. ack + persistance BDD (globale et par étudiant)} (0,-11.4);
+        anchor=west] at (-0.9,-8.7) {loop --- toutes les 30 s};
+  \draw[msg]    (0,-9.5) -- node[lbl]{9. chunk audio binaire (webm/opus)} (9.6,-9.5);
+  \draw[msg]    (9.6,-10.1) -- node[lbl]{10. transcription(chunk, langue)} (13.4,-10.1);
+  \draw[retour] (13.4,-10.7) -- node[lbl]{11. texte} (9.6,-10.7);
+  \draw[msg]    (9.6,-11.3) -- node[lbl]{12. transcription\_chunk (live)} (17.2,-11.3);
+  \draw[retour] (9.6,-12.0) -- node[lbl]{13. ack + persistance BDD (globale et par étudiant)} (0,-12.0);
 
-  \draw[msg] (0,-12.7) -- node[lbl]{14. POST api/posture (regard, expressions, prosodie --- toutes les 30 s)} (5.0,-12.7);
+  \draw[msg] (0,-13.3) -- node[lbl]{14. POST api/posture (regard, expressions, prosodie --- toutes les 30 s)} (5.0,-13.3);
 \end{tikzpicture}%
 }
 \caption{Diagramme de séquence (1/2) : préparation et présentation orale avec
