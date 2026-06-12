@@ -109,76 +109,89 @@ au professeur de voir la transcription en temps réel. »
 
 ---
 
-## Slide 6 — ⭐ Fonctionnement : diagramme de séquence (2 min — LA slide)
+## Slide 6 — ⭐ Fonctionnement complet : du paramétrage à la note finale (2 min — LA slide)
 
-> La slide que le prof attend, juste avant la démo. Prends ton temps dessus.
+> La slide que le prof attend, juste avant la démo. Flowchart en 3 temps
+> (AVANT / PENDANT / APRÈS) — il couvre TOUT : le paramétrage par le prof,
+> les mesures comportementales, les agents, et le calcul de la note finale.
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor E as Étudiant (salle)
-    participant S as Serveur Django<br>(HTTP + WebSocket)
-    participant W as Whisper (Groq)
-    participant C as Claude (Anthropic)
-    actor P as Professeur (live)
-
-    rect rgb(238, 242, 255)
-    note over E,P: 1. Présentation
-    E->>S: Démarrer (accueil vocal de l'IA)
-    loop toutes les 30 s
-        E->>S: chunk audio (WebSocket binaire)
-        S->>W: transcription(chunk, langue)
-        W-->>S: texte
-        S-->>P: transcription en direct
-    end
+flowchart TB
+    subgraph AVANT["1 · AVANT — le professeur paramètre la soutenance"]
+        direction LR
+        A1["Critères de notation<br>prédéfinis + personnalisés<br>chacun avec son COEFFICIENT"]
+        A2["Personnalité du jury IA<br>style de questionnement (7 choix)<br>× style de notation (7 choix)<br>+ garde-fou anti-stress (on/off)"]
+        A3["Durées · langue (5) ·<br>exigences : rapport PDF,<br>démo vidéo, dépôt GitHub"]
     end
 
-    rect rgb(254, 252, 232)
-    note over E,P: 2. Questions
-    E->>S: Fin de présentation
-    S->>C: générer N questions (transcription + slides + rapport)
-    C-->>S: questions (JSON)
-    S-->>E: lecture à voix haute → l'étudiant répond à la voix
+    subgraph PENDANT["2 · PENDANT — l'étudiant présente dans la salle"]
+        direction LR
+        B1["Micro → Whisper<br>transcription continue<br>(WebSocket, 30 s)"]
+        B2["Webcam + micro → navigateur<br>contact visuel · 7 expressions ·<br>débit de parole · silences"]
+        B3["Questions générées du<br>contenu réel, lues à voix haute<br>→ réponses à la voix, évaluées"]
     end
 
-    rect rgb(253, 242, 248)
-    note over E,P: 3. Notation
-    E->>S: Terminer
-    S->>S: contexte complet (slides + rapport + Q&R + comportement)
-    S->>C: noter (style choisi par le prof, garde-fou anti-stress)
-    C-->>S: note /20 + justificatif PAR CRITÈRE
-    S-->>P: notes en temps réel → validation, ajustement, exports
+    subgraph APRES["3 · APRÈS — la notation"]
+        direction TB
+        C1["CONTEXTE COMPLET<br>transcription + slides + rapport<br>+ Q&R + mesures comportementales"]
+        C2{"Orchestrateur :<br>stress détecté ?"}
+        C3["Agent IA = les 2 styles choisis<br>note CHAQUE critère /20<br>avec justificatif citant la prestation<br>(les critères comportementaux utilisent les mesures)"]
+        C4["NOTE GLOBALE =<br>Σ (note critère × coefficient) / Σ coefficients<br>(+ notes démo vidéo et GitHub si exigées)"]
+        C5["Le professeur VALIDE :<br>note_ia conservée ≠ note_finale ajustable<br>→ exports Excel + rapport PDF"]
+        C1 --> C2
+        C2 -- "oui → styles adoucis<br>(Mentor / Indulgent)" --> C3
+        C2 -- "non → styles du prof" --> C3
+        C3 --> C4 --> C5
     end
+
+    AVANT --> PENDANT --> APRES
 ```
 
-**Tu dis, en suivant les numéros :**
-1. « L'étudiant démarre ; son micro envoie l'audio par WebSocket toutes les 30 s,
-   Whisper transcrit, le professeur voit le texte défiler **en direct**. »
-2. « À la fin, Claude génère des questions **tirées du contenu réel de l'étudiant**,
-   la salle les lit à voix haute, l'étudiant répond à la voix. »
-3. « Le pipeline assemble tout le dossier — y compris le comportement mesuré dans
-   le navigateur — et Claude note **chaque critère sur 20 avec justification**.
-   Le professeur valide, ajuste, exporte. L'IA propose, le professeur décide. »
+**Tu dis, en suivant les 3 blocs :**
+1. « Tout part du professeur : il définit **sa grille** — des critères pondérés par
+   coefficients — et **la personnalité de son jury IA** sur deux axes : le ton des
+   questions, et la sévérité du barème. »
+2. « Pendant la présentation, deux flux en parallèle : l'audio part vers Whisper
+   pour la transcription en direct, et le navigateur mesure le **comportement** —
+   contact visuel, expressions, débit, silences. Rien de tout ça ne se perd. »
+3. « À la fin, tout converge dans un contexte unique. L'orchestrateur vérifie le
+   stress, l'agent note **chaque critère sur 20 avec justification** — les critères
+   comportementaux comme "contact visuel" sont notés à partir des **mesures
+   réelles**. La note globale est la **moyenne pondérée par les coefficients du
+   prof**. Et la note de l'IA reste séparée de la note finale : le professeur a
+   toujours le dernier mot. »
 
 ---
 
-## Slide 7 — Le jury IA, validé par la mesure (1 min)
+## Slide 7 — Zoom sur le jury IA : pourquoi des styles, et la preuve qu'ils marchent (1 min)
 
-**Contenu (2 colonnes) :**
-- Gauche : **7 × 7 = 49 personnalités** (style de questionnement × style de
-  notation) + garde-fou anti-stress (bascule Mentor/Indulgent si hésitations)
-- Droite : validation empirique — **21 appels réels, même prestation** :
+> Cette slide EXPLIQUE d'abord, et chiffre ensuite — les chiffres ne tombent
+> plus de nulle part : ils valident ce qui vient d'être expliqué en slide 6.
 
-| Style | Moyenne /20 | σ |
-|---|---|---|
-| Généreux | 15,50 | 0,00 |
-| Juste | 14,72 | 0,46 |
-| Sévère | 11,17 | 1,00 |
-| Terroriste | 7,25 | 0,14 |
+**Contenu — en 3 temps (haut vers bas) :**
 
-**Tu dis :** « Même prestation, 8,25 points d'écart entre extrêmes, écart-type ≤ 1 :
-les personnalités pilotent réellement la sévérité. C'est mesuré, pas déclaré.
-Et le projet est vérifiable : **258 tests automatisés**. »
+1. **Le problème** : chaque enseignant a SA façon de noter — un jury unique et
+   neutre ne reflète personne.
+2. **La réponse** : la personnalité du jury est un **paramètre du prof** —
+   7 styles de questionnement × 7 barèmes de notation = 49 jurys possibles,
+   chaque style étant un *system prompt* distinct envoyé à Claude.
+3. **La preuve que le paramètre agit vraiment** — protocole : *même prestation,
+   même grille, seul le style de notation change, 3 répétitions par style*
+   (21 appels réels) :
+
+| Style choisi par le prof | Barème annoncé | Note obtenue /20 | σ |
+|---|---|---|---|
+| Généreux | ≈ 15–18 | **15,50** | 0,00 |
+| Juste | ≈ 12–15 | **14,72** | 0,46 |
+| Sévère | ≈ 8–12 | **11,17** | 1,00 |
+| Terroriste | ≤ 10 | **7,25** | 0,14 |
+
+**Tu dis :** « Question légitime : quand le prof choisit "Sévère", est-ce que ça
+change vraiment quelque chose, ou c'est cosmétique ? On l'a mesuré : même
+prestation, on ne fait varier QUE le style — l'écart atteint **8 points** entre
+les extrêmes, et chaque style retombe dans son barème annoncé avec un écart-type
+≤ 1. Le paramètre du professeur pilote donc réellement la note. Et tout le projet
+est vérifiable : **258 tests automatisés**. »
 
 ---
 
